@@ -22,3 +22,17 @@ mean l = Just $ (fromIntegral (sum l)) / (fromIntegral (length l))
 -- TODO: avoid walking the list twice
 -- (double accumulator fn with a foldl)
 
+-- Exercise 3.2.4
+palin [] = []
+palin (x:xs) = x:(palin xs) ++ [x]
+
+-- Exercise 3.2.5
+isPalin :: [a] -> Bool = undefined
+
+-- Exercise 3.2.6
+sortListsByLen :: [[a]] -> Int = undefined
+
+-- Exercise 3.2.7
+intersperse val = foldl accum []
+    where accum [] ll = ll
+          accum ll ll' = ll ++ [val] ++ ll'
