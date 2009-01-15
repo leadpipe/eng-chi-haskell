@@ -32,10 +32,13 @@ palin (x:xs) = x:(palin xs) ++ [x]
 -- Exercise 3.2.5
 isPalin :: (Eq a) => [a] -> Bool
 isPalin ll = all (uncurry (==)) $ zip (reverse firstHalf) secondHalf
-    where (midpoint, remainder) = (length ll) `divMod` 2
-          isEven = (remainder == 0)
-          (firstHalf, middle:secondHalf') = splitAt midpoint ll
-          secondHalf = if isEven then middle:secondHalf' else secondHalf'
+    where (firstHalf, secondHalf) =
+              let (midpoint, remainder) = (length ll) `divMod` 2
+                  isEven = (remainder == 0)
+                  (firstHalf, middle:secondHalf') = splitAt midpoint ll
+              in if isEven
+                 then (firstHalf, middle:secondHalf')
+                 else (firstHalf, secondHalf')
 
 -- Exercise 3.2.6
 sortListsByLen = sortBy cmpLists
