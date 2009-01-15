@@ -1,3 +1,6 @@
+import Data.List (sortBy)
+import Data.Function (on)
+
 data List a = Cons a (List a)
             | Nil
               deriving (Show)
@@ -27,10 +30,17 @@ palin [] = []
 palin (x:xs) = x:(palin xs) ++ [x]
 
 -- Exercise 3.2.5
-isPalin :: [a] -> Bool = undefined
+isPalin :: (Eq a) => [a] -> Bool
+isPalin ll = all (uncurry (==)) $ zip (reverse firstHalf) secondHalf
+    where (midpoint, remainder) = (length ll) `divMod` 2
+          isEven = (remainder == 0)
+          (firstHalf, middle:secondHalf') = splitAt midpoint ll
+          secondHalf = if isEven then middle:secondHalf' else secondHalf'
 
 -- Exercise 3.2.6
-sortListsByLen :: [[a]] -> Int = undefined
+sortListsByLen = sortBy cmpLists
+    where cmpLists l1 l2 = compare (length l1) (length l2)
+sortListsByLen' = sortBy (compare `on` length)
 
 -- Exercise 3.2.7
 intersperse val = foldl accum []
