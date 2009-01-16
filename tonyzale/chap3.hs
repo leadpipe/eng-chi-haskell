@@ -27,3 +27,13 @@ meanHelper [] total count = total / count
 meanList :: [Double] -> Double
 meanList x = meanHelper x 0.0 0
 
+myreverse [] = []
+myreverse x  = myreverse (tail x) ++ [(head x)]
+
+makePalindrome :: [a] -> [a]
+makePalindrome x = x ++ myreverse(x)
+
+--checkPalindrome :: [a] -> Bool
+checkPalindrome [] = True
+checkPalindrome (x:[]) = False
+checkPalindrome (x:xs) = (x == (last xs)) && (checkPalindrome (init xs))
