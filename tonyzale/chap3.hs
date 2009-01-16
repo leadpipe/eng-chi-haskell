@@ -37,3 +37,9 @@ makePalindrome x = x ++ myreverse(x)
 checkPalindrome [] = True
 checkPalindrome (x:[]) = False
 checkPalindrome (x:xs) = (x == (last xs)) && (checkPalindrome (init xs))
+
+--intersperse :: a -> [[a]] -> [a]
+intersperse (sep, []) = []
+-- why does the following line not work, and why when i uncomment it is the error on the (x:xs) condition??
+--intersperse (sep, (x:[])) = [x]
+intersperse (sep, (x:xs)) = x ++ sep ++ (intersperse (sep,xs) )
