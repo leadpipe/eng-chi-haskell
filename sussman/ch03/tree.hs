@@ -11,9 +11,8 @@ simpleTree = Node "parent" (Node "left child" Empty Empty)
 -- Exercise: define a tree type with only one constructor, using Maybe
 -- instead of Empty to refer to the children.
 
-data MyTree a = MyNode a (Maybe (MyTree a)) (Maybe (MyTree a))
+data MyTree a = Maybe (a (MyTree a) (MyTree a))
                 deriving (Show)
 
-newTree = MyNode "parent" (Just (MyNode "left" Nothing Nothing))
-                          (Just (MyNode "right" Nothing Nothing))
-
+newTree = Just ("parent" (Just ("left" Nothing Nothing))
+                         (Just ("right" Nothing Nothing)))
