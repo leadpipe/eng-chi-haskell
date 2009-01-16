@@ -85,7 +85,7 @@ treeHeight t =
 -- line. Define a Direction data type that lets you represent these
 -- possibilities.
 
-data Point = Point Int Int
+data Point = Point { xcoord :: Int, ycoord :: Int }
              deriving (Show)
 
 data Direction = LeftTurn | RightTurn | StraightAhead
@@ -97,7 +97,9 @@ data Direction = LeftTurn | RightTurn | StraightAhead
 
 calculateTurn :: Point -> Point -> Point -> Direction
 calculateTurn a b c = LeftTurn
--- finish this
+-- ### finish this... tonyzale says this is a classic videogame
+-- ### thing... calculate the dotproduct from a to b and b to
+-- ### c... positive/negative dotproduct indicates left/right turn
 
 
 -- 11.  Define a function that takes a list of 2D points and computes the
@@ -106,8 +108,22 @@ calculateTurn a b c = LeftTurn
 -- then the turn made by [b,c,d], then [c,d,e]. Your function should
 -- return a list of Direction.
 
+listDirections :: [Point] -> [Direction]
+listDirections [] = []
+listDirections [a,b] = []
+listDirections (x:xs) = (calculateTurn x y z) : listDirections xs
+                           where y = head xs
+                                 z = head (tail xs)
+
+-- ??? why does this variant not work correctly ??
+listDirs (x:y:xs) = (calculateTurn x y z) : listDirs xs
+                      where z = head xs
+listDirs _ = []
+
 
 -- 12.  Using the code from the preceding three exercises, implement
 -- Graham's scan algorithm for the convex hull of a set of 2D
 -- points. You can find good description of what a convex hull. is,
 -- and how the Graham scan algorithm should work, on Wikipedia.
+
+--- ### not yet done.
