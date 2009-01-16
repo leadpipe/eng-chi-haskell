@@ -1,6 +1,8 @@
 
 -- Chapter 3 exercises!
 
+import Data.List
+
 -- 1, 2.  write a function that computes the number of elements in a
 -- list.  add a type signature too.
 
@@ -31,11 +33,24 @@ palindrome l = l ++ (reverse l)
 
 -- 5. Write a function that determines whether its input list is a palindrome.
 
-isPalindrome l = case l of
-                   []       -> True
-                   [x]      -> False
-                   (x:xs)   -> (x == (last xs)) && 
-                               (isPalindrome (take (n-1) xs))
-                                  where n = length xs
+isPalindrome l = (l == reverse l) 
 
 
+-- 6. Create a function that sorts a list of lists based on the length
+-- of each sublist. (You may want to look at the sortBy function from
+-- the Data.List module.)
+
+lenCompare a b
+  | (length a) < (length b) = LT
+  | otherwise = GT
+
+mySort xs = sortBy lenCompare xs
+
+
+-- 7. a function that joins a list of lists together using a separator value
+
+myintersperse :: a -> [[a]] -> [a]
+myintersperse sep l
+   | l == []        = []
+   | length l == 1  = head l
+   | otherwise      = head l ++ sep ++ myintersperse sep (tail l)
