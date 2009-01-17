@@ -1,4 +1,5 @@
 --file: ch03/Excercises.hs
+import Data.List (sortBy)
 
 myLength :: [a] -> Int
 myLength [] = 0
@@ -24,3 +25,7 @@ toPalindrome Odd (x:[]) = [x]
 toPalindrome palintype (x:xs) = x:(toPalindrome palintype xs) ++ [x]
 
 isPalindrome ll = ll == (reverse ll)
+
+intersperse sep [] = ""
+intersperse sep (x:[]) = x
+intersperse sep (x:xs) = x ++ sep:(intersperse sep xs)
