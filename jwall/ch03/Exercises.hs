@@ -22,3 +22,5 @@ oddPalindrome ll = toPalindrome Odd ll
 toPalindrome palintype [] = []
 toPalindrome Odd (x:[]) = [x]
 toPalindrome palintype (x:xs) = x:(toPalindrome palintype xs) ++ [x]
+
+isPalindrome ll = ll == (reverse ll)
