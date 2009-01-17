@@ -8,23 +8,33 @@ where
 import Test.HUnit.Base
 import Test.HUnit.Text
 
-import Control.Concurrent (forkIO,putMVar,newEmptyMVar,takeMVar,tryTakeMVar,threadDelay)
+import Control.Concurrent (MVar,forkIO,putMVar,newEmptyMVar,takeMVar,tryTakeMVar,threadDelay)
 import Control.Monad (forM,forM_,when)
 import Data.Maybe (fromJust)
 import System.IO.Unsafe (unsafePerformIO)
 import Control.Exception (evaluate)
+
+-- future from Jeff Heard's blog
+future :: IO a -> IO (MVar a)
+future thunk = do
+  ref <- newEmptyMVar
+  forkIO $ thunk >>= putMVar ref
+  return ref
+
+-- forceAll from Jeff Heard's blog
+forceAll :: [MVar a] -> IO [a]
+forceAll = mapM takeMVar
+
+forceAll_ :: [MVar a] -> IO ()
+forceAll_ = mapM_ takeMVar
+
 
 -- | 'parMapIO' is a parallel version of 'mapM' in the 'IO' monad.
 -- Each element is processed in its own forkIO thread, and the results are
 -- collected and returned in the original order. This function is lazy in
 -- the returned values.
 parMapIO :: (a -> IO b) -> [a] -> IO [b]
-parMapIO f xs = do
-  ms <- forM xs $ \a -> do
-    m <- newEmptyMVar
-    forkIO (f a >>= putMVar m)
-    return m
-  mapM takeMVar ms
+parMapIO f xs = mapM (future . f) xs >>= forceAll
 
 -- | 'parForIO' is 'parMapIO' with its arguments flipped,
 -- this makes it a parallel form of 'forM' in the 'IO' monad.
@@ -49,12 +59,7 @@ parForIO' = flip parMapIO'
 -- Each element is processed in its own forkIO thread, and all threads are
 -- run to completion before 'parMapIO_' completes.
 parMapIO_ :: (a -> IO b) -> [a] -> IO ()
-parMapIO_ f xs = do
-  ms <- forM xs $ \a -> do
-    m <- newEmptyMVar
-    forkIO (f a >>= putMVar m)
-    return m
-  mapM_ takeMVar ms
+parMapIO_ f xs = mapM (future . f) xs >>= forceAll_
 
 -- | 'parForIO_' is 'parMapIO_' with its arguments flipped,
 -- this makes it a parallel form of 'forM_' in the 'IO' monad.
@@ -66,9 +71,7 @@ parForIO_ = flip parMapIO_
 -- 'parMapIO__' returns immediately, without waiting for the threads
 -- to complete.
 parMapIO__ :: (a -> IO b) -> [a] -> IO ()
-parMapIO__ f xs = do
-  forM_ xs $ \a -> do
-    forkIO (f a >> return ())
+parMapIO__ f = mapM_ (\a -> forkIO $ f a >> return ())
 
 -- | 'parForIO__' is 'parMapIO__' with its arguments flipped,
 -- this makes it a parallel form of 'forM_' in the 'IO' monad.
