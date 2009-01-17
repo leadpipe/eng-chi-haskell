@@ -13,6 +13,12 @@ _accumulate acc count [] = (acc, count)
 myMean ll = let (amt, len) = accumulate ll
     in amt/len
 
-toPalindrome [] = []
---toPalindrome (x:[]) = [x] -- uncomment to make palindromes of odd size
-toPalindrome (x:xs) = x:(toPalindrome xs) ++ [x]
+data PalinType = Odd | Even
+    deriving (Show)
+
+evenPalindrome ll = toPalindrome Even ll 
+oddPalindrome ll = toPalindrome Odd ll 
+
+toPalindrome palintype [] = []
+toPalindrome Odd (x:[]) = [x]
+toPalindrome palintype (x:xs) = x:(toPalindrome palintype xs) ++ [x]
