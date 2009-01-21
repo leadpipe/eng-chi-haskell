@@ -31,6 +31,7 @@ getArray :: JValue -> Maybe JValue
 getObject (JObject o) = Just o
 getObject _           = Nothing
 
+--isNull is a partial
 isNull :: JValue -> Bool
 isNull                = (JNull ==)
 
