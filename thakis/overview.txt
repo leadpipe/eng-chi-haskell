@@ -1,0 +1,29 @@
+Chapter 3
+---------
+
+* Algebraic Data Types (`data`), record syntax, recursive types,
+  parameterizes types (`Maybe`)
+* Type synonyms (`type`)
+* Pattern matching
+* Local declarations (`where`, `let`, whitespace rules)
+* `case` expression (for pattern matching result of expression only)
+* Guards (for general boolean checks against result of expression)
+
+
+Chapter 4
+---------
+
+* Simple IO, `do`
+* Infix functions and infix value constructors (``add``)
+* Several built-in fuctions (`isPrefixOf` etc, `Data.List`, `concat`, ++, 
+  `reverse`, `any`/`all`, `take`/`drop`/`splitAt`,
+  `takeWhile`/`dropWhile`/`break`/`span`, `elem`/`notElem`, `zip`/`zipWith`,
+  `lines`/`unlines`/`words`/`unwords`, ...)
+* Partial vs total functions
+* `map`, `filter`, `foldl`
+* `foldr` and primitive recursive funtions, `foldl` as `foldr`
+* `foldl'`, `seq`
+* lambda functions
+* partial funciton application, point-free style
+* sections
+* as-patterns
