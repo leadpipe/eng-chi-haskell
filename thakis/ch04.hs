@@ -87,3 +87,18 @@ myTakeWhile p (x:xs) = if p x then x:takeWhile p xs else []
 myTakeWhile2 p l = foldr (\a b -> if p a then a:b else []) [] l
 
 -- 2.8, 2.9
+--
+-- Prelude> :module + Data.List
+-- Prelude Data.List> groupBy (\a b -> a `div` 10 == b `div` 10) [1..20]
+-- [[1,2,3,4,5,6,7,8,9],[10,11,12,13,14,15,16,17,18,19],[20]]
+
+myGroupBy :: (a -> a -> Bool) -> [a] -> [[a]]
+myGroupBy p l = foldr f [] l
+  where f x (y:ys) = if p x (head y) then (x:y):ys else [x]:y:ys
+        f x [] = [[x]]
+
+
+-- 2.10
+-- XXX
+-- any, cycle, words, unlines with foldr; wich foldl, which foldl' (and which
+-- better?)
