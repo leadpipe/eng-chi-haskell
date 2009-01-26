@@ -3,6 +3,14 @@ import System.Environment (getArgs)
 import Data.Char (digitToInt, isDigit)
 import Data.List (transpose)
 
+
+test a b = do
+  if a == b
+    then putStrLn $ "Ok (" ++ (show a) ++ " == " ++ (show b) ++ ")"
+    else error $ (show a) ++ " /= " ++ (show b)
+
+
+
 -- 1.1
 safeHead :: [a] -> Maybe a
 safeHead (x:xs) = Just x
@@ -100,8 +108,45 @@ myGroupBy p l = foldr f [] l
 
 -- 2.10
 -- XXX
--- cycle, words, unlines with foldr; wich foldl, which foldl' (and which
+-- words, unlines with foldr; wich foldl, which foldl' (and which
 -- better?)
 
-myAny f l = foldr (\a b -> f a || b) False l
+-- chokes if infinite lists are used
+--myAny f l = foldr (\a b -> f a || b) False l
+myAny f l = foldr (\a b -> b || f a) False l  -- likely faster
+
+-- works with infinite lists, but doesn't use foldr either
 myAny2 f l = or $ map f l
+
+-- doesn't work with infinite lists, but doesn't stack overflow for them but
+-- instead makes your computer unresponsive. is that better? you decide.
+myAny3 f l = foldl (\b a -> b || f a) False l
+
+
+myCycle :: [a] -> [a]
+myCycle [] = error "OMG WTF NOOB! myCycle needs a non-empty list."
+myCycle l = foldr step [] [1..]  --we need an infinite input for infinite output
+  where step a b = l ++ b  -- needs to traverse all of l
+                           -- every time it's prepended
+
+myWords :: String -> [String]
+myWords s = foldr step [] s
+  where
+    step :: Char -> [String] -> [String]
+    step c [] = if isspace c then [] else [c:[]]
+    step c l@([]:ws) = if isspace c then l else (c:[]):ws
+    step c l@(w:ws) =
+      if isspace c then []:l else (c:w):ws
+    isspace c = c == ' '
+   
+
+
+runTests = do
+  test [1, 2, 1, 2] $ take 4 $ myCycle [1, 2]
+  --test [] $ take 4 $ myCycle []  -- how can I test for exceptions?
+
+  test ["OH", "HAI"] $ myWords "OH HAI"
+  test ["OH", "HAI"] $ myWords "OH  HAI"
+  test [] $ myWords ""
+  test [] $ myWords " "
+  test ["a"] $ myWords " a "  -- fails
