@@ -100,5 +100,8 @@ myGroupBy p l = foldr f [] l
 
 -- 2.10
 -- XXX
--- any, cycle, words, unlines with foldr; wich foldl, which foldl' (and which
+-- cycle, words, unlines with foldr; wich foldl, which foldl' (and which
 -- better?)
+
+myAny f l = foldr (\a b -> f a || b) False l
+myAny2 f l = or $ map f l
