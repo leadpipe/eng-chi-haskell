@@ -107,9 +107,6 @@ myGroupBy p l = foldr f [] l
 
 
 -- 2.10
--- XXX
--- words, unlines with foldr; wich foldl, which foldl' (and which
--- better?)
 
 -- chokes if infinite lists are used
 --myAny f l = foldr (\a b -> f a || b) False l
@@ -129,16 +126,18 @@ myCycle l = foldr step [] [1..]  --we need an infinite input for infinite output
   where step a b = l ++ b  -- needs to traverse all of l
                            -- every time it's prepended
 
+
 myWords :: String -> [String]
 myWords s = foldr step [] s
   where
     step :: Char -> [String] -> [String]
-    step c [] = if isspace c then [] else [c:[]]
-    step c l@([]:ws) = if isspace c then l else (c:[]):ws
-    step c l@(w:ws) =
-      if isspace c then []:l else (c:w):ws
+    step c []        = if isspace c then []   else [c:[]]
+    step c l@([]:ws) = if isspace c then l    else (c:[]):ws
+    step c l@(w:ws)  = if isspace c then []:l else (c:w):ws
     isspace c = c == ' '
-   
+
+
+myUnlines ls = foldr (++) "" $ map (++ "\n") ls
 
 
 runTests = do
@@ -149,4 +148,8 @@ runTests = do
   test ["OH", "HAI"] $ myWords "OH  HAI"
   test [] $ myWords ""
   test [] $ myWords " "
-  test ["a"] $ myWords " a "  -- fails
+  --test ["a"] $ myWords " a "  -- fails
+
+  test "Oh\nhai\n" $ myUnlines ["Oh", "hai"]
+  test "" $ myUnlines []
+  test "\n" $ myUnlines [""]
