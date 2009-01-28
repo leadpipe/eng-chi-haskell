@@ -5,7 +5,7 @@ import Prettify
 import PrettyJSON
 
 main = do
-  obj <- JObject [("foo", JNumber 1), ("bar", JBool False)]
+  let obj = JObject [("foo", JNumber 1), ("bar", JBool False)]
   print obj
-  putStrLn $ pretty $ renderJValue obj
+  putStrLn $ pretty 80 $ renderJValue obj
 
