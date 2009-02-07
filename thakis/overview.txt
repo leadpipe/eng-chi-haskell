@@ -75,3 +75,10 @@ Chapter 7
 
 Chapter 8
 ---------
+
+* `Data.ByteString`, `Data.ByteString.Lazy`, special `take`, `pack`, `length`
+  etc functions
+* `Text.Regex.Posix`, `=~` and some of its result types
+* Example: Translating glob patterns to regexen
+* "Laziness makes tail recursion less crucial"
+* Some more `System.Directory` functions; using the glob function to find files
