@@ -27,3 +27,51 @@ Chapter 4
 * partial funciton application, point-free style
 * sections
 * as-patterns
+
+
+Chapter 5
+---------
+
+* Module headers
+* Cabal packages
+
+
+Chapter 6
+---------
+
+* Typeclasses: `class` and `instance`, `(Show a, Integral b) => a -> b` notation
+* Built-in typeclasses: Show, Read, Num, Fractional, Floating, Integral,
+  RealFrac, Real, Bounded, Enum, Eq, Ord
+* Automatic derivation of Read, Show, Eq, Ord, Enum, Bounded
+* `Either`
+* Extensions:
+  + TypeSynonymInstances: Makes it legal to use String for an a, even
+    though String is [Char] and hence really a [a].
+  + OverlappingInstances: Typeclass instances may overlap, the most specific one
+    is chosen.
+  + NoMonomorphismRestriction: Huh.
+* `newtype` ("strong typedef", vs `type` which _is_ a typedef) -- can work help
+  around overlapping instances
+* Control.Arrow> second (*2) (3, 4)
+  (3,8)
+
+
+Chapter 7
+---------
+
+* `IO a`, "actions"
+* `Handle`, `hPutStrLn`, `openFile`, `hClose`, `openBinaryFile`
+* `hTell`, `hSeek`
+* `stdin`, `stderr`, `stdout` in `System.IO`
+* `System.Directory`: `removeFile`, `renameFile`
+* `openTempFile`, `openBinaryTempFile`, `finally`
+* `hGetContents`
+* `interact` ! (`main = interact (unlines . filter (elem 'a') . lines)`...)
+* Term "IO Monad", `mapM`, `mapM_`
+* `>>`, `>>=`, "the true nature of `return`" (but no general monad laws yet),
+  only IO
+* Buffering modes; `getArgs`, `getProgName`; `getEnv`, `getEnvironment`
+
+
+Chapter 8
+---------
