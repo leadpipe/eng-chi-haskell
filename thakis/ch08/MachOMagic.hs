@@ -1,5 +1,6 @@
 import qualified Data.ByteString.Lazy as L
 
+-- See comment about Mach-O in /usr/share/file/magic
 hasMachOMagic content =
      start == machOMagic
   || start == machOMagic64
