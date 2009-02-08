@@ -31,4 +31,4 @@ charClass _ = error "unterminated character class"
 
 
 matchesGlob :: FilePath -> String -> Bool
-f `matchesGlob` g = g =~ globToRegex g
+f `matchesGlob` g = f =~ globToRegex g
