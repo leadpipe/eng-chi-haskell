@@ -11,6 +11,7 @@ hasMachOMagic content =
         machOMagicUniversal = L.pack [0xca, 0xfe, 0xba, 0xbe]
 
 
+isMachOFile :: FileName -> IO Bool
 isMachOFile f = L.readFile f >>= return . hasMachOMagic
 
 
@@ -28,8 +29,13 @@ main = do
   putStrLn $ show $ hasMachOMagic s
 
   -- Is there an easier way to print the result of `isMachOFile` ?
+  --isMachOFile name >>= return . show >>= putStrLn
+  isMachOFile name >>= print  -- Yes!
+
   isMachOFile name >>= return . show >>= putStrLn
 
-  isMachOFile name2 >>= return . show >>= putStrLn
+  putStrLn =<< return . show =<< isMachOFile name
 
-  isMachOFile name3 >>= return . show >>= putStrLn
+  -- These files are not on every os x machine, comment them out:
+  --isMachOFile name2 >>= return . show >>= putStrLn
+  --isMachOFile name3 >>= return . show >>= putStrLn
