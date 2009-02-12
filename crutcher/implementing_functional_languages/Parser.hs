@@ -102,7 +102,7 @@ parseCoreDefn = do
   n <- parseCoreEVar >>= return . name
   reservedOp "="
   e <- parseCoreExpr
-  return (n, e)
+  return $ (n, e)
 
 
 parseCoreELam :: P.Parser CoreExpr
