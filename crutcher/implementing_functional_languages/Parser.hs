@@ -2,16 +2,23 @@ module Parser where
 
 import Expr
 
-import qualified Text.ParserCombinators.Parsec as P
-import qualified Text.ParserCombinators.Parsec.Token as PT
-import qualified Text.ParserCombinators.Parsec.Expr as PE
 import Text.ParserCombinators.Parsec ((<|>))
+import qualified Text.ParserCombinators.Parsec as P
+import qualified Text.ParserCombinators.Parsec.Expr as PE
+import qualified Text.ParserCombinators.Parsec.Token as PT
 import qualified Text.ParserCombinators.Parsec.Language as PL
 
 -- For main
 import System.Environment
 import Text.ParserCombinators.Parsec.Prim(parseTest)
 
+-- | @only p@ parses /one/ occurance of @p@, followed by @eof@.
+-- Returns the result of @p@.
+only :: (Show tok) => P.GenParser tok st b -> P.GenParser tok st b
+only p = do
+  x <- p
+  P.eof
+  return x
 
 parseCoreProgram :: P.Parser CoreProgram
 parseCoreProgram = semiSep1 parseCoreScDefn

@@ -12,6 +12,11 @@ import System.Environment
 import Text.ParserCombinators.Parsec.Prim(parseTest)
 
 
+main = do
+  source <- getContents
+  parseTest (only parseCoreProgram) source
+
+
 corePrelude :: String
 corePrelude = intercalate ";\n"
    ["I x = x",
@@ -22,6 +27,7 @@ corePrelude = intercalate ";\n"
     "twice f = compose f f"]
 
 corePreludeProgram :: CoreProgram
-corePreludeProgram = case (parse parseCoreProgram "prelude" corePrelude) of 
-  Left err -> error (show err)
-  Right p -> p
+corePreludeProgram
+  = case (parse (only parseCoreProgram) "(prelude)" corePrelude) of 
+      Left err -> error (show err)
+      Right p -> p
