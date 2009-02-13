@@ -31,3 +31,5 @@ buildlines somelines = peeledword : buildLines shorterlines
 
 transposeText :: String -> String
 transposeText str = unlines (buildLines (lines str))
+
+-- ## this doesn't quite work yet, not sure why.
