@@ -1,4 +1,5 @@
 --file: ch05/SimpleJSON.hs
+
 data JValue = JString String
             | JNumber Double
             | JBool Bool
