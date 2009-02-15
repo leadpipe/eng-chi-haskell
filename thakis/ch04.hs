@@ -109,8 +109,8 @@ myGroupBy p l = foldr f [] l
 -- 2.10
 
 -- chokes if infinite lists are used
---myAny f l = foldr (\a b -> f a || b) False l
-myAny f l = foldr (\a b -> b || f a) False l  -- likely faster
+myAny f l = foldr (\a b -> f a || b) False l  -- works with infinite lists, yay!
+--myAny f l = foldr (\a b -> b || f a) False l  -- crap
 
 -- works with infinite lists, but doesn't use foldr either
 myAny2 f l = or $ map f l
@@ -141,6 +141,8 @@ myUnlines ls = foldr (++) "" $ map (++ "\n") ls
 
 
 runTests = do
+  test True $ myAny even [1..]
+
   test [1, 2, 1, 2] $ take 4 $ myCycle [1, 2]
   --test [] $ take 4 $ myCycle []  -- how can I test for exceptions?
 
@@ -153,3 +155,49 @@ runTests = do
   test "Oh\nhai\n" $ myUnlines ["Oh", "hai"]
   test "" $ myUnlines []
   test "\n" $ myUnlines [""]
+
+f a | b == 2 = 3
+    | otherwise = 4
+    where b = 2 * a
+
+--let b = 2*a in
+--g a | b == 2 = 3
+--    | otherwise = 4
+
+-- questions:
+-- Is it possible to handle infinite lists with foldr in finite time?
+--   -> Yes, if evaluation stops on the list elements
+-- How can I test for exceptions?
+--   -> Yes, `handle`, later.
+--
+-- (Btw: It sucks that inexhaustive patterns are not detected at compile time.
+--       I know it's a hard problem, but still :-P)
+-- Is it possible to use a guard at the start of an `in` in `let .. in ..`?
+--
+-- "`undefined` is defined in the prelude
+
+myFoldl :: (a -> b -> a) -> a -> [b] -> a
+
+
+myFoldl f z xs = (foldr step id xs) z
+{-myFoldl f z xs = (foldr (stepasdf f) id xs) z-}
+  where
+    step :: b -> (a -> a) -> a -> a
+    {-step :: b -> (a -> t) -> a -> t-}
+    step x g a = g (f a x)
+
+stepasdf f x g a = g (f a x)
+
+-- Homework:
+-- * write scale [1, 2, 3] -> [0.3333333, 0.6666, 1] in a cool way
+-- * figure out `:t myFoldl.step`
+
+
+
+
+
+--scale :: [Float] -> [Float]
+--scale xs = let (m, xs') = f m xs in xs'
+  --where
+  --f m' [] = (m', [])
+  --f m' (x:xs) = let m'' = max x m'' in (max m'' x, f m' xs)
