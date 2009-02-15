@@ -59,6 +59,8 @@ Chapter 6
 Chapter 7
 ---------
 
+"Careful first contacts with the IO monad"
+
 * `IO a`, "actions"
 * `Handle`, `hPutStrLn`, `openFile`, `hClose`, `openBinaryFile`
 * `hTell`, `hSeek`
@@ -82,3 +84,27 @@ Chapter 8
 * Example: Translating glob patterns to regexen
 * "Laziness makes tail recursion less crucial"
 * Some more `System.Directory` functions; using the glob function to find files
+
+
+Chapter 9
+---------
+
+"Mixing regular functions and functions that use IO"
+
+* `mapM` vs `forM`
+* `filterM`
+* `bracket` for making sure file handles are closed
+* short DSL example for file predicates, "lifting" (XXX)
+* Custom operators, `infix`, `infixr`, `infixl`
+* `liftM`
+* (layout suggestions)
+
+
+Chapter 10
+----------
+
+* PGM loader
+* "Maybe mondad"
+* Passing state around (is this the state monad?)
+* `fmap` in some detail (and `fmap` laws)
+* "Put type constraints on functions, not constructors"
