@@ -1,5 +1,6 @@
 import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.ByteString.Lazy as L
+import Char (chr, isDigit)
 import Control.Applicative ((<$>))
 import Data.Char (isSpace)
 import Data.Int (Int64)
@@ -197,14 +198,77 @@ parseWhile p = (fmap p <$> peekByte) ==> \mp ->
                then parseByte ==> \b ->
                     (b:) <$> parseWhile p
                else identity []
-  
-                
+
+parseRawPGM :: Parse Greymap
+parseRawPGM =
+    parseWhileWith w2c notWhite ==> \header -> skipSpaces ==>&
+    assert (header == "P5") "invalid raw header" ==>&
+    parseNat ==> \width -> skipSpaces ==>&
+    parseNat ==> \height -> skipSpaces ==>&
+    parseNat ==> \maxGrey ->
+    parseByte ==>&
+    parseBytes (width * height) ==> \bitmap ->
+    identity (Greymap width height maxGrey bitmap)
+  where notWhite = (`notElem` " \r\n\t")
+
+parseWhileWith :: (Word8 -> a) -> (a -> Bool) -> Parse [a]
+parseWhileWith f p = fmap f <$> parseWhile (p . f)
+
+parseNat :: Parse Int
+parseNat = parseWhileWith w2c isDigit ==> \digits ->
+           if null digits
+           then bail "no more input"
+           else let n = read digits
+                in if n < 0
+                   then bail "integer overflow"
+                   else identity n
+
+(==>&) :: Parse a -> Parse b -> Parse b
+p ==>& f = p ==> \_ -> f
+
+skipSpaces :: Parse ()
+skipSpaces = parseWhileWith w2c isSpace ==>& identity ()
+
+assert :: Bool -> String -> Parse ()
+assert True  _   = identity ()
+assert False err = bail err
+
+parseBytes :: Int -> Parse L.ByteString
+parseBytes n =
+    getState ==> \st ->
+    let n' = fromIntegral n
+        (h, t) = L.splitAt n' (string st)
+        st' = st { offset = offset st + L.length h, string = t }
+    in putState st' ==>&
+       assert (L.length h == n') "end of input" ==>&
+       identity h
+
+w2c :: Word8 -> Char
+w2c = chr . fromIntegral
+
+
+-- We let this return Maybe instead of Either, so that has the same signature
+-- as the other parseP5 functions
+--parse :: Parse a -> L.ByteString -> Either String a
+parse :: Parse a -> L.ByteString -> Maybe (a, L.ByteString)
+parse parser initState
+    = case runParse parser (ParseState initState 0) of
+        --Left err          -> Left err
+        Left _          -> Nothing
+        --Right (result, _) -> Right result
+        Right (result, _) -> Just (result, L.pack [])
+               -- Return a dummy remaining string for now (XXX)
+
+parseP5_overengineered :: L.ByteString -> Maybe (Greymap, L.ByteString)
+parseP5_overengineered = parse parseRawPGM
+
 ------------------------------------------------------------------------------
 -- Main function -------------------------------------------------------------
 ------------------------------------------------------------------------------
 
 --parseP5 = parseP5_naive
-parseP5 = parseP5_take2
+--parseP5 = parseP5_take2
+parseP5 = parseP5_overengineered
 
 main = do
   -- I created the pbm file like this:
@@ -216,5 +280,5 @@ main = do
   -- (For the tiff file, I opened some image in Preview.app and dragged its
   -- proxy icon in the title bar into Terminal.app)
   f <- L.readFile "test.pgm"
-  let r = parseP5_naive f
+  let r = parseP5 f
   print r
