@@ -1,5 +1,6 @@
 import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.ByteString.Lazy as L
+import Control.Applicative ((<$>))
 import Data.Char (isSpace)
 import Data.Int (Int64)
 import Data.Word (Word8)
@@ -187,7 +188,16 @@ instance Functor Parse where
     fmap f parser = parser ==> \result ->
                     identity (f result)
 
+peekByte :: Parse (Maybe Word8)
+peekByte = (fmap fst . L.uncons . string) <$> getState
 
+parseWhile :: (Word8 -> Bool) -> Parse [Word8]
+parseWhile p = (fmap p <$> peekByte) ==> \mp ->
+               if mp == Just True
+               then parseByte ==> \b ->
+                    (b:) <$> parseWhile p
+               else identity []
+  
                 
 ------------------------------------------------------------------------------
 -- Main function -------------------------------------------------------------
