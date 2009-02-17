@@ -161,6 +161,16 @@ parseByte =
                                      offset = newOffset }
               newOffset = offset initState + 1
 
+-- This does the same thing (except for the error message) and looks much
+-- more natural to me.
+parseByte_mine =
+    Parse (\s -> case L.uncons (string s) of
+       Nothing -> Left "OMG"
+       Just (byte, remainder) -> Right (byte, newState)
+         where newState = s { string = remainder, offset = offset s + 1}
+    )
+
+
 getState :: Parse ParseState
 getState = Parse (\s -> Right (s, s))
 
@@ -256,8 +266,7 @@ parse parser initState
         --Left err          -> Left err
         Left _          -> Nothing
         --Right (result, _) -> Right result
-        Right (result, _) -> Just (result, L.pack [])
-               -- Return a dummy remaining string for now (XXX)
+        Right (result, s) -> Just (result, string s)
 
 parseP5_overengineered :: L.ByteString -> Maybe (Greymap, L.ByteString)
 parseP5_overengineered = parse parseRawPGM
