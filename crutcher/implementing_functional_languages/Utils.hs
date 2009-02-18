@@ -14,6 +14,7 @@ hUpdate  :: Heap a -> Addr -> a -> Heap a
 hFree    :: Heap a -> Addr -> Heap a
 
 type Heap a = (Int, [Int], [(Int, a)])
+type Heap a = (Int, [Addr], [(Addr, a)])
 type Addr = Int
 
 hInitial                             = (0,      [1..],  [])
@@ -21,6 +22,9 @@ hAlloc  (size, (next:free), cts) n   = ((size+1, free,   (next,n) : cts),next)
 hUpdate (size, free,        cts) a n = (size,   free,   (a,n) : remove cts a)
 hFree   (size, free,        cts) a   = (size-1, a:free, remove cts a)
 -}
+
+aLookup :: Eq a => a -> b -> [(a,b)] -> b
+aLookup key def xs = maybe def id (L.lookup key xs)
 
 newtype Addr = Addr Int
   deriving (Enum,Eq,Ord,Show)
@@ -60,7 +64,7 @@ remove a (h@(a',_):ls)
 
 
 
-data MapHeap a = MapHeap [Addr] (Map Addr a)
+data MapHeap a = MapHeap { heapFreeList :: [Addr], heapMap :: Map Addr a }
 
 instance Heap MapHeap where
   hInitial = MapHeap [Addr 1..] empty
