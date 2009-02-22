@@ -8,10 +8,6 @@ import qualified Text.ParserCombinators.Parsec.Expr as PE
 import qualified Text.ParserCombinators.Parsec.Token as PT
 import qualified Text.ParserCombinators.Parsec.Language as PL
 
--- For main
-import System.Environment
-import Text.ParserCombinators.Parsec.Prim(parseTest)
-
 -- | @only p@ parses /one/ occurance of @p@, followed by @eof@.
 -- Returns the result of @p@.
 only :: (Show tok) => P.GenParser tok st b -> P.GenParser tok st b

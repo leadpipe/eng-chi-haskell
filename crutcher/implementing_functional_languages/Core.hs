@@ -6,7 +6,8 @@ import Text.ParserCombinators.Parsec.Prim(parse)
 
 import Expr
 import Parser
-import Utils
+
+import Heap
 
 import Template
 
@@ -44,3 +45,5 @@ simpleProgram
   = case (parse (only parseCoreProgram) "(prelude)" simple) of 
       Left err -> error (show err)
       Right p -> p -- ++ corePreludeProgram
+
+
