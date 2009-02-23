@@ -1,3 +1,5 @@
+module Pnm where
+
 import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.ByteString.Lazy as L
 import Char (chr, isDigit)
@@ -256,20 +258,23 @@ parseBytes n =
 w2c :: Word8 -> Char
 w2c = chr . fromIntegral
 
+parse :: Parse a -> L.ByteString -> Either String a
+parse parser initState
+    = case runParse parser (ParseState initState 0) of
+        Left err          -> Left err
+        Right (result, s) -> Right result
+
 
 -- We let this return Maybe instead of Either, so that has the same signature
 -- as the other parseP5 functions
---parse :: Parse a -> L.ByteString -> Either String a
-parse :: Parse a -> L.ByteString -> Maybe (a, L.ByteString)
-parse parser initState
+maybeParse :: Parse a -> L.ByteString -> Maybe (a, L.ByteString)
+maybeParse parser initState
     = case runParse parser (ParseState initState 0) of
-        --Left err          -> Left err
         Left _          -> Nothing
-        --Right (result, _) -> Right result
         Right (result, s) -> Just (result, string s)
 
 parseP5_overengineered :: L.ByteString -> Maybe (Greymap, L.ByteString)
-parseP5_overengineered = parse parseRawPGM
+parseP5_overengineered = maybeParse parseRawPGM
 
 ------------------------------------------------------------------------------
 -- Main function -------------------------------------------------------------
