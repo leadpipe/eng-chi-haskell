@@ -318,3 +318,7 @@ main = do
   args <- getArgs
   forM_ args $ \arg -> do
     printBarcodeFromImage arg
+
+  -- Huh, both these outputs are wrong:
+  printBarcodeFromImage "ch12-barcode-photo.ppm"
+  printBarcodeFromImage "ch12-barcode-generated.ppm"
