@@ -154,19 +154,6 @@ threshold n a = binary <$> a
           choose f = foldA1 $ \x y -> if f x y then x else y
 
 
-pgmFromBitmap :: Array (Int, Int) Bit -> L.ByteString
-pgmFromBitmap a = L.pack (header ++ px)
-  where
-    header = "P5 " ++ (show $ w+1) ++ " " ++ (show $ h+1) ++ "\n255\n"
-    (_, (h, w)) = bounds a
-    px = map (chr . greyFromBit) (elems a)
-    greyFromBit b | b == Zero = 0
-                  | otherwise = 255
-
-saveBitmap :: FilePath -> Array (Int, Int) Bit -> IO ()
-saveBitmap f a = L.writeFile f $ pgmFromBitmap a
-
-
 type Run = Int
 type RunLength a = [(Run, a)]
 
@@ -321,14 +308,6 @@ row j a = ixmap (l,u) project a
     where project i = (j,i)
           ((_,l), (_,u)) = bounds a
 
-aRow :: Array (Int, Int) c -> Array (Int, Int) c
-aRow im = listArray ((0, l), (0, u)) ps
-  where
-    r = row 117 im
-    (l, u) = bounds r
-    ps = elems r
-
-
 findMatch :: [(Run, Bit)] -> Maybe [[Digit]]
 findMatch = listToMaybe
           . filter (not . null)
@@ -336,11 +315,11 @@ findMatch = listToMaybe
           . tails
 
 findEAN13 :: Pixmap -> Maybe [Digit]
---findEAN13 pixmap = withRow center pixmap (fmap head . findMatch)
-findEAN13 pixmap = withRow center pixmap (fmap head . dbgFindMatch)
+findEAN13 pixmap = withRow center pixmap (fmap head . findMatch)
+{-findEAN13 pixmap = withRow center pixmap (fmap head . dbgFindMatch)-}
   where (_, (maxX, _)) = bounds pixmap
         center = (maxX + 1) `div` 2
-        dbgFindMatch x = trace ("bla" ++ show x) (findMatch x)
+        {-dbgFindMatch x = trace ("bla" ++ show x) (findMatch x)-}
 -- Debug.Trace.trace is Haskell's debug printf()
 
 
@@ -359,11 +338,38 @@ main = do
   forM_ args $ \arg -> do
     printBarcodeFromImage arg
 
-  -- Huh, both these outputs are wrong:
-  printBarcodeFromImage "ch12-barcode-photo.ppm"
-  printBarcodeFromImage "ch12-barcode-generated.ppm"
+  printBarcodeFromImage "ch12-barcode-photo.ppm"  -- doesn't work yet
+  printBarcodeFromImage "ch12-barcode-generated.ppm"  -- works
 
   processBarcodeFromFile "ch12-barcode-photo.ppm"
     (saveBitmap "binary-photo.pgm" . threshold 0.4 . pixmapToGreymap)
   processBarcodeFromFile "ch12-barcode-generated.ppm"
-    (saveBitmap "binary-generated.pgm" . aRow . threshold 0.4 . pixmapToGreymap)
+    {-(saveBitmap "binary-generated.pgm" . aRow . threshold 0.4 . pixmapToGreymap)-}
+    (saveBitmap "binary-generated.pgm" . threshold 0.4 . pixmapToGreymap)
+
+
+
+-- Some functions that are not in the book (and probably rather clumsy). I used
+-- them to help me with debugging
+
+pgmFromBitmap :: Array (Int, Int) Bit -> L.ByteString
+pgmFromBitmap a = L.pack (header ++ px)
+  where
+    header = "P5 " ++ (show $ w+1) ++ " " ++ (show $ h+1) ++ "\n255\n"
+    (_, (h, w)) = bounds a
+    px = map (chr . greyFromBit) (elems a)
+    greyFromBit b | b == Zero = 0
+                  | otherwise = 255
+
+saveBitmap :: FilePath -> Array (Int, Int) Bit -> IO ()
+saveBitmap f a = L.writeFile f $ pgmFromBitmap a
+
+
+aRow :: Array (Int, Int) c -> Array (Int, Int) c
+aRow im = listArray ((0, l), (0, u)) ps
+  where
+    r = row 117 im
+    (l, u) = bounds r
+    ps = elems r
+
+
