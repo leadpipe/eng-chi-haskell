@@ -5,7 +5,7 @@ import Data.Array (Array(..), (!), bounds, elems, indices,
 
 import Control.Applicative ((<$>))
 import Control.Monad (forM_)
-import Data.Char (digitToInt)
+import Data.Char (digitToInt, chr)
 import Data.Function (on)
 import Data.Ix (Ix(..))
 import Data.List (foldl', group, sort, sortBy, tails)
@@ -18,12 +18,13 @@ import qualified Data.Map as M
 
 import Pnm (Parse, (==>), (==>&), parseByte, identity, assert, skipSpaces, parseNat, w2c, parse, parseWhileWith) -- from chapter 10 (needs `-i../ch10`)
 
+import Debug.Trace
 
--- A barcode consists of 13 six-bit digits, encoded as
+-- A barcode consists of 13 digits, encoded as
 -- 101
--- left digit group: 6 seven-bit numbers (parity encodes 13th digit)
+-- left digit group: 6 seven-bit numbers (parity indirectly encodes 13th digit)
 -- 01010
--- right digit group: 6 six-bit numbers
+-- right digit group: 6 seven-bit numbers (last digit is the check digit)
 -- 101
 
 checkDigit :: (Integral a) => [a] -> a
@@ -34,15 +35,27 @@ mapEveryOther :: (a -> a) -> [a] -> [a]
 mapEveryOther f = zipWith ($) (cycle [f, id])
 
 
+-- The book doesn't explain _how_ ean13 works. Paraphrased from wikipedia:
+--
+-- 1. The leftmost number decides if leftEvenList or leftOddList is used for
+--    each of the six left numbers
+-- 2. Encode the six left numbers using leftOddList/leftEvenList
+-- 3. Encode the six right numbers use rightList
+
+-- "L-code" from wikipedia article
 leftOddList = ["0001101", "0011001", "0010011", "0111101", "0100011",
                "0110001", "0101111", "0111011", "0110111", "0001011"]
 
+-- "R-code" from wikipedia article
 rightList = map complement <$> leftOddList
     where complement '0' = '1'
           complement '1' = '0'
 
+-- "G-code" from wikipedia article
 leftEvenList = map reverse rightList
 
+-- "First group of 6 digits" column on wikipedia article
+-- 1: use odd parity for this number (`leftOddList`), 0: use `leftEvenList`
 parityList = ["111111", "110100", "110010", "110001", "101100",
               "100110", "100011", "101010", "101001", "100101"]
 
@@ -76,7 +89,7 @@ encodeEAN13 = concat . encodeDigits . map digitToInt
 encodeDigits :: [Int] -> [String]
 encodeDigits s@(first:rest) =
     outerGuard : lefties ++ centerGuard : righties ++ [outerGuard]
-  where (left, right) = splitAt 5 rest
+  where (left, right) = splitAt 5 rest  -- XXX: s/5/6/?
         lefties = zipWith leftEncode (parityCodes ! first) left
         righties = map rightEncode (right ++ [checkDigit s])
 
@@ -139,6 +152,19 @@ threshold n a = binary <$> a
           least    = fromIntegral $ choose (<) a
           greatest = fromIntegral $ choose (>) a
           choose f = foldA1 $ \x y -> if f x y then x else y
+
+
+pgmFromBitmap :: Array (Int, Int) Bit -> L.ByteString
+pgmFromBitmap a = L.pack (header ++ px)
+  where
+    header = "P5 " ++ (show $ w+1) ++ " " ++ (show $ h+1) ++ "\n255\n"
+    (_, (w, h)) = bounds a
+    px = map (chr . greyFromBit) (elems a)
+    greyFromBit b | b == Zero = 0
+                  | otherwise = 255
+
+saveBitmap :: FilePath -> Array (Int, Int) Bit -> IO ()
+saveBitmap f a = L.writeFile f $ pgmFromBitmap a
 
 
 type Run = Int
@@ -302,9 +328,13 @@ findMatch = listToMaybe
           . tails
 
 findEAN13 :: Pixmap -> Maybe [Digit]
-findEAN13 pixmap = withRow center pixmap (fmap head . findMatch)
+--findEAN13 pixmap = withRow center pixmap (fmap head . findMatch)
+findEAN13 pixmap = withRow center pixmap (fmap head . dbgFindMatch)
   where (_, (maxX, _)) = bounds pixmap
         center = (maxX + 1) `div` 2
+        dbgFindMatch x = trace ("bla" ++ show x) (findMatch x)
+-- Debug.Trace.trace is Haskell's debug printf()
+
 
 printBarcodeFromImage arg = do
   e <- parse parseRawPPM <$> L.readFile arg
@@ -322,3 +352,8 @@ main = do
   -- Huh, both these outputs are wrong:
   printBarcodeFromImage "ch12-barcode-photo.ppm"
   printBarcodeFromImage "ch12-barcode-generated.ppm"
+
+  e <- parse parseRawPPM <$> L.readFile "ch12-barcode-generated.ppm"
+  case e of
+    Left err ->     print $ "error: " ++ err
+    Right p -> saveBitmap "test.pgm" $ threshold 0.4 $ pixmapToGreymap p
