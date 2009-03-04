@@ -118,7 +118,7 @@ parseRawPPM =
     assert (maxValue == 255) "max value out of spec" ==>&
     parseByte ==>&
     parseTimes (width * height) parseRGB ==> \pxs ->
-    identity (listArray ((0,0),(width-1,height-1)) pxs)
+    identity (listArray ((0,0),(height-1,width-1)) pxs)
 
 parseRGB :: Parse RGB
 parseRGB = parseByte ==> \r ->
@@ -158,7 +158,7 @@ pgmFromBitmap :: Array (Int, Int) Bit -> L.ByteString
 pgmFromBitmap a = L.pack (header ++ px)
   where
     header = "P5 " ++ (show $ w+1) ++ " " ++ (show $ h+1) ++ "\n255\n"
-    (_, (w, h)) = bounds a
+    (_, (h, w)) = bounds a
     px = map (chr . greyFromBit) (elems a)
     greyFromBit b | b == Zero = 0
                   | otherwise = 255
@@ -316,10 +316,18 @@ withRow :: Int -> Pixmap -> (RunLength Bit -> a) -> a
 withRow n greymap f = f . runLength . elems $ posterized
     where posterized = threshold 0.4 . fmap luminance . row n $ greymap
 
-row :: (Ix a, Ix b) => b -> Array (a,b) c -> Array a c
+row :: (Ix a, Ix b) => a -> Array (a,b) c -> Array b c
 row j a = ixmap (l,u) project a
-    where project i = (i,j)
-          ((l,_), (u,_)) = bounds a
+    where project i = (j,i)
+          ((_,l), (_,u)) = bounds a
+
+aRow :: Array (Int, Int) c -> Array (Int, Int) c
+aRow im = listArray ((0, l), (0, u)) ps
+  where
+    r = row 117 im
+    (l, u) = bounds r
+    ps = elems r
+
 
 findMatch :: [(Run, Bit)] -> Maybe [[Digit]]
 findMatch = listToMaybe
@@ -336,11 +344,13 @@ findEAN13 pixmap = withRow center pixmap (fmap head . dbgFindMatch)
 -- Debug.Trace.trace is Haskell's debug printf()
 
 
-printBarcodeFromImage arg = do
+printBarcodeFromImage arg = processBarcodeFromFile arg (print . findEAN13)
+
+processBarcodeFromFile arg f = do
   e <- parse parseRawPPM <$> L.readFile arg
   case e of
     Left err ->     print $ "error: " ++ err
-    Right pixmap -> print $ findEAN13 pixmap
+    Right pixmap -> f pixmap
 
 
 main :: IO ()
@@ -353,7 +363,7 @@ main = do
   printBarcodeFromImage "ch12-barcode-photo.ppm"
   printBarcodeFromImage "ch12-barcode-generated.ppm"
 
-  e <- parse parseRawPPM <$> L.readFile "ch12-barcode-generated.ppm"
-  case e of
-    Left err ->     print $ "error: " ++ err
-    Right p -> saveBitmap "test.pgm" $ threshold 0.4 $ pixmapToGreymap p
+  processBarcodeFromFile "ch12-barcode-photo.ppm"
+    (saveBitmap "binary-photo.pgm" . threshold 0.4 . pixmapToGreymap)
+  processBarcodeFromFile "ch12-barcode-generated.ppm"
+    (saveBitmap "binary-generated.pgm" . aRow . threshold 0.4 . pixmapToGreymap)
