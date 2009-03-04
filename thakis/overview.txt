@@ -106,5 +106,31 @@ Chapter 10
 * PGM loader
 * "Maybe mondad"
 * Passing state around (is this the state monad?)
-* `fmap` in some detail (and `fmap` laws)
+* `fmap` in some detail (and `fmap` laws) -- apply functions on general 
+  containers. `<$>` is the same as `fmap`, just in operator form.
 * "Put type constraints on functions, not constructors"
+
+
+Chapter 11
+----------
+
+* QuickCheck
+* Custom data generators (`Arbitrary`)
+* Test coverage and HPC
+
+Chapter 12
+----------
+
+* (broken) barcode reader
+* Data.Array
+* Data.Map
+
+
+Chapter 13
+----------
+
+* association lists
+* Data.Map again
+* Example: /etc/passwd reader
+* Example: Symbolic arithmetic with units
+* Example: Difference lists
