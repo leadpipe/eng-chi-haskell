@@ -1,20 +1,32 @@
 module Template where
 
 import Control.Monad.Error
+import Data.Either
 import Data.Foldable
 import Data.List
 
 import Expr
 import Heap
 
+tiTest :: CoreProgram -> IO ()
+tiTest defs = do
+  let res = last $ tiRunProgram defs
+  case res of
+    (Left e) -> putStrLn ("Error: " ++ e)
+    (Right s) -> putStrLn ("Result: " ++ show s)
+
 data TiNode
+  -- | A number
+  = NNum Int
   -- | Application
-  = NAp HeapAddr HeapAddr
+  | NAp HeapAddr HeapAddr
   -- | Supercombinator
   | NSupercomb Name [Name] CoreExpr
-  -- | A number
-  | NNum Int
   deriving(Show)
+
+isDataNode :: TiNode -> Bool 
+isDataNode (NNum _) = True 
+isDataNode _ = False 
 
 data TiState = TiState {
   tiStack :: [HeapAddr],
@@ -23,7 +35,8 @@ data TiState = TiState {
   tiHeap :: TiHeap }
 
 instance Show TiState where
-  show s = "Stack: " ++ show (tiStack s)
+  show s = "Stack: " ++ show stack
+    where stack = rights $ map (hLookup (tiHeap s) :: HeapAddr -> Either String TiNode) (tiStack s)
 
 type TiError = String
 type TiHeap = MHeap TiNode
@@ -51,26 +64,22 @@ tiBoot n s = do
     Nothing -> fail ("Failed to locate entry point: " ++ n)
     (Just x) -> return $ s { tiStack = [x] }
 
-tiRun :: Either TiError TiState -> [Either TiError TiState]
-tiRun x = case x of
-  (Left _) -> [x]
-  (Right s) -> x : if tiFinal s then [] else tiRun (tiStep s)
-
 tiRunProgram :: CoreProgram -> [Either TiError TiState]
 tiRunProgram = tiRun . tiCompile
 
-tiTest :: CoreProgram -> IO ()
-tiTest defs = do
-  let res = last $ tiRunProgram defs
-  case res of
-    (Left e) -> putStrLn ("Error: " ++ e)
-    (Right s) -> putStrLn ("Result: " ++ show s)
+tiRun :: Either TiError TiState -> [Either TiError TiState]
+tiRun x = x : maybe [] tiRun (tiNext x)
 
-tiFinal :: TiState -> Bool
-tiFinal (s { tiStack = [k] }) = True
-hLookup (tiHeap s) k
-tiFinal _ = False
-
-tiStep :: TiState -> Either TiError TiState
-tiStep = undefined
+tiNext :: Either TiError TiState -> Maybe (Either TiError TiState)
+tiNext x@(Left _) = Just x
+tiNext (Right s) = case s of
+  (TiState{tiStack=[]}) -> Just $ fail "Empty stack!"
+  (TiState{tiStack=ks@(k:ks'), tiHeap=h}) -> case hLookup h k of
+    (Left e) -> Just $ fail e
+    (Right x) -> case x of
+      (NNum _) -> if null ks'
+                    then Nothing -- final state
+          	    else Just $ fail "Number applied as a function!"
+      (NAp a b) -> Just $ return $ s { tiStack=a:ks }
+      (NSupercomb n as b) -> Just $ fail "NSupercomb Not implemented!"
 
