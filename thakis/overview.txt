@@ -134,3 +134,18 @@ Chapter 13
 * Example: /etc/passwd reader
 * Example: Symbolic arithmetic with units
 * Example: Difference lists
+
+
+Chapter 14
+----------
+
+Monads!
+
+* Example `Logger` monad (precursor to `Monad.Writer`)
+* Maybe monad
+* List monad
+  * Crappy "neat, but inefficient" example that functional programming books
+    are prone to (`multiplyTo`)
+* State monad
+* Desugaring do blocks
+* Random numbers
