@@ -27,24 +27,27 @@ complexMultiply a b = ComplexNum
                         ((imaginary a * real b ) + (real a * imaginary b ))
 
 
--- We can create a specific julia set by choosing a single point C on
--- the complex plane, and then generate a one-time quadratic function
--- which we can use for iteration:
+-- We create a julia set by choosing a single point C on the complex
+-- plane, using an iterative quadratic function: f(z) = z**2 + C 
+-- We then test every value z on the complex plane, to decide if it
+-- converges or diverges under iteration.
 -- 
---   let f = (juliaFunc (ComplexNum 3 4))
+-- For example, for C = 3+4i, we would use this iterator function:
 --
--- The quadratic function for a Julia Set is: f(z) = z**2 + C
+--   let f = (juliaFunc (ComplexNum 3 4))
 
 juliaFunc :: ComplexNum -> ComplexNum -> ComplexNum
 juliaFunc c z = complexAdd c (complexMultiply z z) 
 
 
--- To iterate a julia func, we use these params:
+-- iterateJulia:  main iterator logic for a Julia set.
 --
---     upperbound:  magnitude at which we decide a cycle has "diverged"
---     maxiter:  number of iterations before we decide a cycle has "converged"
+--   upperbound:  magnitude at which we decide a cycle has "diverged"
+--   maxiter:  number of iterations at which we decide a cycle has "converged"
+--   c:  complex constant which defines the julia set
+--   z:  complex value to test under iteration
 --
--- We return either 0 (meaning the cycle converged), or a positive int (<=
+-- Return either 0 (meaning the cycle converged), or a positive int (<=
 -- maxiter) indicating how many iterations happened before the cycle
 -- diverged (the "speed" of divergence).  To increase the detail of
 -- the set's boundary (and compute time), we simply increase maxiter.
@@ -56,9 +59,38 @@ _iterate upperbound maxiter iter iterfunc z
    where newval = iterfunc z
          magnitude = complexMagnitude newval
      
+iterateJulia :: Double -> Integer -> ComplexNum -> ComplexNum -> Integer
+iterateJulia upperbound maxiter c z = 
+               let func = juliaFunc c
+                in _iterate upperbound maxiter 0 func z
 
-doIteration :: Double -> Integer -> ComplexNum -> ComplexNum -> Integer
-doIteration upperbound maxiter c z = 
-                 _iterate upperbound maxiter 0 func z
-                 where func = (juliaFunc c)
 
+-- Parameters for a 'window' onto the complex plane, into which we'll
+-- render the Julia set as a set of integers.  We anchor the the
+-- upper-left coordinate of the window at UPPERLEFT, and specify the
+-- WIDTH and HEIGHT.  RESOLUTION defines how to divide the window into
+-- discrete points. (e.g. if length and width are 3 and resolution
+-- is 0.1, then the window will be an array of size 30x30).
+
+data ComplexWindow = ComplexWindow { upperleft :: ComplexNum,
+                                     width :: Double,
+                                     height :: Double,
+                                     resolution :: Double }
+                     deriving (Show)
+
+
+-- Compute a single row for Julia set C at imaginary height Y, going
+-- from real values XMIN to XMAX, stepping at resolution STEP.  (Total
+-- length of the row will be (xmax-xmin)/step.)  UPPERBOUND and
+-- MAXITER are passed to iterateJulia.
+
+computeRow :: ComplexNum -> Double -> Double -> Double -> Double ->
+              Integer -> Double -> [Integer]
+computeRow c xmin xmax step upperbound maxiter y =
+     map iterfunc itervals
+     where iterfunc = iterateJulia upperbound maxiter c
+           itervals = map (\x -> ComplexNum x y) [xmin, (xmin + step)..xmax]
+
+
+-- computeWindow =
+--     map computeRow c
