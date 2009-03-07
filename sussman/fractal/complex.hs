@@ -49,8 +49,7 @@ juliaFunc c z = complexAdd c (complexMultiply z z)
 --
 -- Return either 0 (meaning the cycle converged), or a positive int (<=
 -- maxiter) indicating how many iterations happened before the cycle
--- diverged (the "speed" of divergence).  To increase the detail of
--- the set's boundary (and compute time), we simply increase maxiter.
+-- diverged (the "speed" of divergence). 
 
 _iterate upperbound maxiter iter iterfunc z
      | magnitude >= upperbound  = iter  {- diverged -}
@@ -63,20 +62,6 @@ iterateJulia :: Double -> Integer -> ComplexNum -> ComplexNum -> Integer
 iterateJulia upperbound maxiter c z = 
                let func = juliaFunc c
                 in _iterate upperbound maxiter 0 func z
-
-
--- Parameters for a 'window' onto the complex plane, into which we'll
--- render the Julia set as a set of integers.  We anchor the the
--- upper-left coordinate of the window at UPPERLEFT, and specify the
--- WIDTH and HEIGHT.  RESOLUTION defines how to divide the window into
--- discrete points. (e.g. if length and width are 3 and resolution
--- is 0.1, then the window will be an array of size 30x30).
-
-data ComplexWindow = ComplexWindow { upperleft :: ComplexNum,
-                                     width :: Double,
-                                     height :: Double,
-                                     resolution :: Double }
-                     deriving (Show)
 
 
 -- Compute a single row for Julia set C at imaginary height Y, going
@@ -92,5 +77,35 @@ computeRow c xmin xmax step upperbound maxiter y =
            itervals = map (\x -> ComplexNum x y) [xmin, (xmin + step)..xmax]
 
 
--- computeWindow =
---     map computeRow c
+-- Parameters for a 'window' onto the complex plane, into which we'll
+-- render the Julia set as a set of integers.  Define the window via
+-- UPPERLEFT and LOWERRIGHT coordinates.  RESOLUTION defines how to
+-- divide the window into discrete points. (e.g. if length and width
+-- are 3 and resolution is 0.1, then the window will be an array of
+-- size 30x30).  UPPERBOUND is the magnitude at which we decide a
+-- cycle has diverged, and MAXITER is the number of iterations before
+-- we decide a cycle has converged.  (Increase maxiter to increase
+-- accuracy and compute-time.)
+
+data ComplexWindow = ComplexWindow { upperleft :: ComplexNum,
+                                     lowerright :: ComplexNum,
+                                     resolution :: Double,
+                                     upperbound :: Double, 
+                                     maxiter :: Integer }
+                     deriving (Show)
+
+
+-- Given a window on the complex plane generate a 2-D array of
+-- integers which represents the Julia Set for complex number C.
+
+juliaWindow :: ComplexNum -> ComplexWindow -> [[Integer]]
+juliaWindow c window =
+     map rowgenerator rowlist
+     where xmin = real (upperleft window)
+           xmax = real (lowerright window)
+           ymin = imaginary (lowerright window)
+           ymax = imaginary (upperleft window)
+           step = resolution window
+           rowgenerator = 
+              computeRow c xmin xmax step (upperbound window) (maxiter window)
+           rowlist = [ymax, (ymax - step).. ymin]
