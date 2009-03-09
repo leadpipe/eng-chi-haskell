@@ -1,4 +1,11 @@
--- Ben screwing around with complex numbers, do to fractall-y things.
+-- Code to visualize Julia Sets as ascii-art
+--
+-- Example:
+--
+-- > let win = ComplexWindow (ComplexNum (-2) 2) (ComplexNum 2 (-2)) .1 100 100
+-- > let jwin = juliaWindow (ComplexNum 0.1 0.2) win
+-- > printJulia jwin
+
 
 -- I'm sure that (a) there's a more powerful template-like system in
 -- Haskell to do this, complete with operator overloading or
@@ -109,3 +116,9 @@ juliaWindow c window =
            rowgenerator = 
               computeRow c xmin xmax step (upperbound window) (maxiter window)
            rowlist = [ymax, (ymax - step).. ymin]
+
+
+-- A nice integer to ascii-art converter from Zhanyong Wan <wan@google.com>
+
+printJulia = mapM_ putStrLn . map (map $ (" .,;|=#*%M$@" !!) . fromInteger)
+
