@@ -207,13 +207,21 @@ rubikPerms = array ((0,1),(5,3)) [((f,n),mv f n) | f <- [0..5], n <- [1..3]]
           ntimes m n = m *> ntimes m (n-1)
 
 rubikMove char = ((faceNumber (toUpper char)), if isUpper char then 1 else 3)
-rubikString [] = ""
-rubikString (m:ms) = rs m ++ rubikString ms
+rubikMoves = map rubikMove
+
+mirrorMoves = map mirrorMove
+    where mirrorMove (f,r) = (index (f .^ fromIndexCycle [0,1]), 4-r)
+
+-- rubikString [] = ""
+-- rubikString (m:ms) = rs m ++ rubikString ms
+rubikString = foldl' (++) "" . map rs
     where rs (f, r) = let fn = faceNames !! f in
                       case r of
                        1 -> [fn]
                        2 -> [fn, fn]
                        3 -> [toLower fn]
+
+mirrorString = rubikString . mirrorMoves . rubikMoves
 
 -- rubik [] = identity
 -- rubik (c:cs) = rubikPerms ! rubikMove c *> rubik cs
