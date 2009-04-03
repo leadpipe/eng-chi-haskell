@@ -1,6 +1,9 @@
+{-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances #-}
 module Main where
 
 import Rubik
+
+import Data.Array
 import System.Random
 
 findSequence :: RandomGen g => g -> ([(Int, Int)], g)

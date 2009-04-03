@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances #-}
 module Rubik where
 
-import Data.Array (elems, array, (//), (!))
+import Data.Array (Array, elems, array, (//), (!))
 import Data.Bits
 import qualified Data.Map as Map
 import Data.List
@@ -144,6 +144,7 @@ instance Transform RubikPermutation where
 
 faceNames = "LRFBUD" -- in order
 faceNumber name = fromJust $ elemIndex name faceNames
+oppositeFace :: Int -> Int
 oppositeFace = xor 1
 isOpposite f1 f2 = f1 == oppositeFace f2
 faceParts = (`divMod` 2)
@@ -198,6 +199,7 @@ faceMove face = let (dim, side) = faceParts face
                 in  R (fromCycle vt (vertices face))
                         (fromCycle (-1::Int) (edges face))
 
+moves :: Array (Int, Int) RubikPermutation
 moves = array ((0,1),(5,3)) [((f,n),mv f n) | f <- [0..5], n <- [1..3]]
     where mv f n = ntimes (faceMove f) n
           ntimes m 1 = m
