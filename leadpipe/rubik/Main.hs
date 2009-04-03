@@ -31,7 +31,7 @@ main = do
         findSequences n g s = do
           let (seq, g') = findSequence g
               s' = Set.insert seq s
-          if n `mod` 100000 == 0
+          if n `mod` 1000000 == 0
             then putStrLn (show n)
             else return ()
           if null seq || Set.member seq s
