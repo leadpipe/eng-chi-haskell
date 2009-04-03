@@ -71,14 +71,14 @@ toCycles' (P list) =
     in findCycles ([], 0, [], mappings)
     where
       findCycles (cs, i, c, mappings) =
-	  if Map.null mappings
-	  then reverse (map invert (c:cs))
-	  else
-	      case Map.lookup i mappings of
-		Nothing ->
-		    let (j, m) = Map.findMin mappings
-		    in findCycles (c:cs, index m, [m], Map.delete j mappings)
-		Just m -> findCycles (cs, index m, m:c, Map.delete i mappings)
+          if Map.null mappings
+          then reverse (map invert (c:cs))
+          else
+              case Map.lookup i mappings of
+                Nothing ->
+                    let (j, m) = Map.findMin mappings
+                    in findCycles (c:cs, index m, [m], Map.delete j mappings)
+                Just m -> findCycles (cs, index m, m:c, Map.delete i mappings)
       invert (m:ms) = m:(reverse ms)
 
 toCycles p = filter (not . isUnmoved) (toCycles' p)
@@ -238,14 +238,15 @@ main = do
       where
         findSequences n g = do
           let (seq, g') = findSequence g
-          printNonEmpty seq
-          printCount n
+          if n `mod` 10000 == 0
+            then putStrLn (show n)
+            else return ()
+          if null seq
+            then return ()
+            else do
+              let str = toString seq
+              putStrLn (str ++ "  " ++ show (rubik str))
           findSequences (n+1) g'
-        printNonEmpty [] = return ()
-        printNonEmpty seq = do let str = toString seq
-                               putStrLn (str ++ "  " ++ show (rubik str))
+
         toString [] = ""
         toString ((f,r):seq) = ((faceNames !! f):show r) ++ toString seq
-        printCount n
-            | n `mod` 10000 == 0 = do putStrLn $ show n
-            | otherwise = return ()
