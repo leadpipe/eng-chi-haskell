@@ -18,11 +18,11 @@ instance Transform Int where
     identity = 1
     (*>) = (Prelude.*)
 
-data (Transform t) => Move t = M { transform :: t, index :: Int }
+data (Transform t) => Move t = M { index :: Int, transform :: t }
                                deriving (Eq, Ord)
 
 instance (Transform t, Show t) => Show (Move t) where
-    show (M t i) = show t ++ "~" ++ show i
+    show (M i t) = show i ++ "~" ++ show t
 
 -- My take on the polyonimo permutation stuff:
 --   http://www.polyomino.f2s.com/david/haskell/hs/PermutationGroups.hs.txt
@@ -35,22 +35,22 @@ permList (P list) = list
 i .^ P ms = ms `lookup` i
     where lookup (m:ms) 0 = m
           lookup (m:ms) j = lookup ms (j-1)
-          lookup [] _ = M identity i -- If the index isn't there, it's not moved
+          lookup [] _ = M i identity -- If the index isn't there, it's not moved
 
 -- Chain moves through a permutation.
-(M t i) *^ p = let (M t' i') = i .^ p in M (t *> t') i'
+(M i t) *^ p = let (M i' t') = i .^ p in M i' (t *> t')
 
 instance (Transform t) => Transform (Permutation t) where
     identity = P []
     p@(P ms) *> q@(P ns) = P (map (*^ q) ms')
-        where ms' = ms ++ [M identity i | i <- [length ms..length ns - 1]]
+        where ms' = ms ++ [M i identity | i <- [length ms..length ns - 1]]
 
 instance (Transform t) => Eq (Permutation t) where
     P ms == P ns = eqp 0 ms ns
         where eqp i (m:ms) (n:ns) = m == n && eqp (i+1) ms ns
               eqp _ [] [] = True
-              eqp i (m:ms) [] = m == M identity i && eqp (i+1) ms []
-              eqp i [] (n:ns) = n == M identity i && eqp (i+1) [] ns
+              eqp i (m:ms) [] = m == M i identity && eqp (i+1) ms []
+              eqp i [] (n:ns) = n == M i identity && eqp (i+1) [] ns
 
 instance (Transform t) => Ord (Permutation t) where
     compare p@(P ms) q@(P ns) = if p == q then EQ else compare ms ns
@@ -60,7 +60,7 @@ leavesUnmoved (P list) indices = f 0 indices list
     where f _ [] _ = True
           f _ _ [] = True
           f j (i:is) (m:ms)
-            | j == i    = m == M identity i && f (j+1) is ms
+            | j == i    = m == M i identity && f (j+1) is ms
             | otherwise = f (j+1) (i:is) ms
 
 toCycles' :: forall t. (Transform t) => Permutation t -> [[Move t]]
@@ -82,20 +82,20 @@ toCycles' (P list) =
       invert (m:ms) = m:(reverse ms)
 
 toCycles p = filter (not . isUnmoved) (toCycles' p)
-    where isUnmoved [(M t i)] = t == identity
+    where isUnmoved [(M i t)] = t == identity
           isUnmoved [] = True
           isUnmoved _ = False
 
 toIndexCycles p = map (map index) (toCycles p)
 
-fromCycles cs = P (elems (array (0,n) [(i,M identity i) | i <- [0..n]] //
+fromCycles cs = P (elems (array (0,n) [(i,M i identity) | i <- [0..n]] //
                                 (concatMap fromCycle cs)))
     where n = maximum (map index (concat cs))
           fromCycle ms = zip (map index ms) (rotate ms)
           rotate (x:xs) = xs ++ [x]
 
-fromIndexCycles cs = fromCycles (map (map (M identity)) cs)
-fromCycle t c = fromCycles [map (M t) c]
+fromIndexCycles cs = fromCycles (map (map (flip M identity)) cs)
+fromCycle t c = fromCycles [map (flip M t) c]
 fromIndexCycle = fromCycle identity
 
 
@@ -109,7 +109,7 @@ showCycles showMove p = showCycles' (toCycles p)
           showMoves (m:ms) = showMove m . showChar ' ' . showMoves ms
 
 showIntTransform t = if t < 0 then showChar '-' else id
-showIntMove (M t i) = showIntTransform t . showsPrec 0 i
+showIntMove (M i t) = showsPrec 0 i . showIntTransform t
 
 type SimplePermutation = Permutation Int
 instance Show SimplePermutation where
@@ -127,8 +127,8 @@ dpByName = Map.fromDistinctAscList dimensionPermutations
 dpByPerm = Map.fromList $ map swap dimensionPermutations
     where swap (a,b) = (b,a)
 
-showVectorMove (M t i) = showString ((Map.!) dpByPerm t) . showsPrec 0 i
-showEdgeMove (M t i) = showIntTransform t . showHex i
+showVectorMove (M i t) = showsPrec 0 i . showString ((Map.!) dpByPerm t)
+showEdgeMove (M i t) = showHex i . showIntTransform t
 
 data RubikPermutation = R { v :: Permutation SimplePermutation,
                             e :: SimplePermutation }
