@@ -209,8 +209,8 @@ rubikPerms = array ((0,1),(5,3)) [((f,n),mv f n) | f <- [0..5], n <- [1..3]]
 rubikMove char = ((faceNumber (toUpper char)), if isUpper char then 1 else 3)
 rubikMoves = map rubikMove
 
-mirrorMoves = map mirrorMove
-    where mirrorMove (f,r) = (index (f .^ fromIndexCycle [0,1]), 4-r)
+mirrorMoves dim = map mirrorMove
+    where mirrorMove (f,r) = (index (f .^ fromIndexCycle [2*dim,2*dim+1]), 4-r)
 
 -- rubikString [] = ""
 -- rubikString (m:ms) = rs m ++ rubikString ms
@@ -221,7 +221,7 @@ rubikString = foldl' (++) "" . map rs
                        2 -> [fn, fn]
                        3 -> [toLower fn]
 
-mirrorString = rubikString . mirrorMoves . rubikMoves
+mirrorString dim = rubikString . mirrorMoves dim . rubikMoves
 
 -- rubik [] = identity
 -- rubik (c:cs) = rubikPerms ! rubikMove c *> rubik cs
