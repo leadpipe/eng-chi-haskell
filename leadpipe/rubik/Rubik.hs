@@ -3,6 +3,7 @@ module Rubik where
 
 import Data.Array (Array, elems, array, (//), (!))
 import Data.Bits
+import Data.Char
 import qualified Data.Map as Map
 import Data.List
 import Data.Maybe
@@ -199,15 +200,23 @@ faceMove face = let (dim, side) = faceParts face
                 in  R (fromCycle vt (vertices face))
                         (fromCycle (-1::Int) (edges face))
 
-moves :: Array (Int, Int) RubikPermutation
-moves = array ((0,1),(5,3)) [((f,n),mv f n) | f <- [0..5], n <- [1..3]]
+rubikPerms :: Array (Int, Int) RubikPermutation
+rubikPerms = array ((0,1),(5,3)) [((f,n),mv f n) | f <- [0..5], n <- [1..3]]
     where mv f n = ntimes (faceMove f) n
           ntimes m 1 = m
           ntimes m n = m *> ntimes m (n-1)
 
+rubikMove char = ((faceNumber (toUpper char)), if isUpper char then 1 else 3)
+rubikString [] = ""
+rubikString (m:ms) = rs m ++ rubikString ms
+    where rs (f, r) = let fn = faceNames !! f in
+                      case r of
+                       1 -> [fn]
+                       2 -> [fn, fn]
+                       3 -> [toLower fn]
+
 rubik [] = identity
-rubik (c:cs) = rubik' (faceNumber c) cs
-    where rubik' face (c:cs) = (moves ! (face, read [c])) *> rubik cs
+rubik (c:cs) = rubikPerms ! rubikMove c *> rubik cs
 
 movesOnlyBottom (R v e) = v `leavesUnmoved` nonDownVertices &&
                           e `leavesUnmoved` nonDownEdges

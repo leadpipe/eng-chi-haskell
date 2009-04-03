@@ -1,13 +1,13 @@
-{-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances #-}
 module Main where
 
 import Rubik
 
 import Data.Array
+import qualified Data.Set as Set
 import System.Random
 
 findSequence :: RandomGen g => g -> ([(Int, Int)], g)
-findSequence g = fs g 1 [first] False (moves!first)
+findSequence g = fs g 1 [first] False (rubikPerms!first)
     where first = (2, 3) -- WLOG, start with F3
           maxlen = 20
           fs g n seq@((lastFace,_):_) opp perm
@@ -15,7 +15,7 @@ findSequence g = fs g 1 [first] False (moves!first)
               | movesOnlyBottom perm = (reverse seq, g)
               | otherwise = let (next@(nextFace,_), g') = genMove g lastFace opp
                                 opp' = (nextFace `isOpposite` lastFace)
-                                perm' = moves!next
+                                perm' = rubikPerms!next
                             in fs g' (n+1) (next:seq) opp' (perm *> perm')
           genMove g face opp =
               let (nf, g') = randomR (0,5) g
@@ -26,19 +26,17 @@ findSequence g = fs g 1 [first] False (moves!first)
 
 main = do
   g <- getStdGen
-  findSequences 0 g
+  findSequences 0 g Set.empty
       where
-        findSequences n g = do
+        findSequences n g s = do
           let (seq, g') = findSequence g
+              s' = Set.insert seq s
           if n `mod` 100000 == 0
             then putStrLn (show n)
             else return ()
-          if null seq
+          if null seq || Set.member seq s
             then return ()
             else do
-              let str = toString seq
+              let str = rubikString seq
               putStrLn (str ++ "  " ++ show (rubik str))
-          findSequences (n+1) g'
-
-        toString [] = ""
-        toString ((f,r):seq) = ((faceNames !! f):show r) ++ toString seq
+          findSequences (n+1) g' s'
