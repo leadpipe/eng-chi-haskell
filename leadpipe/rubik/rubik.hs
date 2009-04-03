@@ -144,9 +144,9 @@ instance Transform RubikPermutation where
     (R v e) *> (R v' e') = R (v*>v') (e*>e')
 
 faceNames = "LRFBUD" -- in order
-
 faceNumber name = fromJust $ elemIndex name faceNames
-
+oppositeFace = xor 1
+isOpposite f1 f2 = f1 == oppositeFace f2
 faceParts = (`divMod` 2)
 
 -- Returns the vertices for the given face number, in clockwise order.
@@ -212,3 +212,40 @@ movesOnlyBottom (R v e) = v `leavesUnmoved` nonDownVertices &&
                           e `leavesUnmoved` nonDownEdges
     where nonDownVertices = [0..7] \\ vertices 5 -- 5 is the bottom face
           nonDownEdges = [0..11] \\ edges 5
+
+
+findSequence :: RandomGen g => g -> ([(Int, Int)], g)
+findSequence g = fs g 1 [first] False (moves!first)
+    where first = (2, 3) -- WLOG, start with F3
+          maxlen = 20
+          fs g n seq@((lastFace,_):_) opp perm
+              | n > maxlen = ([], g)
+              | movesOnlyBottom perm = (reverse seq, g)
+              | otherwise = let (next@(nextFace,_), g') = genMove g lastFace opp
+                                opp' = (nextFace `isOpposite` lastFace)
+                                perm' = moves!next
+                            in fs g' (n+1) (next:seq) opp' (perm *> perm')
+          genMove g face opp =
+              let (nf, g') = randomR (0,5) g
+              in if nf == face || opp && nf == oppositeFace face
+                 then genMove g' face opp
+                 else let (rot, g'') = randomR (1,3) g'
+                      in ((nf, rot), g'')
+
+main = do
+  g <- getStdGen
+  findSequences 0 g
+      where
+        findSequences n g = do
+          let (seq, g') = findSequence g
+          printNonEmpty seq
+          printCount n
+          findSequences (n+1) g'
+        printNonEmpty [] = return ()
+        printNonEmpty seq = do let str = toString seq
+                               putStrLn (str ++ "  " ++ show (rubik str))
+        toString [] = ""
+        toString ((f,r):seq) = ((faceNames !! f):show r) ++ toString seq
+        printCount n
+            | n `mod` 10000 == 0 = do putStrLn $ show n
+            | otherwise = return ()
