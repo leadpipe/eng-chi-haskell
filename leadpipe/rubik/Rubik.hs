@@ -215,8 +215,9 @@ rubikString (m:ms) = rs m ++ rubikString ms
                        2 -> [fn, fn]
                        3 -> [toLower fn]
 
-rubik [] = identity
-rubik (c:cs) = rubikPerms ! rubikMove c *> rubik cs
+-- rubik [] = identity
+-- rubik (c:cs) = rubikPerms ! rubikMove c *> rubik cs
+rubik = foldl' (*>) identity . map ((rubikPerms !) . rubikMove)
 
 movesOnlyBottom (R v e) = v `leavesUnmoved` nonDownVertices &&
                           e `leavesUnmoved` nonDownEdges
