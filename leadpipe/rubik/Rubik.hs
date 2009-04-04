@@ -13,6 +13,11 @@ import Numeric (showHex)
 class (Eq t, Ord t) => Transform t where
     identity :: t
     (*>) :: t -> t -> t
+    (^>) :: t -> Int -> t
+    t ^> i
+        | i == 0 = identity
+        | i == 1 = t
+        | otherwise = t *> (t ^> (i-1))
 
 instance Transform Int where
     identity = 1
@@ -201,16 +206,20 @@ faceMove face = let (dim, side) = faceParts face
                         (fromCycle (-1::Int) (edges face))
 
 rubikPerms :: Array (Int, Int) RubikPermutation
-rubikPerms = array ((0,1),(5,3)) [((f,n),mv f n) | f <- [0..5], n <- [1..3]]
-    where mv f n = ntimes (faceMove f) n
-          ntimes m 1 = m
-          ntimes m n = m *> ntimes m (n-1)
+rubikPerms = array ((0,1),(5,3))
+             [((f,n),faceMove f ^> n) | f <- [0..5], n <- [1..3]]
 
 rubikMove char = ((faceNumber (toUpper char)), if isUpper char then 1 else 3)
 rubikMoves = map rubikMove
 
 mirrorMoves dim = map mirrorMove
     where mirrorMove (f,r) = (index (f .^ fromIndexCycle [2*dim,2*dim+1]), 4-r)
+
+rotateMoves dim n = map rotateMove
+    where rotateMove (f,r) = (index (f .^ cycle), r)
+          cycle = fromIndexCycle [f1, f2+1, f1+1, f2] ^> n
+          f1 = (dim+1) `mod` 3 * 2
+          f2 = (dim+2) `mod` 3 * 2
 
 -- rubikString [] = ""
 -- rubikString (m:ms) = rs m ++ rubikString ms
@@ -222,6 +231,7 @@ rubikString = foldl' (++) "" . map rs
                        3 -> [toLower fn]
 
 mirrorString dim = rubikString . mirrorMoves dim . rubikMoves
+rotateString dim n = rubikString . rotateMoves dim n . rubikMoves
 
 -- rubik [] = identity
 -- rubik (c:cs) = rubikPerms ! rubikMove c *> rubik cs
