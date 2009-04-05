@@ -205,12 +205,27 @@ faceMove face = let (dim, side) = faceParts face
                 in  R (fromCycle vt (vertices face))
                         (fromCycle (-1::Int) (edges face))
 
-rubikPerms :: Array (Int, Int) RubikPermutation
-rubikPerms = array ((0,1),(5,3))
+movePerms :: Array (Int, Int) RubikPermutation
+movePerms = array ((0,1),(5,3))
              [((f,n),faceMove f ^> n) | f <- [0..5], n <- [1..3]]
 
-rubikMove char = ((faceNumber (toUpper char)), if isUpper char then 1 else 3)
-rubikMoves = map rubikMove
+-- Combines adjacent moves to yield a possibly shorter list.
+compressMoves ms = maybe ms id (cm ms)
+    where cm (m1@(f1,r1):m2@(f2,r2):ms)
+              | f1 == f2
+                  = let r = (r1+r2) `mod` 4 in
+                    return (compressMoves (if r > 0 then ((f1,r):ms) else ms))
+              | f1 `isOpposite` f2 && f1 > f2
+                  = return (compressMoves (m2:m1:ms))
+              | otherwise -- the do-expr skips Nothings from recursive cm
+                  = do { ms' <- cm (m2:ms); return (compressMoves (m1:ms')) }
+          cm _ = Nothing  -- ie, no changes
+
+-- Converts a string to a list of (face, rotation) pairs.
+toMoves' = map toMove . filter isAlpha
+    where toMove c = (faceNumber (toUpper c), if isUpper c then 1 else 3)
+
+toMoves = compressMoves . toMoves'
 
 mirrorMoves dim = map mirrorMove
     where mirrorMove (f,r) = (index (f .^ fromIndexCycle [2*dim,2*dim+1]), 4-r)
@@ -221,23 +236,42 @@ rotateMoves dim n = map rotateMove
           f1 = (dim+1) `mod` 3 * 2
           f2 = (dim+2) `mod` 3 * 2
 
--- rubikString [] = ""
--- rubikString (m:ms) = rs m ++ rubikString ms
-rubikString = foldl' (++) "" . map rs
+invertMoves = reverse . map im
+    where im (f,r) = (f, 4-r)
+
+evalMoves = foldl' (*>) identity . map (movePerms !)
+
+toString = foldl' (++) "" . map rs
     where rs (f, r) = let fn = faceNames !! f in
                       case r of
                        1 -> [fn]
                        2 -> [fn, fn]
                        3 -> [toLower fn]
 
-mirrorString dim = rubikString . mirrorMoves dim . rubikMoves
-rotateString dim n = rubikString . rotateMoves dim n . rubikMoves
+mirrorString dim = toString . mirrorMoves dim . toMoves
+rotateString dim n = toString . rotateMoves dim n . toMoves
+diagString n = toString . mirrorMoves 2 . rotateMoves 2 n . rotateMoves 0 2 . toMoves
+invertString = toString . invertMoves . toMoves
 
--- rubik [] = identity
--- rubik (c:cs) = rubikPerms ! rubikMove c *> rubik cs
-rubik = foldl' (*>) identity . map ((rubikPerms !) . rubikMove)
+-- Evaluates a string of moves, returns the rubik permutation resulting.
+eval = evalMoves . toMoves
 
 movesOnlyBottom (R v e) = v `leavesUnmoved` nonDownVertices &&
                           e `leavesUnmoved` nonDownEdges
-    where nonDownVertices = [0..7] \\ vertices 5 -- 5 is the bottom face
+    where nonDownVertices = [0..7] \\ vertices 5 -- 5 is the "down" (bottom) face
           nonDownEdges = [0..11] \\ edges 5
+
+-- Conveniences for finding related move strings pertaining to the
+-- "down" (bottom) face.
+inv = invertString
+rot1 = rotateString 2 1
+rot2 = rotateString 2 2
+rot3 = rotateString 2 3
+mir0 = mirrorString 0
+mir1 = mirrorString 1
+diag1 = diagString 1
+diag2 = diagString 3
+
+putStringPerm s p = putStrLn (s ++ "\t" ++ show p)
+evm ms = putStringPerm (toString ms) (evalMoves ms)
+evs = evm . toMoves
