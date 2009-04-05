@@ -7,7 +7,7 @@ import qualified Data.Set as Set
 import System.Random
 
 findSequence :: RandomGen g => g -> ([(Int, Int)], g)
-findSequence g = fs g 1 [first] False (rubikPerms!first)
+findSequence g = fs g 1 [first] False (movePerms!first)
     where first = (2, 3) -- WLOG, start with F3
           maxlen = 20
           fs g n seq@((lastFace,_):_) opp perm
@@ -15,7 +15,7 @@ findSequence g = fs g 1 [first] False (rubikPerms!first)
               | movesOnlyBottom perm = (reverse seq, g)
               | otherwise = let (next@(nextFace,_), g') = genMove g lastFace opp
                                 opp' = (nextFace `isOpposite` lastFace)
-                                perm' = rubikPerms!next
+                                perm' = movePerms!next
                             in fs g' (n+1) (next:seq) opp' (perm *> perm')
           genMove g face opp =
               let (nf, g') = randomR (0,5) g
@@ -36,7 +36,5 @@ main = do
             else return ()
           if null seq || Set.member seq s
             then return ()
-            else do
-              let str = rubikString seq
-              putStrLn (str ++ "  " ++ show (rubik str))
+            else evm seq
           findSequences (n+1) g' s'
