@@ -1,6 +1,9 @@
 fDDFDLBDDbdl FddfdrbddBDR	() | 2-3-
 FdflRUFuLr bDBLrubUlR	() | 2-5-
 
+frBRFrbLRBrblBRb	4t6t | ()
+LBrblBRfbrBRFrbR	4s5s | ()
+
 fBuRUbFrdR	() | (3- 7 5-)
 fDFlRufUrL	() | (2- 7 3-)
 FdfRlUFuLr	() | (2- 5 3-)
@@ -8,7 +11,8 @@ frdRFLBDbl	() | (3- 7 5-)
 fRFrLdrDRl	() | (2 3- 7-)
 fdrDBrbRDRFLdl	() | (3 7- 5-)
 fUUFFRUUBBDDLFBB	() | (2 5 7)
-fDDFDfDFLDDldLdl	() | (2- 5- 7)
+fDDFDfDFLDDldLdl	() | (2- 5- 7)  !!
+FDDfdFdfrDDRDrDR	() | (2- 7- 5)  !! Same color showing
 
 fbDDBFLRDDlr	() | (2 3)(5 7)
 fDDFDLBDDbdl	() | (2- 3)(5- 7)
