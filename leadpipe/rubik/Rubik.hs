@@ -272,6 +272,19 @@ mir1 = mirrorString 1
 diag1 = diagString 1
 diag2 = diagString 3
 
+-- Lists the related move strings.
+rel s = map (flip ($) s) [id, rot1, rot2, rot3, mir0, mir1, diag1, diag2]
+-- As above, plus inverses.
+relInv s = rel s ++ map inv (rel s)
+
 putStringPerm s p = putStrLn (s ++ "\t" ++ show p)
 evm ms = putStringPerm (toString ms) (evalMoves ms)
 evs = evm . toMoves
+
+evss = mapM_ evs
+
+-- Shows all pairs of one sequence with another's related sequences.
+pairs s1 s2 = evss $ map (s1++) rels ++ map (++s1) rels
+    where rels = relInv s2
+-- Shows all pairs of a given sequence with its own related sequences.
+pairs_ s = pairs s s
