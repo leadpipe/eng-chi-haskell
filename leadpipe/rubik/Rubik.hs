@@ -284,7 +284,11 @@ evs = evm . toMoves
 evss = mapM_ evs
 
 -- Shows all pairs of one sequence with another's related sequences.
-pairs s1 s2 = evss $ map (s1++) rels ++ map (++s1) rels
-    where rels = relInv s2
+pairs s1 s2 = evss $ map (s1++) (relInv s2)
+
 -- Shows all pairs of a given sequence with its own related sequences.
 pairs_ s = pairs s s
+
+-- Shows all triples of a given sequence with its own related sequences.
+triples_ s = evss $ map concat $ sequence [map (s++) rels, rels]
+    where rels = relInv s
