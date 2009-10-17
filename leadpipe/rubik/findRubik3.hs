@@ -1,7 +1,8 @@
-{-# LANGUAGE ScopedTypeVariables, PatternSignatures #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
 import Rubik
+import Rubik3
 
 import Data.Array
 import qualified Data.Set as Set

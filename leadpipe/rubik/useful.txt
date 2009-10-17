@@ -1,21 +1,47 @@
 fDDFDLBDDbdl FddfdrbddBDR	() | 2-3-
 FdflRUFuLr bDBLrubUlR	() | 2-5-
 
-frBRFrbLRBrblBRb	4t6t | ()
 LBrblBRfbrBRFrbR	4s5s | ()
+rBRfrbRFBrbLBRbl	4t5t | ()
+frBRFrbLRBrblBRb	4t6t | ()
+BrbLBRblrBRfrbRF	4s6s | ()
 
-fBuRUbFrdR	() | (3- 7 5-)
-fDFlRufUrL	() | (2- 7 3-)
-FdfRlUFuLr	() | (2- 5 3-)
-frdRFLBDbl	() | (3- 7 5-)
+fRFLrdrDRl	() | (2 3- 7-)
 fRFrLdrDRl	() | (2 3- 7-)
+fRFrLdrDRl	() | (2 3- 7-)
+fdFLBRDrbl	() | (2 3- 7-)
+fBUdrDRuDbdF	() | (2 3- 7-)
+FdfRlUFuLr	() | (2- 5 3-)
+fdFlRuFUrL	() | (2- 5 3-)
+fDFlRufUrL	() | (2- 7 3-)
+fBUrubFRDr	() | (2- 7 5-)
+fUruFbRDrB	() | (2- 7 5-)
+fdFDbFlfLB	() | (2 7- 5-)
+fBdFDbFlfL	() | (2 7- 5-)
+fBdFDFblfL	() | (2 7- 5-)
+frdRFLBDbl	() | (3- 7 5-)
+fBuRUbFrdR	() | (3- 7 5-)
+fBuRUbFrdR	() | (3- 7 5-)
+frBRbFdbDB	() | (3- 7 5-)
+frbDBRFLdl	() | (3 7- 5-)
+fBDbdFbLBl	() | (3 7- 5-)
 fdrDBrbRDRFLdl	() | (3 7- 5-)
-fUUFFRUUBBDDLFBB	() | (2 5 7)
+
 fDDFDfDFLDDldLdl	() | (2- 5- 7)  !!
-FDDfdFdfrDDRDrDR	() | (2- 7- 5)  !! Same color showing
+FDDfdFdfrDDRDrDR	() | (2- 7- 5)  !! Same color showing down
+
+frbDDBRFLDDl	() | (2 5 3)
+fUUFFRUUBBDDLFBB	() | (2 5 7)
 
 fbDDBFLRDDlr	() | (2 3)(5 7)
+fbDDBFLRDDrl	() | (2 3)(5 7)
+fbDDBFRLDDlr	() | (2 3)(5 7)
+fbDDFBLRDDrl	() | (2 3)(5 7)
+fbDDFBRLDDrl	() | (2 3)(5 7)
+fbLLUUBFLLDDBBRRBBFF	() | (2 3)(5 7)
+
 fDDFDLBDDbdl	() | (2- 3)(5- 7)
+
 FDLdlffdrDRF	() | (2 7)(3- 5-)
 fRRBRbR FRDDrdRdr	() | (2- 5)(3 7-)
 RDrDRDDr frBrbRRF	() | (2 5-)(3- 7)
@@ -25,7 +51,9 @@ frbRFrBR	(4s 5j 7k) | ()
 frFlfRFL	(4k 6i 5s) | ()
 fRFlfrFL	(4t 6i 7k) | ()
 fDBubdBUbF	(4k 7t 5i) | ()
+fDLdrDldRF	(4t 6k 7j) | ()
 fuBUfubUFF	(4j 7s 5i) | ()
+fDLUUldLUUlF	(5t 7i 6k) | ()
 fLLULdluLDLF	(4k 5j 6t) | ()
 fRRblBRRbLBF	(5s 7j 6k) | ()
 
@@ -61,6 +89,7 @@ fdFFlfLLdl	(4s 7s)(5 6t) | (2 3-)(5- 7)
 fdFLBDDbdl	(4t 7t)(5 6s) | (2 5 7)
 fdfRFRRDRF	(4s 7s)(5 6t) | (2 7 3)
 fdrDDbdBRF	(4t 7t)(5 6s) | (2 7- 3-)
+fLDDlDDlFFLf	(4t 7s)(5t 6s) | (2 5 7)
 
 fdrDRF		(4j 5k)(6j 7k) | (2 3- 7-)
 frdRDF		(4k 5j)(6k 7j) | (2- 7 3-)
@@ -73,12 +102,14 @@ frDRFLdl	(4k 6i)(5k 7i) | (2- 7)(3 5-)
 fDDFDfrDRF	(4i 6k)(5i 7k) | (2- 7- 3)
 fdrDBrbRRF	(4i 6k)(5i 7k) | (2- 7- 3)
 frdRFdfDDF	(4k 6i)(5k 7i) | (2- 3- 7)
+frDRFDLDDl	(4k 5j)(6k 7j) | (2- 5 7-)
 fDDFFlfLfDDF	(4i 5k)(6k 7j) | (2 3 7)
 fdFrLLUBuRLL	(4j 5k)(6j 7k) | (3- 5 7-)
 
 fDBRDrdFb	(4k 6j)7s | (3 5-)7-
 fdRDFdfrF	(4j 6k)7t | (3- 5)7-
 frDRdFLdl	(4k 5i)7t | 2-(3 7-)
+fBrBRUruBBF	(4s 7)6s | (2- 7)3-
 FDLdlFbbdduuffbbduu	(4 7t)6t | (2 5 7- 3-)
 fdrDRfBBDDUUFFBBDUU	(5 6t)7t | (2 7 5- 3-)
 
@@ -93,9 +124,104 @@ fdbrBDbRBF	(4s 5k 7i) | (2 3- 7-)
 frDbdRFrBR	(4k 6i 5s) | (2- 3- 7)
 frfdFRfDFF	(4i 7s 6k) | (2- 7 3-)
 fDrbdBRRfrFF	(5 7k 6k) | (2 7- 3-)
+fDbDDFdfDDBF	(5 7k 6k) | (2 7- 3-)
 fLDDrDDRDDlDDF	(4j 5k 6s) | (2 5 7)
 
 fDDFDDFlfL	(4s 6k 7j)5t | (2 3 5)
 fRFlFFrFFL	(4i 5k 6s)7t | (2 5 7)
 fRFrDDrDDR	(4i 5k 6s)7t | (2 5 7)
 fRRBRRFrbR	(4j 7s 5k)6t | (2 7 3)
+
+
+
+fRRbdFDBdfDRRF	(4t 5j 7i) | ()
+fRDDrFRfDDFr	(4t 6j 7i) | ()
+fbrBRFrbRB	(4t 5j 7i) | ()
+flFLblfLBF	(4s 6i 7j) | ()
+fDbUUBdbUUBF	(5 7k 6k) | ()
+flDBdFDbdfLF	(4t 5j 7i) | ()
+fLLrbLLBRbLLBLLF	(4k 7s 6j) | ()
+frFblfBRbFLB	(4k 5j)(6k 7j) | ()
+frblBRbLFB	(4i 7s 6k) | ()
+fdFrfRDrFR	(4s 5j 7k) | ()
+flFdfLFlDL	(4k 6i 5s) | ()
+fBBrBBRFrBBRBB	(4t 5j 7i) | ()
+flFDDfLFlDDL	(4 6i 7i) | ()
+fBRFrbRfrF	(4s 6i 7j) | ()
+fbUUFDDfUUFDDB	(5 7j 6j) | ()
+fBDbdFDBdb	(4s 5j 7k) | ()
+fBdFDbdfDF	(5k 6s 7j) | ()
+fBBrFLLfRFLLBB	(4k 7 5k) | ()
+flFLblfLFB	(4s 6i 7j) | ()
+fRFrBRfrFb	(4i 7t 6j) | ()
+fRUrdRurDF	(4j 7t 5k) | ()
+fDDbUUBDDbUUFB	(4j 6j 5) | ()
+fblBrbLBRF	(4t 6i 7k) | ()
+fuBBUfuBBUFF	(4j 6k 5s) | ()
+fRRULLuRRULLuF	(5j 6t 7k) | ()
+fDbUUBdbUUFB	(5 7k 6k) | ()
+fblBRRbLBRRF	(5j 6t 7k) | ()
+frblBRbLBF	(4i 7s 6k) | ()
+fRRblBRRbLBF	(5s 7j 6k) | ()
+frDLdRDldF	(4k 7s 6j) | ()
+fDDbUUBDDbUUBF	(4j 6j 5) | ()
+fdrDDbdBdRDF	(4k 6j)(5i 7k) | (2 3 7)
+fBlbdFdfDDBLFb	(4t 7t)(5 6s) | (2 7- 3-)
+fDDFlFLFFDDF	(4k 5i)(6j 7k) | (2 7 3)
+fDDFDDBdfDFb	(4s 6k 7j)5t | (2- 3 7-)
+fBDbdFDDBDDb	(4j 6k 5t)7s | (2- 3 7-)
+fdrDBRFrbR	(4t 6i 7k) | (2 3- 7-)
+fdbrBDbRBF	(4s 5k 7i) | (2 3- 7-)
+fdFrfDbDBdFR	(4j 7 6j) | 3-7-
+fRFDfrFRdr	(4i 7t 6j) | (2 5- 7-)
+fdrDDRFLdl	(4t 7t)(5 6s) | (2 5 3)
+frBRFRfRFRRBBDDB	(4t 7)(5 6t) | (2 5 7)
+fdFLLrUBuRLL	(4j 5k)(6j 7k) | (3- 5 7-)
+fDDFDLBDbl	(4i 6k)(5i 7k) | (2- 5 3-)
+fdRDrFRdr	4t(6i 7k) | (2- 5- 3- 7-)
+frbRFdlDrLBR	(4k 6i 5s) | (2- 5- 3)
+fdFLDDldfDDF	(4k 5k)(6i 7i) | (2 5- 7)3-
+fdrDFlfRFL	(5i 6s 7k) | (2 3- 7-)
+fdFRfrDRFr	(4i 7t 6j) | (2 3- 7-)
+frbDBDDRDF	(4s 7s)(5t 6) | (2- 3 7-)
+fdFLDBDbl	4s(5j 7k) | (2- 5)7-
+fLdBBfuRUBBFDlF	(4i 5k 7k 6i) | (2 5- 3- 7)
+fdFRfDFdr	(4j 6k)7t | (2- 5- 3- 7-)
+frFdbDBfRF	(4t 7t)(5s 6) | (3- 7 5-)
+frDbDBRFLDDl	(4k 6i)(5k 7i) | 2-(3 7 5-)
+frDRdrdRF	(4i 7s 5k 6) | (2- 7 5 3-)
+fdFDbFLLfLLB	(4t 7t)(5 6s) | (2 7- 3-)
+fBrbRFDRFdfr	(5k 6s 7j) | (2- 5)(3 7-)
+frFbdBDfRF	(4s 7s)(5 6t) | (3 5- 7-)
+fRRBRRFbdbDB	(4s 7s)(5 6t) | (2 5- 3-)
+fBdUrDRuFDb	(4k 7t 5j 6s) | (2- 5)7-
+frDbdBDbdBRF	4s5s6t7t | (2- 7- 3)
+fdFLLblBDl	(5t 7k 6j) | (2 7- 5-)
+fRRBBubUbRRF	(4j 5k)(6k 7i) | (2 7- 3-)
+fDRfrFFLdl	(5t 7i 6k) | (2 3- 5-)
+fBRRDRRdRRdFDb	4t(5k 6s 7i) | (2- 3 7-)
+fBRFrbdrDR	(4k 7s 6j) | (2 3- 7-)
+fbrBdbRBDF	(4k 7t 5i) | (2- 7 3-)
+fRRBuBUBBRRF	(4k 5j)(6i 7k) | (2- 3 7-)
+fRFDfdrDF	(4k 6j)7s | (3 5-)7-
+frDRDrDDRDF	(4k 7t 5i 6) | (3- 5-)
+fdRDrBUrubF	4t(6i 7k) | (2- 7)3-
+frbFDldLBfRF	(4j 5k)(6j 7k) | (3 7- 5-)
+fdFFlfLDLDDl	4t5s7t | (2 7 3)
+fDbdBBURRubF	4t6s7t | (2- 3 7-)
+fBdrDRFDb	(4k 6j)5t | (2- 5)7-
+fdrDbDBdRF	(4s 7)(5t 6t) | 3-7-
+fdURDFdfruF	(4j 6k)7t | (3- 5)7-
+fDDFLDDBRDrbDl	(4k 5k)(6i 7i) | (2 5- 7)3-
+frdRFLDBDbl	(4j 7t 6k 5) | (2- 7- 3- 5-)
+frdRFLDDBDbl	(4j 6j)(5k 7k) | (2- 5 7)3-
+fRRudrbRBUDRRF	(4t 7t)(5s 6) | (2- 7- 3)
+fDRFlFLFFrDF	4s6t7s | (3 7 5)
+frDRdFlFLfLBDbl	(4k 7s 5i 6t) | (2- 5-)
+frDbdBdRDF	(4 7t)(5s 6s) | 3-7-
+fDDFDDBdfDbF	(4s 6k 7j)5t | (2- 3 7-)
+fBRdrDbFlDL	(4k 5k 7k 6k) | (2 7-)3-
+fRRFbdBDlfRRFL	(4k 5j 6t) | (2- 3 5-)
+fBDRdrbdF	(4j 6k)7t | (3- 5)7-
+fdFrLLUBuRLL	(4j 5k)(6j 7k) | (3- 5 7-)
+fDbdBBURRuFb	4t6s7t | (2- 3 7-)
