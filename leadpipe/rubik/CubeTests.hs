@@ -1,7 +1,7 @@
-{-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-import Cube
-import Rubik
+import Rubik.Cube
+import Rubik.Geometry
 import Testing
 
 import Test.Framework
@@ -26,9 +26,11 @@ prop_adjacentNeighborsNotOpposite f = not . or $ zipWith isOpposite ns rns
         rns = tail ns ++ [head ns] -- rotated neighbors
 
 -- Every face must have exactly 4 neighbors.
+prop_fourNeighbors :: Face -> Bool
 prop_fourNeighbors f = length (neighboringFaces f) == 4
 
 -- Every vertex's faces must be neighbors and in clockwise order.
+prop_vertexFacesClockwise :: Vertex -> Bool
 prop_vertexFacesClockwise = allClockwise . vertexFaces
   where allClockwise [a, b, c] = cw a b c && cw b c a && cw c a b
         cw a b c = adjacent b c $ cycle (neighboringFaces a)
@@ -41,6 +43,7 @@ prop_vertexDistinguishedFace v = distinguishedFace v `elem` [U, D]
   where distinguishedFace = head . vertexFaces
 
 -- Every edge's faces must be neighbors
+prop_edgeFacesNeighbors :: Edge -> Bool
 prop_edgeFacesNeighbors = allNeighbors . edgeFaces
   where allNeighbors [a, b] = neighbors a b && neighbors b a
         neighbors a b = a `elem` neighboringFaces b

@@ -30,14 +30,12 @@ oppositeFace = toEnum . oppositeFaceNumber . fromEnum
 
 isOpposite f1 f2 = f1 == oppositeFace f2
 
-allVerticesAsFaces' = faceVertexTriples U ++ faceVertexTriples D
+allEdgesAsFaces' = topEdges ++ middleEdges ++ bottomEdges
+  where topEdges = faceEdgePairs U
+        middleEdges = [[F, L], [F, R], [B, R], [B, L]]
+        bottomEdges = faceEdgePairs D
 
-allEdgesAsFaces' = topEdges ++ frontEdges ++ backEdges ++ bottomEdges
-  where topEdges = map (\f -> [U, f]) $ neighboringFaces U
-        frontEdges = [[F, L], [F, R]]
-        backEdges = invert frontEdges
-        bottomEdges = invert topEdges
-        invert = reverse . map (map oppositeFace)
+allVerticesAsFaces' = faceVertexTriples U ++ faceVertexTriples D
 
 
 instance Polyhedron Face Edge Vertex where
@@ -81,12 +79,7 @@ instance Show Edge where
   showsPrec _ = showString . edgeName
 
 instance Read Edge where
-  readsPrec _ (c1:c2:cs) = maybeToList $ do
-    f1 <- nameToMaybeFace (toLower c1)
-    f2 <- nameToMaybeFace (toLower c2)
-    e <- facesToMaybeEdge [f1, f2]
-    return (e, cs)
-  readsPrec _ _ = []
+  readsPrec _ = readSEdge
 
 instance Enum Vertex where
   toEnum = toBoundedEnum Vertex
@@ -102,10 +95,4 @@ instance Show Vertex where
   showsPrec _ = showString . vertexName
 
 instance Read Vertex where
-  readsPrec _ (c1:c2:c3:cs) = maybeToList $ do
-    f1 <- nameToMaybeFace (toLower c1)
-    f2 <- nameToMaybeFace (toLower c2)
-    f3 <- nameToMaybeFace (toLower c3)
-    v <- facesToMaybeVertex [f1, f2, f3]
-    return (v, cs)
-  readsPrec _ _ = []
+  readsPrec _ = readSVertex

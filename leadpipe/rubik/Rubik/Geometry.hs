@@ -4,11 +4,10 @@
 -- a polyhedron.
 module Rubik.Geometry where
 
-import Data.Array.IArray
-import Data.Bits
-import Data.Char
+import Data.Array.IArray ((!), Array, Ix, array, listArray)
+import Data.Bits ((.|.), bit, shiftL)
 import qualified Data.Map as Map
-import Data.Maybe
+import Data.Maybe (fromJust, maybeToList)
 
 
 -- | A class that relates the faces, edges, and vertices of a
@@ -45,6 +44,11 @@ class (Enum f, Bounded f, Ix f, Enum e, Bounded e, Enum v, Bounded v)
   -- | The faces that touch a given face, in clockwise order.
   neighboringFaces :: f -> [f]
 
+
+  -- | The edges of a given face, as length-2 lists of their faces.
+  -- The given face appears first.
+  faceEdgePairs :: f -> [[f]]
+  faceEdgePairs f = map (\f2 -> [f, f2]) $ neighboringFaces f
 
   -- | All the edges, as length-2 lists of faces with the
   -- distinguished one first.
@@ -164,3 +168,29 @@ toBoundedEnum :: forall a. (Bounded a, Enum a) => (Int -> a) -> Int -> a
 toBoundedEnum ctor i = if i < fromEnum (minBound::a) || i > fromEnum (maxBound::a)
                        then undefined
                        else ctor i
+
+-- | A helper to implement Read for face types.
+readSFace :: forall f e v. (Polyhedron f e v) => ReadS f
+readSFace (c:cs) = maybeToList $ do
+  f <- nameToMaybeFace c
+  return (f, cs)
+readSFace _ = []
+
+-- | A helper to implement Read for edge types.
+readSEdge :: forall f e v. (Polyhedron f e v) => ReadS e
+readSEdge (c1:c2:cs) = maybeToList $ do
+  f1 <- nameToMaybeFace c1
+  f2 <- nameToMaybeFace c2
+  e <- facesToMaybeEdge [f1, f2]
+  return (e, cs)
+readSEdge _ = []
+
+-- | A helper to implement Read for vertex types.
+readSVertex :: forall f e v. (Polyhedron f e v) => ReadS v
+readSVertex (c1:c2:c3:cs) = maybeToList $ do
+  f1 <- nameToMaybeFace c1
+  f2 <- nameToMaybeFace c2
+  f3 <- nameToMaybeFace c3
+  v <- facesToMaybeVertex [f1, f2, f3]
+  return (v, cs)
+readSVertex _ = []
