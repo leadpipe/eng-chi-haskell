@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances #-}
-module Rubik3 where
+module Cube3 where
 
 import Rubik
 import Data.Array (Array, elems, array, (//), (!))
@@ -11,6 +11,23 @@ import Data.Maybe
 import Numeric (showHex)
 
 
+data Cube3 = Cube3 VertexWreath EdgeWreath deriving (Eq, Ord)
+
+instance Monoid Cube3 where
+  mempty = Cube3 one one
+  mappend (Cube3 v1 e1) (Cube3 v2 e2) = Cube3 (v1 *> v2) (e1 *> e2)
+  
+instance Rubik Cube3 where
+  fromFaceTwist fn 0 = 
+
+instance Show Rubik3Permutation where
+    showsPrec _ (R v e) = showCycles showVertexMove v .
+                          showString " | " .
+                          showCycles showEdgeMove e
+
+
+
+
 toIndexCycles p = map (map index) (toCycles p)
 
 fromIndexCycles cs = fromCycles (map (map (flip M identity)) cs)
@@ -19,21 +36,9 @@ fromIndexCycle = fromCycle identity
 
 
 
-showVectorMove (M i t) = showsPrec 0 i . showString ((Map.!) dpByPerm t)
+showVertexMove (M i t) = showsPrec 0 i . showString ((Map.!) dpByPerm t)
 showEdgeMove (M i t) = showHex i . showIntTransform t
 
-data Rubik3Permutation = R { v :: Permutation SimplePermutation,
-                             e :: SimplePermutation }
-                         deriving (Eq, Ord)
-
-instance Show Rubik3Permutation where
-    showsPrec _ (R v e) = showCycles showVectorMove v .
-                          showString " | " .
-                          showCycles showEdgeMove e
-
-instance Transform Rubik3Permutation where
-    identity = R identity identity
-    (R v e) *> (R v' e') = R (v*>v') (e*>e')
 
 -- Returns the edges for the given face number, in clockwise order.
 edges face = let (dim, side) = faceParts face
