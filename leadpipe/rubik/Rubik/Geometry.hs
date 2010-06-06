@@ -194,3 +194,6 @@ readSVertex (c1:c2:c3:cs) = maybeToList $ do
   v <- facesToMaybeVertex [f1, f2, f3]
   return (v, cs)
 readSVertex _ = []
+
+-- | Rotates a list by n places.
+rotate n xs = drop n xs ++ take n xs

@@ -30,8 +30,6 @@ oppositeFace = toEnum . oppositeFaceNumber . fromEnum
 
 isOpposite f1 f2 = f1 == oppositeFace f2
 
-rotate n xs = drop n xs ++ take n xs
-
 -- | The distinguished faces for dodecahedron edges are: the north or
 -- south polar face, for the ten polar edges; and the faces which
 -- would move the edge to a polar face if the face were rotated

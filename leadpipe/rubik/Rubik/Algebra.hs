@@ -1,8 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances, EmptyDataDecls #-}
 module Rubik.Algebra where
 
-import Data.Monoid
-
+import Data.Monoid (Monoid, mappend, mempty)
+import Numeric (showInt)
 
 -- Monoids are useful for expressing the transformations that
 -- Rubik-type puzzle pieces undergo.  A monoid is just like a group
@@ -38,28 +38,30 @@ base ^> exp
 -- | This class lets us easily define monoids corresponding to
 -- integers mod any number.
 class IntAsType a where
-    value :: a -> Int
+  value :: a -> Int
+  showsInt :: a -> Int -> ShowS
+  showsInt _ = showInt
 
 newtype Zn n = Zn Int deriving (Eq, Ord)
 
-instance Show (Zn n) where
-   show (Zn x) = show x
+instance IntAsType n => Show (Zn n) where
+  showsPrec _ (Zn x) = showsInt (undefined::n) x
 
 instance IntAsType n => Num (Zn n) where
-    Zn x + Zn y = Zn $ (x+y) `mod` value (undefined :: n)
-    negate (Zn 0) = 0
-    negate (Zn x) = Zn $ value (undefined :: n) - x
-    Zn x * Zn y = Zn $ (x*y) `mod` value (undefined :: n)
-    fromInteger n = Zn $ fromInteger n `mod` value (undefined :: n)
-    -- | Not well defined for these types.
-    abs = id
-    -- | Not well defined for these types.
-    signum (Zn 0) = 0
-    signum _ = 1
+  Zn x + Zn y = Zn $ (x+y) `mod` value (undefined :: n)
+  negate (Zn 0) = 0
+  negate (Zn x) = Zn $ value (undefined :: n) - x
+  Zn x * Zn y = Zn $ (x*y) `mod` value (undefined :: n)
+  fromInteger n = Zn $ fromInteger n `mod` value (undefined :: n)
+  -- | Not well defined for these types.
+  abs = id
+  -- | Not well defined for these types.
+  signum (Zn 0) = 0
+  signum _ = 1
 
 instance IntAsType n => Monoid (Zn n) where
-    mempty = 0
-    mappend = (+)
+  mempty = 0
+  mappend = (+)
 
 
 -- | A "wreath product" is a way to factor a group into two parts, a
@@ -71,13 +73,13 @@ instance IntAsType n => Monoid (Zn n) where
 --   http://www.polyomino.f2s.com/david/haskell/hs/PermutationGroups.hs.txt
 -- We use 0-based indexes, and add a twist monoid to each step.
 
-newtype (Ord t, Monoid t) => Wreath t = Wreath [WreathMove t]
+newtype (Monoid t) => Wreath t = Wreath [WreathMove t]
 
 -- | A WreathMove combines an int index with a twist monoid.
 data (Ord t, Monoid t) => WreathMove t = WM Int t deriving (Eq, Ord)
 
-instance (Monoid t, Ord t, Show t) => Show (WreathMove t) where
-    show (WM i t) = show i ++ "~" ++ show t
+instance (Ord t, Monoid t, Show t) => Show (WreathMove t) where
+    showsPrec n (WM i t) = showsPrec n i . showsPrec n t
 
 
 -- | Look up the move a wreath applies to an index.
