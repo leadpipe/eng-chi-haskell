@@ -6,6 +6,9 @@ module Rubik.Geometry where
 
 import Data.Array.IArray ((!), Array, Ix, array, listArray)
 import Data.Bits ((.|.), bit, shiftL)
+import Data.IntMap (IntMap)
+import qualified Data.IntMap as IntMap
+import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe (fromJust, maybeToList)
 
@@ -32,11 +35,11 @@ class (Enum f, Bounded f, Ix f, Enum e, Bounded e, Enum v, Bounded v)
   -- | Converts back from a face's name to the face, if it is one.
   nameToMaybeFace :: Char -> Maybe f
   nameToMaybeFace = flip Map.lookup faceMap
-    where faceMap :: Map.Map Char f
+    where faceMap :: Map Char f
           faceMap = Map.fromList $ map (\(f, c) -> (c, f)) faceNames
 
-  -- | Converts a list of faces into an integer, as a bit set.
-  facesIndex :: [f] -> Integer
+  -- | Converts a list of faces into an int, as a bit set.
+  facesIndex :: [f] -> Int
   facesIndex [] = 0
   facesIndex (f:fs) = toBit f .|. facesIndex fs
     where toBit f = bit $ fromEnum f - fromEnum (minBound::f)
@@ -70,13 +73,12 @@ class (Enum f, Bounded f, Ix f, Enum e, Bounded e, Enum v, Bounded v)
 
   -- | Converts a pair of faces into the corresponding edge.
   facesToEdge :: [f] -> e
-  facesToEdge = (edgeArray !) . facesIndex
-    where edgeArray = makeFaceBitsetArray edgeFaces
+  facesToEdge = fromJust . facesToMaybeEdge
 
   -- | Converts a pair of faces into the corresponding edge, if there
   -- is one.
   facesToMaybeEdge :: [f] -> Maybe e
-  facesToMaybeEdge = flip Map.lookup edgeMap . facesIndex
+  facesToMaybeEdge = flip IntMap.lookup edgeMap . facesIndex
     where edgeMap = makeFaceBitsetMap edgeFaces
 
   -- | The edges that belong to a given face, in clockwise order.
@@ -90,10 +92,12 @@ class (Enum f, Bounded f, Ix f, Enum e, Bounded e, Enum v, Bounded v)
           efs f = map (\f2 -> [f, f2]) (neighboringFaces f)
 
 
-  -- | The vertices of a given face, as length-3 lists of their faces.
-  -- The faces appear in clockwise order starting with the given face.
-  faceVertexTriples :: f -> [[f]]
-  faceVertexTriples f = vt ns $ tail $ cycle ns
+  -- | The vertices of a given face, as lists of the faces that meet
+  -- at each vertex.  The faces for each vertex appear in clockwise
+  -- order starting with the given face.
+  faceVerticesAsFaces :: f -> [[f]]
+  -- TODO: make this work for shapes other than cube & dodecahedron
+  faceVerticesAsFaces f = vt ns $ tail $ cycle ns
     where ns = neighboringFaces f
           vt [] _ = []
           vt (x:xs) (y:ys) = [f, x, y] : vt xs ys
@@ -119,13 +123,12 @@ class (Enum f, Bounded f, Ix f, Enum e, Bounded e, Enum v, Bounded v)
 
   -- | Converts a list of 3 faces into the corresponding vertex.
   facesToVertex :: [f] -> v
-  facesToVertex = (vertexArray !) . facesIndex
-    where vertexArray = makeFaceBitsetArray vertexFaces
+  facesToVertex = fromJust . facesToMaybeVertex
 
   -- | Converts a list of 3 faces into the corresponding vertex, if
   -- there is one.
   facesToMaybeVertex :: [f] -> Maybe v
-  facesToMaybeVertex = flip Map.lookup vertexMap . facesIndex
+  facesToMaybeVertex = flip IntMap.lookup vertexMap . facesIndex
     where vertexMap = makeFaceBitsetMap vertexFaces
 
   -- | The vertices that belong to a given face, in clockwise order.
@@ -135,7 +138,7 @@ class (Enum f, Bounded f, Ix f, Enum e, Bounded e, Enum v, Bounded v)
           verticesArray = listArray (minBound, maxBound)
                           [vs f | f <- [minBound..]]
           vs :: f -> [v]
-          vs = map facesToVertex . faceVertexTriples
+          vs = map facesToVertex . faceVerticesAsFaces
 
 
 -- | A helper to implement edgeFaces and vertexFaces.  Makes an array
@@ -144,23 +147,13 @@ class (Enum f, Bounded f, Ix f, Enum e, Bounded e, Enum v, Bounded v)
 makeFacesArray :: [[f]] -> Array Int [f]
 makeFacesArray fss = listArray (0, length fss - 1) fss
 
--- | A helper to implement facesToEdge and facesToVertex.  Makes an
--- array that maps a bit-set of face numbers to either edges or
--- vertices.
-makeFaceBitsetArray :: forall a f e v. (Enum a, Bounded a, Polyhedron f e v) =>
-                       (a -> [f]) -> Array Integer a
-makeFaceBitsetArray xxFaces =
-  array (0, 1`shiftL`numFaces - 1) [(i, a) | a <- [minBound..],
-                                    let i = facesIndex $ xxFaces a]
-    where numFaces = 1 + fromEnum (maxBound::f) - fromEnum (minBound::f)
-
 -- | A helper to implement facesToMaybeEdge and facesToMaybeVertex.
 -- Makes a map that maps a bit-set of face numbers to either edges or
 -- vertices.
 makeFaceBitsetMap :: forall a f e v. (Enum a, Bounded a, Polyhedron f e v) =>
-                     (a -> [f]) -> Map.Map Integer a
+                     (a -> [f]) -> IntMap a
 makeFaceBitsetMap xxFaces =
-  Map.fromList [(i, a) | a <- [minBound..], let i = facesIndex $ xxFaces a]
+  IntMap.fromList [(i, a) | a <- [minBound..], let i = facesIndex $ xxFaces a]
 
 -- | A helper to implement the toEnum methods of edge and vertex
 -- types.
