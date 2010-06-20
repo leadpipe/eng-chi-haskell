@@ -25,13 +25,23 @@ type Z3 = Zn T3
 type Z4 = Zn T4
 type Z5 = Zn T5
 
+data SFT
+instance IntAsType SFT where
+  value _ = 4
+  showsInt _ = showSquareTwist
+    where showSquareTwist 0 = id
+          showSquareTwist 1 = showChar '+'
+          showSquareTwist 2 = showChar '='
+          showSquareTwist 3 = showChar '-'
+
+type SquareFaceTwist = Zn SFT
+
 data EF
 instance IntAsType EF where
   value _ = 2
   showsInt _ = showEdgeFlip
-
-showEdgeFlip 0 = id
-showEdgeFlip 1 = showChar '+'
+    where showEdgeFlip 0 = id
+          showEdgeFlip 1 = showChar '+'
 
 type EdgeFlip = Zn EF
 
@@ -39,21 +49,16 @@ data VT
 instance IntAsType VT where
   value _ = 3
   showsInt _ = showVertexTwist
-
-showVertexTwist 0 = id
-showVertexTwist 1 = showChar '+'
-showVertexTwist 2 = showChar '-'
+    where showVertexTwist 0 = id
+          showVertexTwist 1 = showChar '+'
+          showVertexTwist 2 = showChar '-'
 
 type VertexTwist = Zn VT
 
 
---type NoFaceTwist = ()
---type TriangleFaceTwist = Z3
---type SquareFaceTwist = Z4
---type PentagonFaceTwist = Z5
-
-
 -- Specific wreath types
+type FaceWreath = Wreath ()
+type SquareFaceWreath = Wreath SquareFaceTwist
 type EdgeWreath = Wreath EdgeFlip
 type VertexWreath = Wreath VertexTwist
 
@@ -104,14 +109,21 @@ fromCycles cs = Wreath (elems (array (0, n) [(i, WM i one) | i <- [0..n]] //
           rotate (x:xs) = xs ++ [x]
 
 
--- | Shows a wreath as its disjoint cycles, given a way to show moves.
+-- | Shows a wreath as its disjoint cycles, given a way to show moves
+-- and a way to show empty.
 showCycles :: (Ord t, Monoid t) =>
-              (WreathMove t -> String -> String) -> Wreath t -> String -> String
-showCycles showMove w = showCycles' (toCycles w)
-  where showCycles' [] = showString "()"
-        showCycles' [[]] = showCycles' []
-        showCycles' [[m]] = showMove m
+              (WreathMove t -> ShowS) -> ShowS -> Wreath t -> ShowS
+showCycles showMove showEmpty w = showCycles' (toCycles w)
+  where showCycles' [] = showEmpty
+        showCycles' [[]] = showEmpty
+        --showCycles' [[m]] = showMove m
         showCycles' [c] = showParen True (showMoves c)
         showCycles' (c:cs) = showCycles' [c] . showCycles' cs
         showMoves [m] = showMove m
         showMoves (m:ms) = showMove m . showChar ' ' . showMoves ms
+
+-- | Shows a move, given a way to convert its index to a showable
+-- value.
+showMove :: (Ord t, Monoid t, Show a, Show t) =>
+            (Int -> a) -> WreathMove t -> ShowS
+showMove fromInt (WM i t) = showsPrec 0 (fromInt i) . showsPrec 0 t
