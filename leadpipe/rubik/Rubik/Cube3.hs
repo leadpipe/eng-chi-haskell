@@ -27,12 +27,13 @@ instance Puzzle Cube3 Face where
           asCycle toAs toFs = map toWM $ zip as $ rotate 1 as
             where as = toAs f
                   toWM (a1, a2) = WM (fromEnum a1) (twist (toFs a1) (toFs a2))
-                  twist fs1 fs2 = fromInteger (indexIn fs2 - indexIn fs1)
+                  twist fs1 fs2 = fromInteger (indexIn fs1 - indexIn fs2)
                   indexIn fs = toInteger $ fromJust $ f `elemIndex` fs
 
 instance Show Cube3 where
-  showsPrec n (Cube3 v e) =
-    showCycles showVertexMove v . showChar '|' . showCycles showEdgeMove e
-      where showVertexMove = showMove Vertex
-            showEdgeMove = showMove Edge
-            showMove fromInt (WM i t) = showsPrec 0 (fromInt i) . showsPrec 0 t
+  showsPrec n c@(Cube3 v e) = if c == one then showEmpty else showVertices . showEdges
+    where showEmpty = showString "()"
+          showVertices = showCycles showVertexMove id v
+          showEdges = showCycles showEdgeMove id e
+          showVertexMove = showMove Vertex
+          showEdgeMove = showMove Edge

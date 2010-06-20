@@ -35,7 +35,7 @@ allEdgesAsFaces' = topEdges ++ middleEdges ++ bottomEdges
         middleEdges = [[F, L], [F, R], [B, R], [B, L]]
         bottomEdges = faceEdgePairs D
 
-allVerticesAsFaces' = faceVertexTriples U ++ faceVertexTriples D
+allVerticesAsFaces' = faceVerticesAsFaces U ++ faceVerticesAsFaces D
 
 
 instance Polyhedron Face Edge Vertex where
@@ -60,10 +60,7 @@ instance Show Face where
   showsPrec _ = showChar . faceToName
 
 instance Read Face where
-  readsPrec _ (c:cs) = maybeToList $ do
-    f <- nameToMaybeFace (toLower c)
-    return (f, cs)
-  readsPrec _ _ = []
+  readsPrec _ = readSFace
 
 instance Enum Edge where
   toEnum = toBoundedEnum Edge
