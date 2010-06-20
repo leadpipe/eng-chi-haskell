@@ -33,29 +33,33 @@ isOpposite f1 f2 = f1 == oppositeFace f2
 -- | The distinguished faces for dodecahedron edges are: the north or
 -- south polar face, for the ten polar edges; and the faces which
 -- would move the edge to a polar face if the face were rotated
--- clockwise once or twice, for the ten vertical and ten equatorial
--- edges.
+-- clockwise (north) or counterclockwise (south) once or twice, for
+-- the ten vertical and ten equatorial edges.
 allEdgesAsFaces' = polarEdges ++ verticalEdges ++ equatorialEdges
   where polarEdges = faceEdgePairs An ++ faceEdgePairs As
-        verticalEdges = verticalEdgePairs An ++ verticalEdgePairs As
-        equatorialEdges = equatorialEdgePairs An ++ equatorialEdgePairs As
-        verticalEdgePairs f = transpose [fs, rotate 1 fs]
-          where fs = neighboringFaces f
-        equatorialEdgePairs f = transpose [fs, map oppositeFace $ rotate 3 fs]
-          where fs = neighboringFaces f
+        verticalEdges = northVerticalEdges ++ invert northVerticalEdges
+        equatorialEdges = northEquatorialEdges ++ invert northEquatorialEdges
+        northVerticalEdges = transpose [northNeighbors, rotate 1 northNeighbors]
+        northEquatorialEdges = transpose [northNeighbors,
+                                          map oppositeFace $ rotate 3 northNeighbors]
+        northNeighbors = neighboringFaces An
+        invert = map (map oppositeFace)
 
 -- | The distinguished faces for dodecahedron vertices are: the north
 -- or south polar face, for the ten polar vertices; and the face which
 -- would move the vertex to a polar face if the face were rotated
--- clockwise, for the ten equatorial vertices.
+-- clockwise (north) or counterclockwise (south), for the ten
+-- equatorial vertices.
 allVerticesAsFaces' = polarVertices ++ equatorialVertices
-  where polarVertices = faceVertexTriples An ++ faceVertexTriples As
-        equatorialVertices = equatorialVertexTriples An
-                             ++ equatorialVertexTriples As
-        equatorialVertexTriples f = transpose [fs1, fs2, fs3]
-          where fs1 = neighboringFaces f
+  where polarVertices = faceVerticesAsFaces An ++ faceVerticesAsFaces As
+        equatorialVertices = northEquatorialVertices ++ invert northEquatorialVertices
+        northEquatorialVertices = transpose [fs1, fs2, fs3]
+          where fs1 = neighboringFaces An
                 fs2 = map oppositeFace $ rotate 3 fs1
                 fs3 = rotate 1 fs1
+        invert = map invertFaces
+        invertFaces = swapFaces . map oppositeFace
+        swapFaces [f1, f2, f3] = [f1, f3, f2]
 
 
 instance Polyhedron Face Edge Vertex where
