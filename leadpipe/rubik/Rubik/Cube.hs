@@ -35,7 +35,7 @@ allEdgesAsFaces' = topEdges ++ middleEdges ++ bottomEdges
         middleEdges = [[F, L], [F, R], [B, R], [B, L]]
         bottomEdges = faceEdgePairs D
 
-allVerticesAsFaces' = faceVerticesAsFaces U ++ faceVerticesAsFaces D
+allVerticesAsFaces' = faceNeighborTriples U ++ faceNeighborTriples D
 
 
 instance Polyhedron Face Edge Vertex where

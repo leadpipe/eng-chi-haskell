@@ -51,7 +51,7 @@ allEdgesAsFaces' = polarEdges ++ verticalEdges ++ equatorialEdges
 -- clockwise (north) or counterclockwise (south), for the ten
 -- equatorial vertices.
 allVerticesAsFaces' = polarVertices ++ equatorialVertices
-  where polarVertices = faceVerticesAsFaces An ++ faceVerticesAsFaces As
+  where polarVertices = faceNeighborTriples An ++ faceNeighborTriples As
         equatorialVertices = northEquatorialVertices ++ invert northEquatorialVertices
         northEquatorialVertices = transpose [fs1, fs2, fs3]
           where fs1 = neighboringFaces An

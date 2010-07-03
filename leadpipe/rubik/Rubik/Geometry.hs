@@ -8,6 +8,7 @@ import Data.Array.IArray ((!), Array, Ix, array, listArray)
 import Data.Bits ((.|.), bit, shiftL)
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
+import Data.List (inits, tails)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe (fromJust, maybeToList)
@@ -94,16 +95,23 @@ class (Enum f, Bounded f, Ix f, Enum e, Bounded e, Enum v, Bounded v)
 
   -- | The vertices of a given face, as lists of the faces that meet
   -- at each vertex.  The faces for each vertex appear in clockwise
-  -- order starting with the given face.
+  -- order starting with the given face.  And the vertices
+  -- corresponding to the lists of faces are also in clockwise order.
   faceVerticesAsFaces :: f -> [[f]]
-  -- TODO: make this work for shapes other than cube & dodecahedron
-  faceVerticesAsFaces f = vt ns $ tail $ cycle ns
-    where ns = neighboringFaces f
-          vt [] _ = []
-          vt (x:xs) (y:ys) = [f, x, y] : vt xs ys
+  faceVerticesAsFaces f = map vfs $ neighboringFaces f
+    where vfs :: f -> [f]
+          vfs f2 = (Map.!) facesMap (f, f2)
+          facesMap :: Map (f, f) [f]
+          facesMap = Map.fromList $ concatMap fvs allVerticesAsFaces
+          fvs :: [f] -> [((f, f), [f])]
+          fvs = map indexFaces . allRotations
+          allRotations :: [f] -> [[f]]
+          allRotations fs = map (uncurry (++)) $ tail $ zip (tails fs) (inits fs)
+          indexFaces :: [f] -> ((f, f), [f])
+          indexFaces fs@(f1:f2:_) = ((f1, f2), fs)
 
-  -- | All the vertices, as length-3 lists of their faces.  The faces
-  -- must appear in clockwise order, starting with the vertex's
+  -- | All the vertices, as lists of their faces.  The faces must
+  -- appear in clockwise order, starting with the vertex's
   -- distinguished face.
   allVerticesAsFaces :: [[f]]
 
@@ -111,21 +119,21 @@ class (Enum f, Bounded f, Ix f, Enum e, Bounded e, Enum v, Bounded v)
   vertexName :: v -> String
   vertexName = map faceToName . vertexFaces
 
-  -- | The 3 faces of a vertex piece, in canonical order.
+  -- | The faces of a vertex piece, in canonical order.
   vertexFaces :: v -> [f]
   vertexFaces = (facesArray !) . fromEnum
     where facesArray = makeFacesArray allVerticesAsFaces
 
-  -- | Converts a string containing 3 face names into the
-  -- corresponding vertex.
+  -- | Converts a string containing face names into the corresponding
+  -- vertex.
   nameToVertex :: String -> v
   nameToVertex = facesToVertex . map nameToFace
 
-  -- | Converts a list of 3 faces into the corresponding vertex.
+  -- | Converts a list of faces into the corresponding vertex.
   facesToVertex :: [f] -> v
   facesToVertex = fromJust . facesToMaybeVertex
 
-  -- | Converts a list of 3 faces into the corresponding vertex, if
+  -- | Converts a list of faces into the corresponding vertex, if
   -- there is one.
   facesToMaybeVertex :: [f] -> Maybe v
   facesToMaybeVertex = flip IntMap.lookup vertexMap . facesIndex
@@ -161,6 +169,15 @@ toBoundedEnum :: forall a. (Bounded a, Enum a) => (Int -> a) -> Int -> a
 toBoundedEnum ctor i = if i < fromEnum (minBound::a) || i > fromEnum (maxBound::a)
                        then undefined
                        else ctor i
+
+-- | A helper to implement allVerticesAsFaces for polyhedra with 3
+-- faces per vertex.
+faceNeighborTriples :: forall f e v. (Polyhedron f e v) => f -> [[f]]
+faceNeighborTriples f = vt ns $ tail $ cycle ns
+  where ns = neighboringFaces f
+        vt [] _ = []
+        vt (x:xs) (y:ys) = [f, x, y] : vt xs ys
+
 
 -- | A helper to implement Read for face types.
 readSFace :: forall f e v. (Polyhedron f e v) => ReadS f
