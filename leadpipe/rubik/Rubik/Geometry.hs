@@ -48,11 +48,24 @@ class (Enum f, Bounded f, Ix f, Enum e, Bounded e, Enum v, Bounded v)
   -- | The faces that touch a given face, in clockwise order.
   neighboringFaces :: f -> [f]
 
+  -- | The neighbor just counterclockwise of the given face's given
+  -- neighbor.
+  previousNeighbor :: f -> f -> f
+  previousNeighbor f n = if n == head ns then last ns else prev ns
+    where ns = neighboringFaces f
+          prev (f:fs@(f2:_)) = if n == f2 then f else prev fs
+
+  -- | The neighbor just clockwise of the given face's given neighbor.
+  nextNeighbor :: f -> f -> f
+  nextNeighbor f n = next ns
+    where ns = neighboringFaces f
+          next (f:fs@(f2:_)) = if n == f then f2 else next fs
+          next [f] = if n == f then head ns else undefined
 
   -- | The edges of a given face, as length-2 lists of their faces.
   -- The given face appears first.
-  faceEdgePairs :: f -> [[f]]
-  faceEdgePairs f = map (\f2 -> [f, f2]) $ neighboringFaces f
+  faceEdgesAsFaces :: f -> [[f]]
+  faceEdgesAsFaces f = map (\f2 -> [f, f2]) $ neighboringFaces f
 
   -- | All the edges, as length-2 lists of faces with the
   -- distinguished one first.
