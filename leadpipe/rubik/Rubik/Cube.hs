@@ -31,9 +31,9 @@ oppositeFace = toEnum . oppositeFaceNumber . fromEnum
 isOpposite f1 f2 = f1 == oppositeFace f2
 
 allEdgesAsFaces' = topEdges ++ middleEdges ++ bottomEdges
-  where topEdges = faceEdgePairs U
+  where topEdges = faceEdgesAsFaces U
         middleEdges = [[F, L], [F, R], [B, R], [B, L]]
-        bottomEdges = faceEdgePairs D
+        bottomEdges = faceEdgesAsFaces D
 
 allVerticesAsFaces' = faceNeighborTriples U ++ faceNeighborTriples D
 
