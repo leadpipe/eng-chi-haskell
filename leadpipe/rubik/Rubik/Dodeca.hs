@@ -36,7 +36,7 @@ isOpposite f1 f2 = f1 == oppositeFace f2
 -- clockwise (north) or counterclockwise (south) once or twice, for
 -- the ten vertical and ten equatorial edges.
 allEdgesAsFaces' = polarEdges ++ verticalEdges ++ equatorialEdges
-  where polarEdges = faceEdgePairs An ++ faceEdgePairs As
+  where polarEdges = faceEdgesAsFaces An ++ faceEdgesAsFaces As
         verticalEdges = northVerticalEdges ++ invert northVerticalEdges
         equatorialEdges = northEquatorialEdges ++ invert northEquatorialEdges
         northVerticalEdges = transpose [northNeighbors, rotate 1 northNeighbors]
