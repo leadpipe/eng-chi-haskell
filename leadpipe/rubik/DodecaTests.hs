@@ -2,6 +2,7 @@
 
 import Rubik.Dodeca
 import Rubik.Geometry
+import Rubik.Util
 import Testing
 
 import Data.IntMap (IntMap)

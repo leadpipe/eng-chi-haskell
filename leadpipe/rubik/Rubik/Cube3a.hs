@@ -14,7 +14,7 @@ import Data.List (elemIndex)
 import Data.Maybe (fromJust)
 import Data.Monoid (Monoid, mappend, mempty)
 
-data Cube3a = Cube3a Cube3 SquareFaceWreath deriving (Eq, Ord)
+data Cube3a = Cube3a Cube3 DirectionalFaceWreath deriving (Eq, Ord)
 
 instance Monoid Cube3a where
   mempty = Cube3a one one
@@ -24,12 +24,8 @@ instance Puzzle Cube3a Face where
   fromFaceTwist f 0 = Cube3a (fromFaceTwist f 0) (fromCycles [[WM (fromEnum f) 1]])
 
 instance Show Cube3a where
-  showsPrec n ca@(Cube3a c@(Cube3 v e) f) =
-    if ca == one then showEmpty else showVertices . showEdges . showFaces
-      where showEmpty = showString "()"
-            showVertices = showCycles showVertexMove id v
-            showEdges = showCycles showEdgeMove id e
-            showFaces = showCycles showFaceMove id f
-            showVertexMove = showMove Vertex
-            showEdgeMove = showMove Edge
-            showFaceMove = showMove (toEnum :: Int -> Face)
+  showsPrec n c@(Cube3a (Cube3 v e) f) =
+    if c == one then showEmptyParens else showVertices . showEdges . showFaces
+      where showVertices = showNonemptyCycles Vertex v
+            showEdges = showNonemptyCycles Edge e
+            showFaces = showNonemptyCycles (toEnum::Int->Face) f

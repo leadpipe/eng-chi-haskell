@@ -1,7 +1,10 @@
 {-# LANGUAGE MultiParamTypeClasses, ScopedTypeVariables, TypeSynonymInstances #-}
 module Rubik.Dodeca where
 
+import Rubik.Algebra
+import Rubik.Cycles
 import Rubik.Geometry
+import Rubik.Util
 
 import Data.Array.IArray (Ix, (!), Array, listArray)
 import Data.List (transpose)
@@ -21,6 +24,8 @@ newtype Edge = Edge Int deriving (Eq, Ord, Ix)
 -- | The vertices of the dodecahedron.
 newtype Vertex = Vertex Int deriving (Eq, Ord, Ix)
 
+type EdgeWreath = Wreath Flip
+type VertexWreath = Wreath Twist3
 
 oppositeFaceNumber :: Int -> Int
 oppositeFaceNumber = (11 -)

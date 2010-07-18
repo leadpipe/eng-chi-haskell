@@ -20,20 +20,11 @@ instance Monoid Cube3 where
 
 instance Puzzle Cube3 Face where
   fromFaceTwist f 0 = Cube3 v e
-    where v = fromCycles [asCycle faceVertices vertexFaces]
-          e = fromCycles [asCycle faceEdges edgeFaces]
-          asCycle :: forall a t. (Enum a, Monoid t, Ord t, Num t) =>
-                     (Face -> [a]) -> (a -> [Face]) -> [WreathMove t]
-          asCycle toAs toFs = map toWM $ zip as $ rotate 1 as
-            where as = toAs f
-                  toWM (a1, a2) = WM (fromEnum a1) (twist (toFs a1) (toFs a2))
-                  twist fs1 fs2 = fromInteger (indexIn fs1 - indexIn fs2)
-                  indexIn fs = toInteger $ fromJust $ f `elemIndex` fs
+    where v = fromCycles [asCycle' f faceVertices vertexFaces]
+          e = fromCycles [asCycle' f faceEdges edgeFaces]
 
 instance Show Cube3 where
-  showsPrec n c@(Cube3 v e) = if c == one then showEmpty else showVertices . showEdges
-    where showEmpty = showString "()"
-          showVertices = showCycles showVertexMove id v
-          showEdges = showCycles showEdgeMove id e
-          showVertexMove = showMove Vertex
-          showEdgeMove = showMove Edge
+  showsPrec n c@(Cube3 v e) =
+    if c == one then showEmptyParens else showVertices . showEdges
+      where showVertices = showNonemptyCycles Vertex v
+            showEdges = showNonemptyCycles Edge e

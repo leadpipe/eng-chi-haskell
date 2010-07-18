@@ -1,6 +1,8 @@
 {-# LANGUAGE MultiParamTypeClasses, ScopedTypeVariables, TypeSynonymInstances #-}
 module Rubik.Cube where
 
+import Rubik.Algebra
+import Rubik.Cycles
 import Rubik.Geometry
 
 import Data.Array.IArray (Ix, (!), Array, listArray)
@@ -21,6 +23,10 @@ newtype Edge = Edge Int deriving (Eq, Ord, Ix)
 -- | The vertices of the cube.
 newtype Vertex = Vertex Int deriving (Eq, Ord, Ix)
 
+type FaceWreath = Wreath Twistless
+type EdgeWreath = Wreath Flip
+type VertexWreath = Wreath Twist3
+type DirectionalFaceWreath = Wreath Twist4
 
 oppositeFaceNumber :: Int -> Int
 oppositeFaceNumber = (5 -)

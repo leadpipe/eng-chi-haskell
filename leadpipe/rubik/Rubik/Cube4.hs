@@ -8,10 +8,11 @@ import Rubik.Cube
 import Rubik.Geometry
 import Rubik.Puzzle
 
-import Data.Array.IArray ((!))
+import Control.Monad (sequence)
+import Data.Array.IArray ((!), Array, listArray)
 import Data.Char (toLower)
 import Data.Ix (Ix)
-import Data.List (elemIndex)
+import Data.List (elemIndex, transpose)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe (fromJust, maybeToList)
@@ -32,13 +33,13 @@ newtype EdgePiece = EdgePiece Int deriving (Eq, Ord, Ix)
 
 instance Enum FacePiece where
   toEnum = toBoundedEnum FacePiece
-  fromEnum (FacePiece e) = e
+  fromEnum (FacePiece i) = i
   enumFrom = boundedEnumFrom
   enumFromThen = boundedEnumFromThen
 
 instance Bounded FacePiece where
   minBound = FacePiece 0
-  maxBound = FacePiece $ 4 * fromEnum (maxBound :: Face)
+  maxBound = FacePiece $ 3 + 4 * fromEnum (maxBound :: Face)
 
 allFacePiecesAsFaces = concat [faceVerticesAsFaces f | f <- [minBound..]]
 
@@ -46,37 +47,47 @@ facePieceFaces :: FacePiece -> [Face]
 facePieceFaces = (facesArray !) . fromEnum
   where facesArray = makeFacesArray allFacePiecesAsFaces
 
-facesToMaybeFacePiece :: Face -> [Face] -> Maybe FacePiece
-facesToMaybeFacePiece f fs = (f, facesIndex fs) `Map.lookup` fpMap
+facesToMaybeFacePiece :: [Face] -> Maybe FacePiece
+facesToMaybeFacePiece (f:fs) = (f, facesIndex fs) `Map.lookup` fpMap
   where fpMap :: Map (Face, Int) FacePiece
         fpMap = Map.fromList [((f, i), fp) | fp <- [minBound..],
                               let (f:fs) = facePieceFaces fp,
                               let i = facesIndex fs]
 
+facesToFacePiece :: [Face] -> FacePiece
+facesToFacePiece = fromJust . facesToMaybeFacePiece
+
+facePieceFace :: FacePiece -> Face
+facePieceFace = toEnum . (`div` 4) . fromEnum
+
+faceFacePieces :: Face -> [FacePiece]
+faceFacePieces = (piecesArray !)
+  where piecesArray :: Array Face [FacePiece]
+        piecesArray = listArray (minBound, maxBound)
+                      [map facesToFacePiece $ faceVerticesAsFaces f | f <- [minBound..]]
+
 instance Show FacePiece where
   showsPrec _ = showString . toString
-    where toString fp = let (fn:fns) = map faceToName (facePieceFaces fp)
+    where toString fp = let (fn:fns) = map faceToName $ facePieceFaces fp
                         in fn:'.':fns
 
 instance Read FacePiece where
   readsPrec _ (c1:dot:c2:c3:cs)
    | dot == '.' = maybeToList $ do
-       f1 <- nameToMaybeFace (toLower c1)
-       f2 <- nameToMaybeFace (toLower c2)
-       f3 <- nameToMaybeFace (toLower c3)
-       fp <- facesToMaybeFacePiece f1 [f2, f3]
+       fs <- sequence $ map (nameToMaybeFace . toLower) [c1, c2, c3]
+       fp <- facesToMaybeFacePiece fs
        return (fp, cs)
   readsPrec _ _ = []
 
 instance Enum EdgePiece where
   toEnum = toBoundedEnum EdgePiece
-  fromEnum (EdgePiece e) = e
+  fromEnum (EdgePiece i) = i
   enumFrom = boundedEnumFrom
   enumFromThen = boundedEnumFromThen
   
 instance Bounded EdgePiece where
   minBound = EdgePiece 0
-  maxBound = EdgePiece $ 2 * fromEnum (maxBound :: Edge)
+  maxBound = EdgePiece $ 1 + 2 * fromEnum (maxBound :: Edge)
 
 allEdgePiecesAsFaces = concat [pieces e | e <- [minBound..]]
   where pieces :: Edge -> [[Face]]
@@ -87,12 +98,18 @@ edgePieceFaces :: EdgePiece -> [Face]
 edgePieceFaces = (facesArray !) . fromEnum
   where facesArray = makeFacesArray allEdgePiecesAsFaces
 
-facesToMaybeEdgePiece :: [Face] -> Face -> Maybe EdgePiece
-facesToMaybeEdgePiece fs f = (facesIndex fs, f) `Map.lookup` epMap
+facesToMaybeEdgePiece :: [Face] -> Maybe EdgePiece
+facesToMaybeEdgePiece [f1, f2, f] = (facesIndex [f1, f2], f) `Map.lookup` epMap
   where epMap :: Map (Int, Face) EdgePiece
         epMap = Map.fromList [((i, f), ep) | ep <- [minBound..],
                               let [f1,f2,f] = edgePieceFaces ep,
                               let i = facesIndex [f1,f2]]
+
+facesToEdgePiece :: [Face] -> EdgePiece
+facesToEdgePiece = fromJust . facesToMaybeEdgePiece
+
+edgePieceEdge :: EdgePiece -> Edge
+edgePieceEdge = toEnum . (`div` 2) . fromEnum
 
 instance Show EdgePiece where
   showsPrec _ = showString . toString
@@ -102,29 +119,32 @@ instance Show EdgePiece where
 instance Read EdgePiece where
   readsPrec _ (c1:c2:dot:c3:cs)
    | dot == '.' = maybeToList $ do
-       f1 <- nameToMaybeFace (toLower c1)
-       f2 <- nameToMaybeFace (toLower c2)
-       f3 <- nameToMaybeFace (toLower c3)
-       ep <- facesToMaybeEdgePiece [f1, f2] f3
+       fs <- sequence $ map (nameToMaybeFace . toLower) [c1, c2, c3]
+       ep <- facesToMaybeEdgePiece fs
        return (ep, cs)
   readsPrec _ _ = []
-{-
+
+
 instance Puzzle Cube4 Face where
   fromFaceTwist f 0 = Cube4 vw ew fw
-    where vw = fromCycles [asCycle faceVertices vertexFaces]
-          ew = fromCycles [asCycle faceEdges edgeFaces]
-          asCycle :: forall a t. (Enum a, Monoid t, Ord t, Num t) =>
-                     (Face -> [a]) -> (a -> [Face]) -> [WreathMove t]
-          asCycle toAs toFs = map toWM $ zip as $ rotate 1 as
-            where as = toAs f
-                  toWM (a1, a2) = WM (fromEnum a1) (twist (toFs a1) (toFs a2))
-                  twist fs1 fs2 = fromInteger (indexIn fs2 - indexIn fs1)
-                  indexIn fs = toInteger $ fromJust $ f `elemIndex` fs
+    where vw = fromCycles [asCycle' f faceVertices vertexFaces]
+          ew = fromCycles $ map edgeCycle edgePieces
+          fw = fromCycles [asSimpleCycle $ faceFacePieces f]
+          edgeCycle eps = asCycle f eps edgePieceFaces
+          edgePieces = transpose $ map (map facesToEdgePiece)
+                       [[[f, f2, f3], [f, f3, f2]] | [_, f2, f3] <- faceVerticesAsFaces f]
+  fromFaceTwist f 1 = Cube4 one ew fw
+    where ew = fromCycles [asCycle f edgePieces edgePieceFaces]
+          fw = fromCycles $ map asSimpleCycle facePieces
+          edgePieces = map facesToEdgePiece
+                       [[f2, f3, f] | [_, f2, f3] <- faceVerticesAsFaces f]
+          facePieces = transpose $ map (map facesToFacePiece)
+                       [[[f2, f3, f], [f3, f2, f]] | [_, f2, f3] <- faceVerticesAsFaces f]
+
 
 instance Show Cube4 where
-  showsPrec n (Cube4 v e f) =
-    showCycles showVertexMove v . showChar '|' . showCycles showEdgeMove e
-      where showVertexMove = showMove Vertex
-            showEdgeMove = showMove Edge
-            showMove fromInt (WM i t) = showsPrec 0 (fromInt i) . showsPrec 0 t
--}
+  showsPrec n c@(Cube4 v e f) =
+    if c == one then showEmptyParens else showVertices . showEdges . showFaces
+      where showVertices = showNonemptyCycles Vertex v
+            showEdges = showNonemptyCycles EdgePiece e
+            showFaces = showNonemptyCycles FacePiece f
