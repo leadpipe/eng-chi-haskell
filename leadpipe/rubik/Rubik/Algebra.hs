@@ -1,27 +1,31 @@
 {-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances, EmptyDataDecls #-}
 module Rubik.Algebra where
 
-import Data.Monoid (Monoid, mappend, mempty)
+import Data.List (sort)
+import Data.Monoid (Monoid, mappend, mempty, Dual(..), Sum(..))
 import Numeric (showInt)
 
--- Monoids are useful for expressing the transformations that
--- Rubik-type puzzle pieces undergo.  A monoid is just like a group
--- but without the notion of an inverse.
+-- | We extend Monoid to make a group class, by adding an inverse operator.
+class Monoid a => Group a where
+  ginvert :: a -> a
+  -- ^ Returns the inverse of the given group element, ie the element that
+  -- yields mempty when mappend'ed to the original element.
 
--- We define some operators to make it easier to work with monoids as
--- group-like types.  We define "one" as a synonym for mempty; the *>
--- operator is our synonym for mappend; and we define ^> to be the
--- result of raising a monoid element to an integral power.
+
+-- We define some operators to make it easier to work with monoids and groups.
+-- We define "one" as a synonym for mempty; the *> operator is our synonym for
+-- mappend; and we define ^> to be the result of raising a group element to an
+-- integral power.
 
 one :: Monoid m => m
 one = mempty
 (*>) :: Monoid m => m -> m -> m
 (*>) = mappend
--- This version of ^> is copied from Data.Monoid.Combinators.replicate
+-- This version of ^> is copied from Data.Group.Combinators.replicate
 -- in the monoids Hackage package.
-(^>) :: (Monoid m, Integral n) => m -> n -> m
+(^>) :: (Group g, Integral n) => g -> n -> g
 base ^> exp
-  | exp < 0   = error "Negative exponent"
+  | exp < 0   = ginvert base ^> negate exp
   | exp == 0  = one
   | otherwise = f base exp
     where
@@ -35,7 +39,33 @@ base ^> exp
         | otherwise = g (base *> base) (exp `quot` 2) (base *> acc)
 
 
--- | This class lets us easily define monoids corresponding to
+-- Some Group defs corresponding to (some of) the basic Monoid defs:
+instance (Group b) => Group (a -> b) where
+  ginvert f x = ginvert (f x)
+
+instance Group () where
+  ginvert () = ()
+
+instance (Group a, Group b) => Group (a, b) where
+  ginvert (a, b) = (ginvert a, ginvert b)
+
+instance (Group a, Group b, Group c) => Group (a, b, c) where
+  ginvert (a, b, c) = (ginvert a, ginvert b, ginvert c)
+
+instance (Group a, Group b, Group c, Group d) => Group (a, b, c, d) where
+  ginvert (a, b, c, d) = (ginvert a, ginvert b, ginvert c, ginvert d)
+
+instance (Group a, Group b, Group c, Group d, Group e) => Group (a, b, c, d, e) where
+  ginvert (a, b, c, d, e) = (ginvert a, ginvert b, ginvert c, ginvert d, ginvert e)
+
+instance (Group a) => Group (Dual a) where
+  ginvert (Dual x) = Dual (ginvert x)
+
+instance (Num a) => Group (Sum a) where
+  ginvert (Sum x) = Sum (negate x)
+
+
+-- | This class lets us easily define groups corresponding to
 -- integers mod any number.
 class IntAsType a where
   value :: a -> Int
@@ -63,6 +93,9 @@ instance IntAsType n => Monoid (Zn n) where
   mempty = 0
   mappend = (+)
 
+instance IntAsType n => Group (Zn n) where
+  ginvert = negate
+
 
 -- | A "wreath product" is a way to factor a group into two parts, a
 -- permutation and some other subgroup.  For example, the corner
@@ -73,39 +106,43 @@ instance IntAsType n => Monoid (Zn n) where
 --   http://www.polyomino.f2s.com/david/haskell/hs/PermutationGroups.hs.txt
 -- We use 0-based indexes, and add a twist monoid to each step.
 
-newtype (Monoid t) => Wreath t = Wreath [WreathMove t]
+newtype (Group t) => Wreath t = Wreath [WreathMove t]
 
--- | A WreathMove combines an int index with a twist monoid.
-data (Ord t, Monoid t) => WreathMove t = WM Int t deriving (Eq, Ord)
+-- | A WreathMove combines an int index with a twist group.
+data (Ord t, Group t) => WreathMove t = WM Int t deriving (Eq, Ord)
 
-instance (Ord t, Monoid t, Show t) => Show (WreathMove t) where
+instance (Ord t, Group t, Show t) => Show (WreathMove t) where
     showsPrec n (WM i t) = showsPrec n i . showsPrec n t
 
 
 -- | Look up the move a wreath applies to an index.
-getWreathMove :: (Ord t, Monoid t) => Wreath t -> Int -> WreathMove t
+getWreathMove :: (Ord t, Group t) => Wreath t -> Int -> WreathMove t
 getWreathMove (Wreath ms) i = ms `lookup` i
   where lookup (m:ms) 0 = m
         lookup (m:ms) j = lookup ms (j-1)
         lookup [] _ = WM i one -- If the index isn't there, it's not moved
 
 -- | Chain a move through a wreath.
-chainWreathMove :: (Ord t, Monoid t) => Wreath t -> WreathMove t -> WreathMove t
+chainWreathMove :: (Ord t, Group t) => Wreath t -> WreathMove t -> WreathMove t
 chainWreathMove w (WM i t) = let (WM i' t') = getWreathMove w i in WM i' (t *> t')
 
 
--- | Wreaths are also Monoids.
-instance (Ord t, Monoid t) => Monoid (Wreath t) where
+-- | Wreaths are also Groups.
+instance (Ord t, Group t) => Monoid (Wreath t) where
     mempty = Wreath []
     mappend (Wreath ms) w@(Wreath ns) = Wreath (map (chainWreathMove w) ms')
       where ms' = ms ++ [WM i one | i <- [length ms..length ns - 1]]
 
-instance (Ord t, Monoid t) => Eq (Wreath t) where
+instance (Ord t, Group t) => Group (Wreath t) where
+    ginvert (Wreath ms) = Wreath (map inv (sort (zip ms [0..])))
+      where inv (WM _ t, i) = WM i (ginvert t)
+
+instance (Ord t, Group t) => Eq (Wreath t) where
   Wreath ms == Wreath ns = eqw 0 ms ns
     where eqw i (m:ms) (n:ns) = m == n && eqw (i+1) ms ns
           eqw _ [] [] = True
           eqw i (m:ms) [] = m == WM i one && eqw (i+1) ms []
           eqw i [] (n:ns) = n == WM i one && eqw (i+1) [] ns
 
-instance (Ord t, Monoid t) => Ord (Wreath t) where
+instance (Ord t, Group t) => Ord (Wreath t) where
     compare w@(Wreath ms) x@(Wreath ns) = if w == x then EQ else compare ms ns

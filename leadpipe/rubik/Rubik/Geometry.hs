@@ -74,12 +74,12 @@ class (Enum f, Bounded f, Ix f, Enum e, Bounded e, Enum v, Bounded v)
   -- | The canonical name of an edge piece.
   edgeName :: e -> String
   edgeName = map faceToName . edgeFaces
-  
+
   -- | The 2 faces of an edge piece, in canonical order.
   edgeFaces :: e -> [f]
   edgeFaces = (facesArray !) . fromEnum
     where facesArray = makeFacesArray allEdgesAsFaces
-  
+
   -- | Converts a string containing 2 face names into the
   -- corresponding edge.
   nameToEdge :: String -> e

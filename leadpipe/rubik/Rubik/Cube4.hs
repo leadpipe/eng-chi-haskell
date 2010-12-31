@@ -8,7 +8,7 @@ import Rubik.Cube
 import Rubik.Geometry
 import Rubik.Puzzle
 
-import Control.Monad (sequence)
+import Control.Monad (mapM)
 import Data.Array.IArray ((!), Array, listArray)
 import Data.Char (toLower)
 import Data.Ix (Ix)
@@ -19,11 +19,14 @@ import Data.Maybe (fromJust, maybeToList)
 import Data.Monoid (Monoid, mappend, mempty)
 import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
 
-data Cube4 = Cube4 VertexWreath EdgeWreath FaceWreath deriving (Eq, Ord)
+newtype Cube4 = Cube4 (VertexWreath, EdgeWreath, FaceWreath) deriving (Eq, Ord)
 
 instance Monoid Cube4 where
-  mempty = Cube4 one one one
-  mappend (Cube4 v1 e1 f1) (Cube4 v2 e2 f2) = Cube4 (v1 *> v2) (e1 *> e2) (f1 *> f2)
+  mempty = Cube4 one
+  mappend (Cube4 s1) (Cube4 s2) = Cube4 (s1 *> s2)
+
+instance Group Cube4 where
+  ginvert (Cube4 s) = Cube4 $ ginvert s
 
 -- | The face pieces, four for each of the cube's faces.
 newtype FacePiece = FacePiece Int deriving (Eq, Ord, Ix)
@@ -39,7 +42,7 @@ instance Enum FacePiece where
 
 instance Bounded FacePiece where
   minBound = FacePiece 0
-  maxBound = FacePiece $ 3 + 4 * fromEnum (maxBound :: Face)
+  maxBound = FacePiece $ length allFacePiecesAsFaces - 1
 
 allFacePiecesAsFaces = concat [faceVerticesAsFaces f | f <- [minBound..]]
 
@@ -74,7 +77,7 @@ instance Show FacePiece where
 instance Read FacePiece where
   readsPrec _ (c1:dot:c2:c3:cs)
    | dot == '.' = maybeToList $ do
-       fs <- sequence $ map (nameToMaybeFace . toLower) [c1, c2, c3]
+       fs <- mapM (nameToMaybeFace . toLower) [c1, c2, c3]
        fp <- facesToMaybeFacePiece fs
        return (fp, cs)
   readsPrec _ _ = []
@@ -84,10 +87,10 @@ instance Enum EdgePiece where
   fromEnum (EdgePiece i) = i
   enumFrom = boundedEnumFrom
   enumFromThen = boundedEnumFromThen
-  
+
 instance Bounded EdgePiece where
   minBound = EdgePiece 0
-  maxBound = EdgePiece $ 1 + 2 * fromEnum (maxBound :: Edge)
+  maxBound = EdgePiece $ length allEdgePiecesAsFaces - 1
 
 allEdgePiecesAsFaces = concat [pieces e | e <- [minBound..]]
   where pieces :: Edge -> [[Face]]
@@ -119,21 +122,24 @@ instance Show EdgePiece where
 instance Read EdgePiece where
   readsPrec _ (c1:c2:dot:c3:cs)
    | dot == '.' = maybeToList $ do
-       fs <- sequence $ map (nameToMaybeFace . toLower) [c1, c2, c3]
+       fs <- mapM (nameToMaybeFace . toLower) [c1, c2, c3]
        ep <- facesToMaybeEdgePiece fs
        return (ep, cs)
   readsPrec _ _ = []
 
 
 instance Puzzle Cube4 Face where
-  fromFaceTwist f 0 = Cube4 vw ew fw
+  numLayers _ _ = 2
+  numTwists _ _ = 4
+
+  fromFaceTwist f 0 = Cube4 (vw, ew, fw)
     where vw = fromCycles [asCycle' f faceVertices vertexFaces]
           ew = fromCycles $ map edgeCycle edgePieces
           fw = fromCycles [asSimpleCycle $ faceFacePieces f]
           edgeCycle eps = asCycle f eps edgePieceFaces
           edgePieces = transpose $ map (map facesToEdgePiece)
                        [[[f, f2, f3], [f, f3, f2]] | [_, f2, f3] <- faceVerticesAsFaces f]
-  fromFaceTwist f 1 = Cube4 one ew fw
+  fromFaceTwist f 1 = Cube4 (one, ew, fw)
     where ew = fromCycles [asCycle f edgePieces edgePieceFaces]
           fw = fromCycles $ map asSimpleCycle facePieces
           edgePieces = map facesToEdgePiece
@@ -143,8 +149,7 @@ instance Puzzle Cube4 Face where
 
 
 instance Show Cube4 where
-  showsPrec n c@(Cube4 v e f) =
-    if c == one then showEmptyParens else showVertices . showEdges . showFaces
-      where showVertices = showNonemptyCycles Vertex v
-            showEdges = showNonemptyCycles EdgePiece e
-            showFaces = showNonemptyCycles FacePiece f
+  showsPrec n c@(Cube4 (v, e, f)) = fromOptCycles $ showVertices *> showEdges *> showFaces
+      where showVertices = optShowCyclesDefault Vertex v
+            showEdges = optShowCyclesDefault EdgePiece e
+            showFaces = optShowCyclesDefault FacePiece f

@@ -12,19 +12,23 @@ import Data.List (elemIndex)
 import Data.Maybe (fromJust)
 import Data.Monoid (Monoid, mappend, mempty)
 
-data Cube3 = Cube3 VertexWreath EdgeWreath deriving (Eq, Ord)
+newtype Cube3 = Cube3 (VertexWreath, EdgeWreath) deriving (Eq, Ord)
 
 instance Monoid Cube3 where
-  mempty = Cube3 one one
-  mappend (Cube3 v1 e1) (Cube3 v2 e2) = Cube3 (v1 *> v2) (e1 *> e2)
+  mempty = Cube3 one
+  mappend (Cube3 s1) (Cube3 s2) = Cube3 (s1 *> s2)
+
+instance Group Cube3 where
+  ginvert (Cube3 s) = Cube3 (ginvert s)
 
 instance Puzzle Cube3 Face where
-  fromFaceTwist f 0 = Cube3 v e
+  numLayers _ _ = 1
+  numTwists _ _ = 4
+  fromFaceTwist f 0 = Cube3 (v, e)
     where v = fromCycles [asCycle' f faceVertices vertexFaces]
           e = fromCycles [asCycle' f faceEdges edgeFaces]
 
 instance Show Cube3 where
-  showsPrec n c@(Cube3 v e) =
-    if c == one then showEmptyParens else showVertices . showEdges
-      where showVertices = showNonemptyCycles Vertex v
-            showEdges = showNonemptyCycles Edge e
+  showsPrec _ (Cube3 (v, e)) = fromOptCycles $ showVertices *> showEdges
+    where showVertices = optShowCyclesDefault Vertex v
+          showEdges = optShowCyclesDefault Edge e

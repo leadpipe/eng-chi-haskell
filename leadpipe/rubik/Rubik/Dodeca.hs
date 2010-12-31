@@ -4,7 +4,7 @@ module Rubik.Dodeca where
 import Rubik.Algebra
 import Rubik.Cycles
 import Rubik.Geometry
-import Rubik.Util
+import Rubik.Lists
 
 import Data.Array.IArray (Ix, (!), Array, listArray)
 import Data.List (transpose)
@@ -98,7 +98,7 @@ instance Enum Edge where
   fromEnum (Edge e) = e
   enumFrom = boundedEnumFrom
   enumFromThen = boundedEnumFromThen
-  
+
 instance Bounded Edge where
   minBound = Edge 0
   maxBound = Edge $ length allEdgesAsFaces' - 1
@@ -114,7 +114,7 @@ instance Enum Vertex where
   fromEnum (Vertex v) = v
   enumFrom = boundedEnumFrom
   enumFromThen = boundedEnumFromThen
-  
+
 instance Bounded Vertex where
   minBound = Vertex 0
   maxBound = Vertex $ length allVerticesAsFaces' - 1

@@ -14,18 +14,22 @@ import Data.List (elemIndex)
 import Data.Maybe (fromJust)
 import Data.Monoid (Monoid, mappend, mempty)
 
-data Cube3a = Cube3a Cube3 DirectionalFaceWreath deriving (Eq, Ord)
+newtype Cube3a = Cube3a (Cube3, DirectionalFaceWreath) deriving (Eq, Ord)
 
 instance Monoid Cube3a where
-  mempty = Cube3a one one
-  mappend (Cube3a c1 f1) (Cube3a c2 f2) = Cube3a (c1 *> c2) (f1 *> f2)
+  mempty = Cube3a one
+  mappend (Cube3a s1) (Cube3a s2) = Cube3a (s1 *> s2)
+
+instance Group Cube3a where
+  ginvert (Cube3a s) = Cube3a (ginvert s)
 
 instance Puzzle Cube3a Face where
-  fromFaceTwist f 0 = Cube3a (fromFaceTwist f 0) (fromCycles [[WM (fromEnum f) 1]])
+  numLayers _ _ = 1
+  numTwists _ _ = 4
+  fromFaceTwist f 0 = Cube3a ((fromFaceTwist f 0), (fromCycles [[WM (fromEnum f) 1]]))
 
 instance Show Cube3a where
-  showsPrec n c@(Cube3a (Cube3 v e) f) =
-    if c == one then showEmptyParens else showVertices . showEdges . showFaces
-      where showVertices = showNonemptyCycles Vertex v
-            showEdges = showNonemptyCycles Edge e
-            showFaces = showNonemptyCycles (toEnum::Int->Face) f
+  showsPrec _ (Cube3a ((Cube3 (v, e)), f)) = fromOptCycles $ showVertices *> showEdges *> showFaces
+    where showVertices = optShowCyclesDefault Vertex v
+          showEdges = optShowCyclesDefault Edge e
+          showFaces = optShowCyclesDefault (toEnum::Int->Face) f
