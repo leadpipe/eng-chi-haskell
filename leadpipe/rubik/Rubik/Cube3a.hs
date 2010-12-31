@@ -26,7 +26,7 @@ instance Group Cube3a where
 instance Puzzle Cube3a Face where
   numLayers _ _ = 1
   numTwists _ _ = 4
-  fromFaceTwist f 0 = Cube3a ((fromFaceTwist f 0), (fromCycles [[WM (fromEnum f) 1]]))
+  fromFaceTwist f 0 = Cube3a ((fromFaceTwist f 0), (fromCycles [[WM (fromEnum f, 1)]]))
 
 instance Show Cube3a where
   showsPrec _ (Cube3a ((Cube3 (v, e)), f)) = fromOptCycles $ showVertices *> showEdges *> showFaces

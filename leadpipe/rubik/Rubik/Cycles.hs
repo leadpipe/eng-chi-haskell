@@ -79,10 +79,10 @@ leavesUnmoved (Wreath list) indices = f 0 indices list
     where f _ [] _ = True
           f _ _ [] = True
           f j (i:is) (m:ms)
-            | j == i    = m == WM i one && f (j+1) is ms
+            | j == i    = m == WM (i, one) && f (j+1) is ms
             | otherwise = f (j+1) (i:is) ms
 
-getIndex (WM i _) = i
+getIndex (WM (i, _)) = i
 
 toCycles' :: forall t. (Ord t, Group t) => Wreath t -> [[WreathMove t]]
 toCycles' (Wreath []) = []
@@ -106,14 +106,14 @@ toCycles' (Wreath list) =
 -- | Converts a wreath into disjoint cycles.
 toCycles :: (Ord t, Group t) => Wreath t -> [[WreathMove t]]
 toCycles w = filter (not . isUnmoved) (toCycles' w)
-    where isUnmoved [(WM i t)] = t == one
+    where isUnmoved [(WM (i,t))] = t == one
           isUnmoved [] = True
           isUnmoved _ = False
 
 
 -- | Converts a list of cycles into a wreath.
 fromCycles :: (Ord t, Group t) => [[WreathMove t]] -> Wreath t
-fromCycles cs = Wreath (elems (array (0, n) [(i, WM i one) | i <- [0..n]] //
+fromCycles cs = Wreath (elems (array (0, n) [(i, WM (i, one)) | i <- [0..n]] //
                                (concatMap fromCycle cs)))
     where n = maximum (map getIndex (concat cs))
           fromCycle ms = zip (map getIndex ms) (rotate 1 ms)
@@ -125,8 +125,9 @@ fromCycles cs = Wreath (elems (array (0, n) [(i, WM i one) | i <- [0..n]] //
 -- each pair of pieces' faces.
 asCycle :: forall f p t. (Eq f, Enum p, Group t, Ord t, Num t) =>
            f -> [p] -> (p -> [f]) -> [WreathMove t]
-asCycle f ps toFs = zipWith (WM . fromEnum) ps twists
-  where indices = map indexIn ps
+asCycle f ps toFs = zipWith toWM ps twists
+  where toWM p t = WM (fromEnum p, t)
+        indices = map indexIn ps
         indexIn p = toInteger $ fromJust $ f `elemIndex` toFs p
         twists = zipWith toTwist indices $ rotate 1 indices
         toTwist i j = fromInteger (i - j)
@@ -143,7 +144,7 @@ asCycle' f toPs toFs = asCycle f (toPs f) toFs
 -- twisting is possible.
 asSimpleCycle :: forall p t. (Enum p, Group t, Ord t) => [p] -> [WreathMove t]
 asSimpleCycle ps = map toWM ps
-  where toWM p = WM (fromEnum p) one
+  where toWM p = WM (fromEnum p, one)
 
 
 -- | Optionally shows a wreath as its disjoint cycles, given a way to show
@@ -161,7 +162,7 @@ optShowCycles showMove w = showCycles' (toCycles w)
 -- | Shows a move, given a way to convert its index to a showable value.
 showMove :: (Ord t, Group t, Show a, Show t) =>
             (Int -> a) -> WreathMove t -> ShowS
-showMove fromInt (WM i t) = shows (fromInt i) . shows t
+showMove fromInt (WM (i,t)) = shows (fromInt i) . shows t
 
 -- | Shows a pair of empty parentheses.
 showEmptyParens :: ShowS

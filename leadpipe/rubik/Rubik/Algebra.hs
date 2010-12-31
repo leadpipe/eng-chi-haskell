@@ -109,10 +109,10 @@ instance IntAsType n => Group (Zn n) where
 newtype (Group t) => Wreath t = Wreath [WreathMove t]
 
 -- | A WreathMove combines an int index with a twist group.
-data (Ord t, Group t) => WreathMove t = WM Int t deriving (Eq, Ord)
+newtype (Ord t, Group t) => WreathMove t = WM (Int, t) deriving (Eq, Ord)
 
 instance (Ord t, Group t, Show t) => Show (WreathMove t) where
-    showsPrec n (WM i t) = showsPrec n i . showsPrec n t
+    showsPrec n (WM (i,t)) = showsPrec n i . showsPrec n t
 
 
 -- | Look up the move a wreath applies to an index.
@@ -120,29 +120,29 @@ getWreathMove :: (Ord t, Group t) => Wreath t -> Int -> WreathMove t
 getWreathMove (Wreath ms) i = ms `lookup` i
   where lookup (m:ms) 0 = m
         lookup (m:ms) j = lookup ms (j-1)
-        lookup [] _ = WM i one -- If the index isn't there, it's not moved
+        lookup [] _ = WM (i,one) -- If the index isn't there, it's not moved
 
 -- | Chain a move through a wreath.
 chainWreathMove :: (Ord t, Group t) => Wreath t -> WreathMove t -> WreathMove t
-chainWreathMove w (WM i t) = let (WM i' t') = getWreathMove w i in WM i' (t *> t')
+chainWreathMove w (WM (i,t)) = let (WM (i',t')) = getWreathMove w i in WM (i', (t *> t'))
 
 
 -- | Wreaths are also Groups.
 instance (Ord t, Group t) => Monoid (Wreath t) where
     mempty = Wreath []
     mappend (Wreath ms) w@(Wreath ns) = Wreath (map (chainWreathMove w) ms')
-      where ms' = ms ++ [WM i one | i <- [length ms..length ns - 1]]
+      where ms' = ms ++ [WM (i, one) | i <- [length ms..length ns - 1]]
 
 instance (Ord t, Group t) => Group (Wreath t) where
     ginvert (Wreath ms) = Wreath (map inv (sort (zip ms [0..])))
-      where inv (WM _ t, i) = WM i (ginvert t)
+      where inv (WM (_,t), i) = WM (i, (ginvert t))
 
 instance (Ord t, Group t) => Eq (Wreath t) where
   Wreath ms == Wreath ns = eqw 0 ms ns
     where eqw i (m:ms) (n:ns) = m == n && eqw (i+1) ms ns
           eqw _ [] [] = True
-          eqw i (m:ms) [] = m == WM i one && eqw (i+1) ms []
-          eqw i [] (n:ns) = n == WM i one && eqw (i+1) [] ns
+          eqw i (m:ms) [] = m == WM (i,one) && eqw (i+1) ms []
+          eqw i [] (n:ns) = n == WM (i,one) && eqw (i+1) [] ns
 
 instance (Ord t, Group t) => Ord (Wreath t) where
     compare w@(Wreath ms) x@(Wreath ns) = if w == x then EQ else compare ms ns
