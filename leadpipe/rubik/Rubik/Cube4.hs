@@ -149,7 +149,7 @@ instance Puzzle Cube4 Face where
 
 
 instance Show Cube4 where
-  showsPrec n c@(Cube4 (v, e, f)) = fromOptCycles $ showVertices *> showEdges *> showFaces
-      where showVertices = optShowCyclesDefault Vertex v
-            showEdges = optShowCyclesDefault EdgePiece e
-            showFaces = optShowCyclesDefault FacePiece f
+  showsPrec _ (Cube4 (v, e, f)) = fromOptCycles $ showVertices *> showEdges *> showFaces
+    where showVertices = optShowCyclesDefault Vertex v
+          showEdges = optShowCyclesDefault EdgePiece e
+          showFaces = optShowCyclesDefault FacePiece f
