@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts, ScopedTypeVariables, TypeFamilies #-}
 
 -- | Defines a type class for polyhedra that ties together its faces, edges, and
 -- vertices.
