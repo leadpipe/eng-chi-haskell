@@ -1,9 +1,12 @@
-{-# LANGUAGE MultiParamTypeClasses, ScopedTypeVariables, TypeSynonymInstances #-}
+{-# LANGUAGE TypeFamilies, TypeSynonymInstances #-}
+
+-- | Describes a cube in terms of faces, edges, and vertices.
 module Rubik.Cube where
 
 import Rubik.Algebra
 import Rubik.Cycles
-import Rubik.Geometry
+import qualified Rubik.Memo as Memo
+import Rubik.Polyhedron
 
 import Data.Array.IArray (Ix, (!), Array, listArray)
 import Data.Char (toLower)
@@ -17,17 +20,6 @@ import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
 data Face = U | F | L | R | B | D
           deriving (Eq, Ord, Enum, Bounded, Ix)
 
--- | The edges of the cube.
-newtype Edge = Edge Int deriving (Eq, Ord, Ix)
-
--- | The vertices of the cube.
-newtype Vertex = Vertex Int deriving (Eq, Ord, Ix)
-
-type FaceWreath = Wreath Twistless
-type EdgeWreath = Wreath Flip
-type VertexWreath = Wreath Twist3
-type DirectionalFaceWreath = Wreath Twist4
-
 oppositeFaceNumber :: Int -> Int
 oppositeFaceNumber = (5 -)
 
@@ -36,31 +28,35 @@ oppositeFace = toEnum . oppositeFaceNumber . fromEnum
 
 isOpposite f1 f2 = f1 == oppositeFace f2
 
-allEdgesAsFaces' = topEdges ++ middleEdges ++ bottomEdges
-  where topEdges = faceEdgesAsFaces U
-        middleEdges = [[F, L], [F, R], [B, R], [B, L]]
-        bottomEdges = faceEdgesAsFaces D
+instance PolyFace Face where
 
-allVerticesAsFaces' = faceNeighborTriples U ++ faceNeighborTriples D
-
-
-instance Polyhedron Face Edge Vertex where
+  newtype PolyEdge Face = Edge Int deriving (Eq, Ord, Ix)
+  newtype PolyVertex Face = Vertex Int deriving (Eq, Ord, Ix)
 
   faceNames = [(U, 'u'), (F, 'f'), (L, 'l'),
                (R, 'r'), (B, 'b'), (D, 'd')]
 
-  neighboringFaces = (neighbors !)
-    where neighbors :: Array Face [Face]
-          neighbors = listArray (minBound, maxBound) [nf i | i <- [0..5]]
-          nf n
-            | n < 3 = let firstTwo = map toEnum [(n+1)`mod`3, (n+2)`mod`3]
+  neighboringFaces = Memo.array nf
+    where nf :: Face -> [Face]
+          nf f
+            | f < R = let n = fromEnum f
+                          firstTwo = map toEnum [(n+1)`mod`3, (n+2)`mod`3]
                       in firstTwo ++ map oppositeFace firstTwo
-            | otherwise = reverse . nf . oppositeFaceNumber $ n
+            | otherwise = reverse . nf . oppositeFace $ f
 
-  allVerticesAsFaces = allVerticesAsFaces'
+  allEdgesAsFaces = topEdges ++ middleEdges ++ bottomEdges
+    where topEdges = faceEdgesAsFaces U
+          middleEdges = [[F, L], [F, R], [B, R], [B, L]]
+          bottomEdges = faceEdgesAsFaces D
 
-  allEdgesAsFaces = allEdgesAsFaces'
+  allVerticesAsFaces = faceNeighborTriples U ++ faceNeighborTriples D
 
+
+type Edge = PolyEdge Face
+type Vertex = PolyVertex Face
+
+type EdgeWreath = Wreath Flip
+type VertexWreath = Wreath Twist3
 
 instance Show Face where
   showsPrec _ = showChar . faceToName
@@ -73,10 +69,10 @@ instance Enum Edge where
   fromEnum (Edge e) = e
   enumFrom = boundedEnumFrom
   enumFromThen = boundedEnumFromThen
-  
+
 instance Bounded Edge where
   minBound = Edge 0
-  maxBound = Edge $ length allEdgesAsFaces' - 1
+  maxBound = Edge $ length (allEdgesAsFaces::[[Face]]) - 1
 
 instance Show Edge where
   showsPrec _ = showString . edgeName
@@ -89,10 +85,10 @@ instance Enum Vertex where
   fromEnum (Vertex v) = v
   enumFrom = boundedEnumFrom
   enumFromThen = boundedEnumFromThen
-  
+
 instance Bounded Vertex where
   minBound = Vertex 0
-  maxBound = Vertex $ length allVerticesAsFaces' - 1
+  maxBound = Vertex $ length (allVerticesAsFaces::[[Face]]) - 1
 
 instance Show Vertex where
   showsPrec _ = showString . vertexName
