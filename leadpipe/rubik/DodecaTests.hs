@@ -1,8 +1,8 @@
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
 
 import Rubik.Dodeca
-import Rubik.Geometry
-import Rubik.Util
+import Rubik.Lists
+import Rubik.Polyhedron
 import Testing
 
 import Data.IntMap (IntMap)
