@@ -1,0 +1,18 @@
+* To do
+** Recast all polyhedra in terms of type families
+** Make Move be a Puzzle associated type
+** Simplify Algorithm creation
+** Templatize polyhedron type families
+** Write test modules
+** Reorganize algebra code:
+*** Separate Group module?
+*** A bunch of the stuff in Cycles has nothing to do with cycles
+*** Separate Wreath module?
+** Resurrect space-searching code
+
+* Required cabal modules
+** data-memocombinators
+   - This is a simple module that doesn't currently work on 7.0; we'll see if we
+     keep it.
+** test-framework-th
+** test-framework-quickcheck2
