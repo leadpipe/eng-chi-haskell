@@ -16,10 +16,12 @@ import Data.Maybe (fromJust, maybeToList)
 
 -- | A class for the faces of polyhedra used as the bases for Rubik-style
 -- puzzles; contains associated types for the edges and verrtices.
-class (Enum f, Bounded f, Ix f, Enum (PEdge f), Bounded (PEdge f), Enum (PVertex f), Bounded (PVertex f))
+class (Enum f, Bounded f, Ix f,
+       Enum (PolyEdge f), Bounded (PolyEdge f),
+       Enum (PolyVertex f), Bounded (PolyVertex f))
       => PolyFace f where
-  data PEdge f
-  data PVertex f
+  data PolyEdge f
+  data PolyVertex f
 
   faceNames :: [(f, Char)]
   -- ^ Every face of the polyhedron must be identified by a single character,
@@ -78,35 +80,35 @@ faceEdgesAsFaces :: (PolyFace f) => f -> [[f]]
 faceEdgesAsFaces f = map (\f2 -> [f, f2]) $ neighboringFaces f
 
 -- | The canonical name of an edge.
-edgeName :: (PolyFace f) => PEdge f -> String
+edgeName :: (PolyFace f) => PolyEdge f -> String
 edgeName = map faceToName . edgeFaces
 
 -- | The 2 faces of an edge, in canonical order.
-edgeFaces :: (PolyFace f) => PEdge f -> [f]
+edgeFaces :: (PolyFace f) => PolyEdge f -> [f]
 edgeFaces = (facesArray !) . fromEnum
   where facesArray = makeFacesArray allEdgesAsFaces
 
 -- | Converts a string containing 2 face names into the
 -- corresponding edge.
-nameToEdge :: (PolyFace f) => String -> PEdge f
+nameToEdge :: (PolyFace f) => String -> PolyEdge f
 nameToEdge = facesToEdge . map nameToFace
 
 -- | Converts a pair of faces into the corresponding edge.
-facesToEdge :: (PolyFace f) => [f] -> PEdge f
+facesToEdge :: (PolyFace f) => [f] -> PolyEdge f
 facesToEdge = fromJust . facesToMaybeEdge
 
 -- | Converts a pair of faces into the corresponding edge, if there is one.
-facesToMaybeEdge :: (PolyFace f) => [f] -> Maybe (PEdge f)
+facesToMaybeEdge :: (PolyFace f) => [f] -> Maybe (PolyEdge f)
 facesToMaybeEdge = flip IntMap.lookup edgeMap . facesIndex
   where edgeMap = makeFaceBitsetMap edgeFaces
 
 -- | The edges that belong to a given face, in clockwise order.
-faceEdges :: (PolyFace f) => f -> [PEdge f]
+faceEdges :: (PolyFace f) => f -> [PolyEdge f]
 faceEdges = (edgesArray !)
-  where edgesArray :: (PolyFace f) => Array f [PEdge f]
+  where edgesArray :: (PolyFace f) => Array f [PolyEdge f]
         edgesArray = listArray (minBound, maxBound)
                      [es f | f <- [minBound..]]
-        es :: (PolyFace f) => f -> [PEdge f]
+        es :: (PolyFace f) => f -> [PolyEdge f]
         es = map facesToEdge . efs
         efs f = map (\f2 -> [f, f2]) (neighboringFaces f)
 
@@ -129,34 +131,34 @@ faceVerticesAsFaces f = map vfs $ neighboringFaces f
         indexFaces fs@(f1:f2:_) = ((f1, f2), fs)
 
 -- | The canonical name of a vertex.
-vertexName :: (PolyFace f) => PVertex f -> String
+vertexName :: (PolyFace f) => PolyVertex f -> String
 vertexName = map faceToName . vertexFaces
 
 -- | The faces of a vertex, in canonical order.
-vertexFaces :: (PolyFace f) => PVertex f -> [f]
+vertexFaces :: (PolyFace f) => PolyVertex f -> [f]
 vertexFaces = (facesArray !) . fromEnum
   where facesArray = makeFacesArray allVerticesAsFaces
 
 -- | Converts a string containing face names into the corresponding vertex.
-nameToVertex :: (PolyFace f) => String -> PVertex f
+nameToVertex :: (PolyFace f) => String -> PolyVertex f
 nameToVertex = facesToVertex . map nameToFace
 
 -- | Converts a list of faces into the corresponding vertex.
-facesToVertex :: (PolyFace f) => [f] -> PVertex f
+facesToVertex :: (PolyFace f) => [f] -> PolyVertex f
 facesToVertex = fromJust . facesToMaybeVertex
 
 -- | Converts a list of faces into the corresponding vertex, if there is one.
-facesToMaybeVertex :: (PolyFace f) => [f] -> Maybe (PVertex f)
+facesToMaybeVertex :: (PolyFace f) => [f] -> Maybe (PolyVertex f)
 facesToMaybeVertex = flip IntMap.lookup vertexMap . facesIndex
   where vertexMap = makeFaceBitsetMap vertexFaces
 
 -- | The vertices that belong to a given face, in clockwise order.
-faceVertices :: forall f. (PolyFace f) => f -> [PVertex f]
+faceVertices :: forall f. (PolyFace f) => f -> [PolyVertex f]
 faceVertices = (verticesArray !)
-  where verticesArray :: Array f [PVertex f]
+  where verticesArray :: Array f [PolyVertex f]
         verticesArray = listArray (minBound, maxBound)
                         [vs f | f <- [minBound..]]
-        vs :: f -> [PVertex f]
+        vs :: f -> [PolyVertex f]
         vs = map facesToVertex . faceVerticesAsFaces
 
 
@@ -195,7 +197,7 @@ readSFace (c:cs) = maybeToList $ do
 readSFace _ = []
 
 -- | A helper to implement Read for edge types.
-readSEdge :: (PolyFace f) => ReadS (PEdge f)
+readSEdge :: (PolyFace f) => ReadS (PolyEdge f)
 readSEdge (c1:c2:cs) = maybeToList $ do
   f1 <- nameToMaybeFace c1
   f2 <- nameToMaybeFace c2
@@ -205,7 +207,7 @@ readSEdge _ = []
 
 -- | A helper to implement Read for vertex types (for polyhedra whose vertices
 -- have 3 faces).
-readSVertex :: (PolyFace f) => ReadS (PVertex f)
+readSVertex :: (PolyFace f) => ReadS (PolyVertex f)
 readSVertex (c1:c2:c3:cs) = maybeToList $ do
   f1 <- nameToMaybeFace c1
   f2 <- nameToMaybeFace c2
