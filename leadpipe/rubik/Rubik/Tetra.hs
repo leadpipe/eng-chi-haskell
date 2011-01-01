@@ -7,7 +7,7 @@ import Rubik.Algebra
 import Rubik.Cycles
 import Rubik.Polyhedron
 
-import Data.Array (Ix)
+import Data.Ix (Ix)
 import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
 
 
