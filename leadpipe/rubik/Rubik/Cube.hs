@@ -52,11 +52,11 @@ instance PolyFace Face where
   allVerticesAsFaces = faceNeighborTriples U ++ faceNeighborTriples D
 
 
-type Edge = PolyEdge Face
-type Vertex = PolyVertex Face
-
 type EdgeWreath = Wreath Flip
 type VertexWreath = Wreath Twist3
+
+type Edge = PolyEdge Face
+type Vertex = PolyVertex Face
 
 instance Show Face where
   showsPrec _ = showChar . faceToName

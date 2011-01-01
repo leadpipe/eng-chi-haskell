@@ -6,7 +6,7 @@
 module Rubik.Puzzle where
 
 import Rubik.Algebra
-import Rubik.Geometry
+import Rubik.Polyhedron
 
 import Data.Bits (shiftR, testBit)
 import Data.Monoid (Monoid, mappend, mconcat, mempty)

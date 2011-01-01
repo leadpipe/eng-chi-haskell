@@ -7,12 +7,13 @@ import Rubik.Algebra
 import Rubik.Cycles
 import Rubik.Cube
 import Rubik.Cube3
-import Rubik.Geometry
 import Rubik.Puzzle
 
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)
 import Data.Monoid (Monoid, mappend, mempty)
+
+type DirectionalFaceWreath = Wreath Twist4
 
 newtype Cube3a = Cube3a (Cube3, DirectionalFaceWreath) deriving (Eq, Ord)
 

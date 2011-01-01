@@ -5,7 +5,7 @@ module Rubik.Cube4 where
 import Rubik.Algebra
 import Rubik.Cycles
 import Rubik.Cube
-import Rubik.Geometry
+import Rubik.Polyhedron
 import Rubik.Puzzle
 
 import Control.Monad (mapM)
@@ -18,6 +18,8 @@ import qualified Data.Map as Map
 import Data.Maybe (fromJust, maybeToList)
 import Data.Monoid (Monoid, mappend, mempty)
 import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
+
+type FaceWreath = Wreath Twistless
 
 newtype Cube4 = Cube4 (VertexWreath, EdgeWreath, FaceWreath) deriving (Eq, Ord)
 

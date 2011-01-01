@@ -5,7 +5,7 @@ module Rubik.Cube3 where
 import Rubik.Algebra
 import Rubik.Cycles
 import Rubik.Cube
-import Rubik.Geometry
+import Rubik.Polyhedron
 import Rubik.Puzzle
 
 import Data.List (elemIndex)
