@@ -2,6 +2,7 @@
 -- | Building on Data.MemoCombinators.
 module Rubik.Memo (
   module Data.MemoCombinators
+  , array
   ) where
 
 import Data.Ix (Ix)
