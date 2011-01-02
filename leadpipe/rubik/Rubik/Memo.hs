@@ -1,6 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 -- | Building on Data.MemoCombinators.
-module Rubik.Memo where
+module Rubik.Memo (
+  module Data.MemoCombinators
+  ) where
 
 import Data.Ix (Ix)
 import Data.MemoCombinators (Memo, unsafeArrayRange)
