@@ -1,62 +1,81 @@
-{-# LANGUAGE FunctionalDependencies, MultiParamTypeClasses, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts, ScopedTypeVariables, TypeFamilies #-}
 
--- | Defines types representing Rubik-style puzzles, their states, and
--- individual and compound moves that advance them from one state to
--- another.
+-- | Defines types representing Rubik-style puzzles and algorithms for
+-- manipulating them.
 module Rubik.Puzzle where
 
 import Rubik.Algebra
-import Rubik.Polyhedron
 
-import Data.Bits (shiftR, testBit)
-import Data.Monoid (Monoid, mappend, mconcat, mempty)
-
--- | The Puzzle class ties together a state type with the face type of
--- a polyhedron.
-class (Group s, Eq f, Ord f, Show f, Read f) => Puzzle s f | s -> f where
-
-  -- | How many layers there are for a given face.
-  numLayers :: s -> f -> Int
-
-  -- | How many twists of a given face return to unity.
-  numTwists :: s -> f -> Int
-
-  -- | Constructs a puzzle state from a single clockwise twist of one
-  -- layer of one face from the solved position.
-  fromFaceTwist :: f -> Int -> s
+import Data.List (foldl')
+import Data.Maybe (listToMaybe)
+import Data.Monoid (Monoid, mappend, mempty)
 
 
--- | A single move of a Rubik-style puzzle: twists layers of a face.
-data (Puzzle s f) => Move s f =
-  Move { getFace :: !f     -- ^ The face to twist.
-       , getLayers :: !Int -- ^ A bit set of the layers to twist.
-       , getTwist :: !Int  -- ^ The number of clockwise increments to twist.
-       }
-  deriving (Eq, Ord)
+-- | A class for the moves that can be performed on a Rubik-style puzzle.
+class (Read m, Show m) => PuzzleMove m where
+  undoMove :: m -> m
+  -- ^ The move that undoes the given move.  This means that @joinMoves m
+  -- (undoMove m)@ (and vice versa) must equal the empty list.
+  --
+  -- Also, for any Puzzle instance that uses this move type, @fromMove m *>
+  -- fromMove (undoMove m)@ (and vice versa) must equal the Puzzle's @one@.
 
-instance (Puzzle s f) => Show (Move s f) where
-  showsPrec _ m = shows (getFace m) . shows (getLayers m) . shows (getTwist m)
+  joinMoves :: m -> m -> [m]
+  -- ^ Combines two moves.  If one is the opposite of the other, returns the
+  -- empty list.  If they can be combined into a single move, returns a list
+  -- containing that single move.  If they do not interact, returns the same two
+  -- moves but in a canonical order (ie, passing the same two moves in the
+  -- opposite order will return the same list).  And if they do interact,
+  -- returns the same two moves in the same order.
 
--- | Constructs a puzzle state one move away from the solved position.
-fromMove :: (Puzzle s f) => Move s f -> s
-fromMove m = mconcat layerMoves ^> getTwist m
-  where layerMoves = [fromFaceTwist (getFace m) layer |
-                      layer <- layers 0 (getLayers m)]
-        layers i n
-          | n <= 0    = []
-          | otherwise = let rest = layers (i+1) (n`shiftR`1)
-                        in if n`testBit`0 then i : rest else rest
 
--- | An Algorithm combines a list of moves with the resulting puzzle
--- state.  The list is reversed: new moves go on the head.
-data (Puzzle s f) => Algorithm s f = Algorithm [Move s f] s
+-- | A class for Rubik-style puzzle states.
+class (Group s, Show s, PuzzleMove (Move s)) => Puzzle s where
 
--- | Algorithms are monoids.
-instance (Puzzle s f) => Monoid (Algorithm s f) where
+  type Move s
+  -- ^ The associated move type.  For example, a move for a standard Rubik's
+  -- cube might be "twist the top face a quarter-turn clockwise."
+
+  fromMove :: Move s -> s
+  -- ^ Converts the given move to the associated puzzle state.
+
+
+-- | An Algorithm combines a list of moves with the resulting puzzle state.  The
+-- list is reversed: new moves go on the head.
+data (Puzzle s) => Algorithm s = Algorithm [Move s] s
+
+-- | Algorithms are groups.
+instance (Puzzle s) => Monoid (Algorithm s) where
   mempty = Algorithm [] one
-  mappend (Algorithm m1 s1) (Algorithm m2 s2) =
-    Algorithm (m2 *> m1) (s1 *> s2) -- Note the list is backward
+  mappend (Algorithm ms1 s1) (Algorithm ms2 s2) = Algorithm ms (s1 *> s2)
+    where ms = foldr prependMove ms2 ms1 -- Note the reversed order
+
+-- | Algorithms are groups.
+instance (Puzzle s) => Group (Algorithm s) where
+  ginvert (Algorithm ms s) = Algorithm (map undoMove . reverse $ ms) (ginvert s)
 
 -- | Adds a move to an algorithm.
-applyMove :: (Puzzle s f) => Algorithm s f -> Move s f -> Algorithm s f
-applyMove (Algorithm ms s) m = Algorithm (m:ms) (s *> fromMove m)
+applyMove :: (Puzzle s) => Algorithm s -> Move s -> Algorithm s
+applyMove (Algorithm ms s) m = Algorithm (prependMove m ms) (s *> fromMove m)
+
+-- | Prepends a move to a list of moves, maintaining canonicalization as
+-- implemented by 'joinMoves'.
+prependMove :: (PuzzleMove m) => m -> [m] -> [m]
+prependMove m [] = [m]
+prependMove m (pm:ms) = joinMoves m pm ++ ms
+
+-- | Algorithms are displayed as their moves in order, a tab, and the resulting
+-- puzzle state.
+instance (Puzzle s) => Show (Algorithm s) where
+  showsPrec _ (Algorithm ms s) = showMoves ms . showChar '\t' . shows s
+    where showMoves = foldl' op id
+          f `op` m = shows m . f
+
+instance (Puzzle s) => Read (Algorithm s) where
+  readsPrec _ = readAndApply mempty
+    -- The "" below is cheating a little, but it means to stop parsing as soon
+    -- as we encounter a non-move.  Better would be to skip a trailing tab and
+    -- then series of parenthesized stuff.
+    where readAndApply alg s = maybe [(alg, "")] id $ do
+            (m, s') <- listToMaybe (reads s)
+            return $ readAndApply (alg `applyMove` m) s'

@@ -3,6 +3,7 @@ module Rubik.Algebra where
 
 import Data.List (sort)
 import Data.Monoid (Monoid, mappend, mempty, Dual(..), Sum(..))
+import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
 import Numeric (showInt)
 
 -- | We extend Monoid to make a group class, by adding an inverse operator.
@@ -70,12 +71,18 @@ instance (Num a) => Group (Sum a) where
 class IntAsType a where
   value :: a -> Int
   showsInt :: a -> Int -> ShowS
-  showsInt _ = showInt
+  showsInt _ = shows
+  readsInt :: a -> ReadS Int
+  readsInt _ = reads
 
 newtype Zn n = Zn Int deriving (Eq, Ord)
 
 instance IntAsType n => Show (Zn n) where
   showsPrec _ (Zn x) = showsInt (undefined::n) x
+
+instance IntAsType n => Read (Zn n) where
+  readsPrec _ s = map f $ readsInt (undefined::n) s
+    where f (x, s) = (Zn x, s)
 
 instance IntAsType n => Num (Zn n) where
   Zn x + Zn y = Zn $ (x+y) `mod` value (undefined :: n)
@@ -88,6 +95,24 @@ instance IntAsType n => Num (Zn n) where
   -- | Not well defined for these types.
   signum (Zn 0) = 0
   signum _ = 1
+
+instance IntAsType n => Real (Zn n) where
+  toRational (Zn n) = toRational n
+
+instance IntAsType n => Integral (Zn n) where
+  (Zn n1) `quotRem` (Zn n2) = (Zn q, Zn r)
+    where (q, r) = n1 `quotRem` n2
+  toInteger (Zn n) = toInteger n
+
+instance IntAsType n => Enum (Zn n) where
+  toEnum i = Zn $ i `mod` value (undefined::n)
+  fromEnum (Zn n) = n
+  enumFrom = boundedEnumFrom
+  enumFromThen = boundedEnumFromThen
+
+instance IntAsType n => Bounded (Zn n) where
+  minBound = 0
+  maxBound = Zn $ value (undefined::n) - 1
 
 instance IntAsType n => Monoid (Zn n) where
   mempty = 0

@@ -39,6 +39,9 @@ instance IntAsType Tw2 where
   showsInt _ = showTwist
     where showTwist 0 = id
           showTwist 1 = showChar '+'
+  readsInt _ = readTwist
+    where readTwist ('+':s) = [(1, s)]
+          readTwist s = [(0, s)]
 
 data Tw3
 instance IntAsType Tw3 where
@@ -47,6 +50,10 @@ instance IntAsType Tw3 where
     where showTwist 0 = id
           showTwist 1 = showChar '+'
           showTwist 2 = showChar '-'
+  readsInt _ = readTwist
+    where readTwist ('+':s) = [(1, s)]
+          readTwist ('-':s) = [(2, s)]
+          readTwist s = [(0, s)]
 
 data Tw4
 instance IntAsType Tw4 where
@@ -56,6 +63,11 @@ instance IntAsType Tw4 where
           showTwist 1 = showChar '+'
           showTwist 2 = showChar '='
           showTwist 3 = showChar '-'
+  readsInt _ = readTwist
+    where readTwist ('+':s) = [(1, s)]
+          readTwist ('=':s) = [(2, s)]
+          readTwist ('-':s) = [(3, s)]
+          readTwist s = [(0, s)]
 
 data Tw5
 instance IntAsType Tw5 where
@@ -66,6 +78,12 @@ instance IntAsType Tw5 where
           showTwist 2 = showString "++"
           showTwist 3 = showString "--"
           showTwist 4 = showChar '-'
+  readsInt _ = readTwist
+    where readTwist ('+':'+':s) = [(2, s)]
+          readTwist ('+':s) = [(1, s)]
+          readTwist ('-':'-':s) = [(3, s)]
+          readTwist ('-':s) = [(4, s)]
+          readTwist s = [(0, s)]
 
 type Twistless = Zn Tw1
 type Flip = Zn Tw2

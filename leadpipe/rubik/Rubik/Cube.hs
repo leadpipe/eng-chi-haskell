@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, TypeSynonymInstances #-}
+{-# LANGUAGE PatternGuards, TypeFamilies, TypeSynonymInstances #-}
 
 -- | Describes a cube in terms of faces, edges, and vertices.
 module Rubik.Cube where
@@ -7,10 +7,10 @@ import Rubik.Algebra
 import Rubik.Cycles
 import qualified Rubik.Memo as Memo
 import Rubik.Polyhedron
+import Rubik.Puzzle
 
-import Data.Array.IArray (Ix, (!), Array, listArray)
-import Data.Char (toLower)
-import Data.Maybe (maybeToList)
+import Data.Ix (Ix)
+import Data.Maybe (listToMaybe, maybeToList)
 import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
 
 -- | The faces of the cube.  The order is such that the opposite face
@@ -51,6 +51,26 @@ instance PolyFace Face where
 
   allVerticesAsFaces = faceNeighborTriples U ++ faceNeighborTriples D
 
+
+data FaceTwist = FaceTwist Face Twist4 deriving (Eq, Ord)
+
+instance PuzzleMove FaceTwist where
+  undoMove (FaceTwist f t) = FaceTwist f (-t)
+  joinMoves m1@(FaceTwist f1 t1) m2@(FaceTwist f2 t2)
+    | f1 == f2           = let t = t1 + t2 in
+                           if t == 0 then [] else [FaceTwist f1 t]
+    | f1 `isOpposite` f2 = [min m1 m2, max m1 m2]
+    | otherwise          = [m1, m2]
+
+instance Show FaceTwist where
+  showsPrec _ (FaceTwist f t) = shows f . shows t
+
+instance Read FaceTwist where
+  readsPrec _ "" = []
+  readsPrec _ (c:s) = maybeToList $ do
+    f <- nameToMaybeFace c
+    (t, s') <- listToMaybe (reads s)
+    return (FaceTwist f t, s')
 
 type EdgeWreath = Wreath Flip
 type VertexWreath = Wreath Twist3

@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, ScopedTypeVariables, TypeSynonymInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 -- | Defines the basic 3x3 cube puzzle.
 module Rubik.Cube4 where
 
@@ -10,12 +10,12 @@ import Rubik.Puzzle
 
 import Control.Monad (mapM)
 import Data.Array.IArray ((!), Array, listArray)
-import Data.Char (toLower)
+import Data.Char (isUpper, toLower, toUpper)
 import Data.Ix (Ix)
 import Data.List (elemIndex, transpose)
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Maybe (fromJust, maybeToList)
+import Data.Maybe (fromJust, listToMaybe, maybeToList)
 import Data.Monoid (Monoid, mappend, mempty)
 import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
 
@@ -129,19 +129,41 @@ instance Read EdgePiece where
        return (ep, cs)
   readsPrec _ _ = []
 
+-- | Possible moves for a 4x4 cube; the boolean means "both layers".
+data FaceTwist4 = FT4 Face Bool Twist4 deriving (Eq, Ord)
 
-instance Puzzle Cube4 Face where
-  numLayers _ _ = 2
-  numTwists _ _ = 4
+instance PuzzleMove FaceTwist4 where
+  undoMove (FT4 f b t) = FT4 f b (-t)
 
-  fromFaceTwist f 0 = Cube4 (vw, ew, fw)
+  joinMoves m1@(FT4 f1 b1 t1) m2@(FT4 f2 b2 t2)
+    | f1 == f2 && b1 == b2           = let t = t1 + t2 in
+                                       if t == 0 then [] else [FT4 f1 b1 t]
+    | f1 == f2 || f1 `isOpposite` f2 = [min m1 m2, max m1 m2]
+    | otherwise                      = [m1, m2]
+
+instance Show FaceTwist4 where
+  showsPrec _ (FT4 f b t) = (if b then showChar . toUpper . faceToName else shows) f . shows t
+
+instance Read FaceTwist4 where
+  readsPrec _ "" = []
+  readsPrec _ (c:s) = maybeToList $ do
+    f <- nameToMaybeFace (toLower c)
+    (t, s') <- listToMaybe (reads s)
+    return (FT4 f (isUpper c) t, s')
+
+
+instance Puzzle Cube4 where
+  type Move Cube4 = FaceTwist4
+
+  fromMove (FT4 f False 1) = Cube4 (vw, ew, fw)
     where vw = fromCycles [asCycle' f faceVertices vertexFaces]
           ew = fromCycles $ map edgeCycle edgePieces
           fw = fromCycles [asSimpleCycle $ faceFacePieces f]
           edgeCycle eps = asCycle f eps edgePieceFaces
           edgePieces = transpose $ map (map facesToEdgePiece)
                        [[[f, f2, f3], [f, f3, f2]] | [_, f2, f3] <- faceVerticesAsFaces f]
-  fromFaceTwist f 1 = Cube4 (one, ew, fw)
+
+  fromMove (FT4 f True 1) = Cube4 (one, ew, fw)
     where ew = fromCycles [asCycle f edgePieces edgePieceFaces]
           fw = fromCycles $ map asSimpleCycle facePieces
           edgePieces = map facesToEdgePiece
@@ -149,9 +171,14 @@ instance Puzzle Cube4 Face where
           facePieces = transpose $ map (map facesToFacePiece)
                        [[[f2, f3, f], [f3, f2, f]] | [_, f2, f3] <- faceVerticesAsFaces f]
 
+  fromMove (FT4 f b n) = fromMove (FT4 f b 1) ^> n
+
 
 instance Show Cube4 where
   showsPrec _ (Cube4 (v, e, f)) = fromOptCycles $ showVertices *> showEdges *> showFaces
     where showVertices = optShowCyclesDefault Vertex v
           showEdges = optShowCyclesDefault EdgePiece e
           showFaces = optShowCyclesDefault FacePiece f
+
+c4 :: String -> Algorithm Cube4
+c4 = read

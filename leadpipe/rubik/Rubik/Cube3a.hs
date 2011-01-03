@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, ScopedTypeVariables, TypeSynonymInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 -- | Defines the "ad-supported" 3x3 cube puzzle with faces that have a
 -- right way up.
 module Rubik.Cube3a where
@@ -24,13 +24,16 @@ instance Monoid Cube3a where
 instance Group Cube3a where
   ginvert (Cube3a s) = Cube3a (ginvert s)
 
-instance Puzzle Cube3a Face where
-  numLayers _ _ = 1
-  numTwists _ _ = 4
-  fromFaceTwist f 0 = Cube3a ((fromFaceTwist f 0), (fromCycles [[WM (fromEnum f, 1)]]))
+instance Puzzle Cube3a where
+  type Move Cube3a = FaceTwist
+  fromMove m@(FaceTwist f 1) = Cube3a (fromMove m, fromCycles [[WM (fromEnum f, 1)]])
+  fromMove (FaceTwist f n) = fromMove (FaceTwist f 1) ^> n
 
 instance Show Cube3a where
   showsPrec _ (Cube3a ((Cube3 (v, e)), f)) = fromOptCycles $ showVertices *> showEdges *> showFaces
     where showVertices = optShowCyclesDefault Vertex v
           showEdges = optShowCyclesDefault Edge e
           showFaces = optShowCyclesDefault (toEnum::Int->Face) f
+
+c3a :: String -> Algorithm Cube3a
+c3a = read

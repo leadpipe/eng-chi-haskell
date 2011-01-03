@@ -1,7 +1,8 @@
 * To do
-** Recast all polyhedra in terms of type families
-** Make Move be a Puzzle associated type
-** Simplify Algorithm creation
+** DONE Recast all polyhedra in terms of type families
+** DONE Make Move be a Puzzle associated type
+** DONE Simplify Algorithm creation
+** Rewrite Algorithm parser; fix cube FaceTwist parser to reject 0 moves
 ** Templatize polyhedron type families
 ** Write test modules
 ** Reorganize algebra code:
