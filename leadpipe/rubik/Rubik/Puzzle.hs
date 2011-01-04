@@ -9,6 +9,9 @@ import Rubik.Algebra
 import Data.List (foldl')
 import Data.Maybe (listToMaybe)
 import Data.Monoid (Monoid, mappend, mempty)
+import Text.ParserCombinators.ReadP
+import Text.ParserCombinators.ReadPrec (lift)
+import Text.Read hiding ((<++))
 
 
 -- | A class for the moves that can be performed on a Rubik-style puzzle.
@@ -72,10 +75,22 @@ instance (Puzzle s) => Show (Algorithm s) where
           f `op` m = shows m . f
 
 instance (Puzzle s) => Read (Algorithm s) where
-  readsPrec _ = readAndApply mempty
-    -- The "" below is cheating a little, but it means to stop parsing as soon
-    -- as we encounter a non-move.  Better would be to skip a trailing tab and
-    -- then series of parenthesized stuff.
-    where readAndApply alg s = maybe [(alg, "")] id $ do
-            (m, s') <- listToMaybe (reads s)
-            return $ readAndApply (alg `applyMove` m) s'
+  readPrec = lift $ readAndApply mempty
+    where readAndApply alg =
+            do skipSpaces
+               m <- readS_to_P reads
+               readAndApply (alg `applyMove` m)
+            <++
+            do optional skipParens
+               return alg
+
+          skipParens = do
+            skipSpaces
+            char '('
+            munch (\c -> c /= '(' && c /= ')')
+            optional skipParens
+            char ')'
+            optional skipParens
+
+  readList = readListDefault
+  readListPrec = readListPrecDefault
