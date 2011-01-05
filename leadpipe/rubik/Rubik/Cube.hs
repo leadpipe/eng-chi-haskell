@@ -59,7 +59,7 @@ instance PuzzleMove FaceTwist where
   joinMoves m1@(FaceTwist f1 t1) m2@(FaceTwist f2 t2)
     | f1 == f2           = let t = t1 + t2 in
                            if t == 0 then [] else [FaceTwist f1 t]
-    | f1 `isOpposite` f2 = [min m1 m2, max m1 m2]
+    | f1 `isOpposite` f2 = [max m1 m2, min m1 m2]
     | otherwise          = [m1, m2]
 
 instance Show FaceTwist where
@@ -70,7 +70,8 @@ instance Read FaceTwist where
   readsPrec _ (c:s) = maybeToList $ do
     f <- nameToMaybeFace c
     (t, s') <- listToMaybe (reads s)
-    return (FaceTwist f t, s')
+    if t == 0 then fail "no twist specified"
+      else return (FaceTwist f t, s')
 
 type EdgeWreath = Wreath Flip
 type VertexWreath = Wreath Twist3

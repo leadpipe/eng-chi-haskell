@@ -129,7 +129,8 @@ instance Read EdgePiece where
        return (ep, cs)
   readsPrec _ _ = []
 
--- | Possible moves for a 4x4 cube; the boolean means "both layers".
+-- | Possible moves for a 4x4 cube; the boolean means "outer layer only", so
+-- when false means to twist both layers.
 data FaceTwist4 = FT4 Face Bool Twist4 deriving (Eq, Ord)
 
 instance PuzzleMove FaceTwist4 where
@@ -138,24 +139,25 @@ instance PuzzleMove FaceTwist4 where
   joinMoves m1@(FT4 f1 b1 t1) m2@(FT4 f2 b2 t2)
     | f1 == f2 && b1 == b2           = let t = t1 + t2 in
                                        if t == 0 then [] else [FT4 f1 b1 t]
-    | f1 == f2 || f1 `isOpposite` f2 = [min m1 m2, max m1 m2]
+    | f1 == f2 || f1 `isOpposite` f2 = [max m1 m2, min m1 m2]
     | otherwise                      = [m1, m2]
 
 instance Show FaceTwist4 where
-  showsPrec _ (FT4 f b t) = (if b then showChar . toUpper . faceToName else shows) f . shows t
+  showsPrec _ (FT4 f b t) = (if b then shows else showChar.toUpper.faceToName) f . shows t
 
 instance Read FaceTwist4 where
   readsPrec _ "" = []
   readsPrec _ (c:s) = maybeToList $ do
     f <- nameToMaybeFace (toLower c)
     (t, s') <- listToMaybe (reads s)
-    return (FT4 f (isUpper c) t, s')
+    if t == 0 then fail "no twist"
+      else return (FT4 f (not.isUpper$c) t, s')
 
 
 instance Puzzle Cube4 where
   type Move Cube4 = FaceTwist4
 
-  fromMove (FT4 f False 1) = Cube4 (vw, ew, fw)
+  fromMove (FT4 f True 1) = Cube4 (vw, ew, fw)
     where vw = fromCycles [asCycle' f faceVertices vertexFaces]
           ew = fromCycles $ map edgeCycle edgePieces
           fw = fromCycles [asSimpleCycle $ faceFacePieces f]
@@ -163,7 +165,7 @@ instance Puzzle Cube4 where
           edgePieces = transpose $ map (map facesToEdgePiece)
                        [[[f, f2, f3], [f, f3, f2]] | [_, f2, f3] <- faceVerticesAsFaces f]
 
-  fromMove (FT4 f True 1) = Cube4 (one, ew, fw)
+  fromMove (FT4 f False 1) = Cube4 (one, ew, fw) *> fromMove (FT4 f True 1)
     where ew = fromCycles [asCycle f edgePieces edgePieceFaces]
           fw = fromCycles $ map asSimpleCycle facePieces
           edgePieces = map facesToEdgePiece
