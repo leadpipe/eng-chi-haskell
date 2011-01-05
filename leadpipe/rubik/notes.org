@@ -2,7 +2,14 @@
 ** DONE Recast all polyhedra in terms of type families
 ** DONE Make Move be a Puzzle associated type
 ** DONE Simplify Algorithm creation
-** Rewrite Algorithm parser; fix cube FaceTwist parser to reject 0 moves
+** DONE Rewrite Algorithm parser; fix cube FaceTwist parser to reject 0 moves
+** Write Tetra3
+** Write Dodeca3
+** Write Dodeca5
+** Write Octa, Octa3, Octa4?
+** Write GearedCube?
+** Write Cube5?
+** REPL for moves?
 ** Templatize polyhedron type families
 ** Write test modules
 ** Reorganize algebra code:
