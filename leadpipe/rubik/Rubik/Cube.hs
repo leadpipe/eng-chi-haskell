@@ -56,11 +56,14 @@ data FaceTwist = FaceTwist Face Twist4 deriving (Eq, Ord)
 
 instance PuzzleMove FaceTwist where
   undoMove (FaceTwist f t) = FaceTwist f (-t)
+
   joinMoves m1@(FaceTwist f1 t1) m2@(FaceTwist f2 t2)
     | f1 == f2           = let t = t1 + t2 in
                            if t == 0 then [] else [FaceTwist f1 t]
     | f1 `isOpposite` f2 = [max m1 m2, min m1 m2]
     | otherwise          = [m1, m2]
+
+  isTrivialMove (FaceTwist _ t) = t == 0
 
 instance Show FaceTwist where
   showsPrec _ (FaceTwist f t) = shows f . shows t

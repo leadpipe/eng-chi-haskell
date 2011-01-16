@@ -43,6 +43,8 @@ instance PuzzleMove FaceTwist where
                            if t == 0 then [] else [FaceTwist f1 t]
     | otherwise          = [m1, m2]
 
+  isTrivialMove (FaceTwist _ t) = t == 0
+
 instance Show FaceTwist where
   showsPrec _ (FaceTwist f t) = shows f . shows t
 

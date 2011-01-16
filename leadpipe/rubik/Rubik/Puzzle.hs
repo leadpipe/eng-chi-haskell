@@ -31,6 +31,9 @@ class (Read m, Show m) => PuzzleMove m where
   -- opposite order will return the same list).  And if they do interact,
   -- returns the same two moves in the same order.
 
+  isTrivialMove :: m -> Bool
+  -- ^ Tells whether the given move is trivial, ie, is equivalent to not moving.
+
 
 -- | A class for Rubik-style puzzle states.
 class (Group s, Show s, PuzzleMove (Move s)) => Puzzle s where
@@ -45,7 +48,20 @@ class (Group s, Show s, PuzzleMove (Move s)) => Puzzle s where
 
 -- | An Algorithm combines a list of moves with the resulting puzzle state.  The
 -- list is reversed: new moves go on the head.
-data (Puzzle s) => Algorithm s = Algorithm [Move s] s
+data (Puzzle s) => Algorithm s = Algorithm
+                                 { moves :: [Move s]
+                                 , result :: s
+                                 }
+
+-- | Is this a non-trivial algorithm?
+isNontrivial :: (Puzzle s) => Algorithm s -> Bool
+isNontrivial = not . null . moves
+
+-- | For non-trivial algorithms only, the algorithm's last move.  Because
+-- Algorithm canonicalizes the order of moves, this could be different from the
+-- move you most recently appended.
+lastMove :: (Puzzle s) => Algorithm s -> Move s
+lastMove = head . moves
 
 -- | Algorithms are groups.
 instance (Puzzle s) => Monoid (Algorithm s) where
@@ -59,13 +75,17 @@ instance (Puzzle s) => Group (Algorithm s) where
 
 -- | Adds a move to an algorithm.
 applyMove :: (Puzzle s) => Algorithm s -> Move s -> Algorithm s
-applyMove (Algorithm ms s) m = Algorithm (prependMove m ms) (s *> fromMove m)
+applyMove a@(Algorithm ms s) m = Algorithm (prependMove m ms) (s *> fromMove m)
 
 -- | Prepends a move to a list of moves, maintaining canonicalization as
 -- implemented by 'joinMoves'.
 prependMove :: (PuzzleMove m) => m -> [m] -> [m]
-prependMove m [] = [m]
-prependMove m (pm:ms) = joinMoves m pm ++ ms
+prependMove m []
+  | isTrivialMove m = []
+  | otherwise       = [m]
+prependMove m l@(pm:ms)
+  | isTrivialMove m = l
+  | otherwise       = joinMoves m pm ++ ms
 
 -- | Algorithms are displayed as their moves in order, a tab, and the resulting
 -- puzzle state.

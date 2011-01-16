@@ -142,6 +142,9 @@ instance PuzzleMove FaceTwist4 where
     | f1 == f2 || f1 `isOpposite` f2 = [max m1 m2, min m1 m2]
     | otherwise                      = [m1, m2]
 
+  isTrivialMove (FT4 _ _ t) = t == 0
+
+
 instance Show FaceTwist4 where
   showsPrec _ (FT4 f b t) = (if b then shows else showChar.toUpper.faceToName) f . shows t
 
