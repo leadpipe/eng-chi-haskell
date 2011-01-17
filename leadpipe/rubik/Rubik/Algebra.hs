@@ -6,8 +6,9 @@ import Data.Monoid (Monoid, mappend, mempty, Dual(..), Sum(..))
 import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
 import Numeric (showInt)
 
--- | We extend Monoid to make a group class, by adding an inverse operator.
-class Monoid a => Group a where
+-- | We extend Monoid to make a group class, by adding an inverse operator and
+-- requiring Eq.
+class (Monoid a, Eq a) => Group a where
   ginvert :: a -> a
   -- ^ Returns the inverse of the given group element, ie the element that
   -- yields mempty when mappend'ed to the original element.
@@ -41,9 +42,6 @@ base ^> exp
 
 
 -- Some Group defs corresponding to (some of) the basic Monoid defs:
-instance (Group b) => Group (a -> b) where
-  ginvert f x = ginvert (f x)
-
 instance Group () where
   ginvert () = ()
 

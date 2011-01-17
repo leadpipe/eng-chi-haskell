@@ -36,7 +36,7 @@ class (Read m, Show m) => PuzzleMove m where
 
 
 -- | A class for Rubik-style puzzle states.
-class (Group s, Show s, PuzzleMove (Move s)) => Puzzle s where
+class (Group s, Show s, PuzzleMove (Move s), Eq (Move s)) => Puzzle s where
 
   type Move s
   -- ^ The associated move type.  For example, a move for a standard Rubik's
@@ -62,6 +62,10 @@ isNontrivial = not . null . moves
 -- move you most recently appended.
 lastMove :: (Puzzle s) => Algorithm s -> Move s
 lastMove = head . moves
+
+-- | Equality testing for Algorithms.
+instance (Puzzle s) => Eq (Algorithm s) where
+  a == b = moves a == moves b
 
 -- | Algorithms are groups.
 instance (Puzzle s) => Monoid (Algorithm s) where
