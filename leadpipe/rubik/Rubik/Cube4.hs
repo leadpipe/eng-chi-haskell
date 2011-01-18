@@ -5,6 +5,7 @@ module Rubik.Cube4 where
 import Rubik.Algebra
 import Rubik.Cycles
 import Rubik.Cube
+import qualified Rubik.Memo as Memo
 import Rubik.Polyhedron
 import Rubik.Puzzle
 
@@ -131,7 +132,7 @@ instance Read EdgePiece where
 
 -- | Possible moves for a 4x4 cube; the boolean means "outer layer only", so
 -- when false means to twist both layers.
-data FaceTwist4 = FT4 Face Bool Twist4 deriving (Eq, Ord)
+data FaceTwist4 = FT4 Face Bool Twist4 deriving (Eq, Ord, Bounded)
 
 instance PuzzleMove FaceTwist4 where
   undoMove (FT4 f b t) = FT4 f b (-t)
@@ -160,23 +161,27 @@ instance Read FaceTwist4 where
 instance Puzzle Cube4 where
   type Move Cube4 = FaceTwist4
 
-  fromMove (FT4 f True 1) = Cube4 (vw, ew, fw)
-    where vw = fromCycles [asCycle' f faceVertices vertexFaces]
-          ew = fromCycles $ map edgeCycle edgePieces
-          fw = fromCycles [asSimpleCycle $ faceFacePieces f]
-          edgeCycle eps = asCycle f eps edgePieceFaces
-          edgePieces = transpose $ map (map facesToEdgePiece)
-                       [[[f, f2, f3], [f, f3, f2]] | [_, f2, f3] <- faceVerticesAsFaces f]
+  fromMove = table $ Memo.memo3 Memo.array Memo.bool Memo.array fromMove4
+    where table m (FT4 f b t) = m f b t
 
-  fromMove (FT4 f False 1) = Cube4 (one, ew, fw) *> fromMove (FT4 f True 1)
-    where ew = fromCycles [asCycle f edgePieces edgePieceFaces]
-          fw = fromCycles $ map asSimpleCycle facePieces
-          edgePieces = map facesToEdgePiece
-                       [[f2, f3, f] | [_, f2, f3] <- faceVerticesAsFaces f]
-          facePieces = transpose $ map (map facesToFacePiece)
-                       [[[f2, f3, f], [f3, f2, f]] | [_, f2, f3] <- faceVerticesAsFaces f]
+fromMove4 :: Face -> Bool -> Twist4 -> Cube4
+fromMove4 f True 1 = Cube4 (vw, ew, fw)
+  where vw = fromCycles [asCycle' f faceVertices vertexFaces]
+        ew = fromCycles $ map edgeCycle edgePieces
+        fw = fromCycles [asSimpleCycle $ faceFacePieces f]
+        edgeCycle eps = asCycle f eps edgePieceFaces
+        edgePieces = transpose $ map (map facesToEdgePiece)
+                     [[[f, f2, f3], [f, f3, f2]] | [_, f2, f3] <- faceVerticesAsFaces f]
 
-  fromMove (FT4 f b n) = fromMove (FT4 f b 1) ^> n
+fromMove4 f False 1 = Cube4 (one, ew, fw) *> fromMove (FT4 f True 1)
+  where ew = fromCycles [asCycle f edgePieces edgePieceFaces]
+        fw = fromCycles $ map asSimpleCycle facePieces
+        edgePieces = map facesToEdgePiece
+                     [[f2, f3, f] | [_, f2, f3] <- faceVerticesAsFaces f]
+        facePieces = transpose $ map (map facesToFacePiece)
+                     [[[f2, f3, f], [f3, f2, f]] | [_, f2, f3] <- faceVerticesAsFaces f]
+
+fromMove4 f b n = fromMove (FT4 f b 1) ^> n
 
 
 instance Show Cube4 where

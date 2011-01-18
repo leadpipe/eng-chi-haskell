@@ -1,6 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances, EmptyDataDecls #-}
 module Rubik.Algebra where
 
+import Data.Ix (Ix(..))
 import Data.List (sort)
 import Data.Monoid (Monoid, mappend, mempty, Dual(..), Sum(..))
 import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
@@ -111,6 +112,11 @@ instance IntAsType n => Enum (Zn n) where
 instance IntAsType n => Bounded (Zn n) where
   minBound = 0
   maxBound = Zn $ value (undefined::n) - 1
+
+instance IntAsType n => Ix (Zn n) where
+  range (l, u) = [l..u]
+  index (l, u) e = fromEnum e - fromEnum l
+  inRange (l, u) e = e >= l && e <= u
 
 instance IntAsType n => Monoid (Zn n) where
   mempty = 0
