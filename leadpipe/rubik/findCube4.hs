@@ -9,13 +9,14 @@ import Rubik.Puzzle
 import Rubik.Searching
 
 import Control.Monad.Random
+import Data.Array.IArray
 import Data.List (sort)
 import System.Random
 
 main = do
   let initialMoves = map read ["f+", "F+", "f=", "F="] :: [FaceTwist4]
   algs <- evalRandIO $ findAlgorithms initialMoves movesTopEdges (fanOut 2 20) genMove
-  sequence_ [putStrLn (show alg) | alg <- algs]
+  sequence_ $ map (putStrLn . show) algs
 
 
 -- | Tells whether the given algorithm moves edge pieces only on the top (U)
@@ -37,10 +38,12 @@ fanOut width depth a n = n < width && length (moves a) <= depth
 genMove :: Algorithm Cube4 -> Rand StdGen FaceTwist4
 genMove alg = do
   (i :: Int) <- getRandomR (1, 10)
-  closeOuts <- calcCloseOuts alg
-  let numCloseOuts = length closeOuts
-  j <- getRandomR (0, numCloseOuts)
-  if i <= 7 && numCloseOuts > 0 then return (closeOuts !! j) else randomMove
+  if i <= 3 then randomMove else
+    let closeOuts = calcCloseOuts alg
+        numCloseOuts = length closeOuts
+    in if numCloseOuts == 0 then randomMove else
+         do j <- getRandomR (0, numCloseOuts - 1)
+            return (closeOuts !! j)
     where randomMove = do
             f <- getRandomR (fromEnum (minBound::Face), fromEnum (maxBound::Face))
             b <- getRandom
@@ -48,6 +51,10 @@ genMove alg = do
             return (FT4 (toEnum f) b (fromInteger t))
 
 
-calcCloseOuts :: Algorithm Cube4 -> Rand StdGen [FaceTwist4]
-calcCloseOuts alg = do
-  return []
+calcCloseOuts :: Algorithm Cube4 -> [FaceTwist4]
+calcCloseOuts alg = [FT4 f b (-t) | (i@(f, b), t) <- assocs twists, t /= 0, i /= lastIndex]
+  where lastIndex = (lf, lb)
+        (FT4 lf lb _) = lastMove alg
+        twists :: Array (Face, Bool) Twist4
+        twists = accumArray (+) 0 ((minBound, minBound), (maxBound, maxBound)) ivs
+        ivs = [((f, b), t) | (FT4 f b t) <- moves alg]
