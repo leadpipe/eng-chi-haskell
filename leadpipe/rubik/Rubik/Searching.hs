@@ -6,30 +6,56 @@ module Rubik.Searching where
 import Rubik.Algebra
 import Rubik.Puzzle
 
-import Control.Monad (liftM2)
+import Control.Monad
 import Control.Monad.Random
---import Control.Monad.State
+import Control.Parallel.Strategies
 import Data.Set (Set)
 import qualified Data.Set as Set
 
--- | Given an initial list of moves, searches a random tree of algorithms
--- looking for instances that satisfy a given predicate.  The resulting list
--- lives in the RandT + State monad.
-findAlgorithms :: (Puzzle s, RandomGen g, Ord (Move s)) =>
-                  [Move s] -> (Algorithm s -> Bool) -> (Algorithm s -> Int -> Bool)
-                  -> (Algorithm s -> Rand g (Move s)) -> Rand g [Algorithm s]
-findAlgorithms [] _ _ _ = return []
-findAlgorithms (m:ms) satisfying continue genMove = fa `append` findAlgorithms ms satisfying continue genMove
-  where append = liftM2 (++)
-        fa = fa' (applyMove one m)
-        fa' alg = if satisfying alg then return [alg] else walkFrom alg 0 Set.empty
-        --walkFrom :: Algorithm s -> Int -> Set (Move s) -> Rand g [Algorithm s]
-        walkFrom alg count tried = if continue alg count then try alg count tried else return []
-        try alg count tried =
-          do m <- genMove alg
-             if m `Set.member` tried then try alg count tried
-               else let alg' = alg `applyMove` m
-                        tried' = m `Set.insert` tried
-                    in if isNontrivial alg' && lastMove alg' == m
-                       then fa' alg' `append` walkFrom alg (count+1) tried'
-                       else walkFrom alg count tried'
+-- | Given a list of root nodes, and a way to calculate the children of a node,
+-- does a parallel depth-first walk of the implied trees looking for nodes that
+-- satisfy a given predicate.  We wrap the search in a monad, to allow for
+-- randomness and I/O in the callbacks.
+--
+-- Typically the trees in question will be successive algorithms through a
+-- Rubik-style puzzle.  We've generalized the types to allow for additional
+-- state to be included with the algorithms, for efficiency's sake: this extra
+-- state can be maintained incrementally rather than recalculated for each node.
+searchForest :: (Monad m) => [m a] -> (a -> m [a]) -> (a -> m Bool) -> m [a]
+searchForest roots calcChildren satisfies = concatSequence searchedTrees
+  where searchedTrees = [(root >>= searchTree) `using` rpar | root <- roots]
+
+        --searchTree :: a -> m [a]
+        searchTree node = do
+          sat <- satisfies node
+          if sat then return [node] else do
+            children <- calcChildren node
+            concatSequence (map searchTree children)
+
+        --concatSequence :: [m [a]] -> m [a]
+        concatSequence lml = liftM concat $ sequence lml
+
+
+-- | For nodes that encapsulate Rubik-style algorithms, produces a list of
+-- successor algorithms given a way to generate moves.
+generateChildren :: (Monad m, Puzzle p, Ord (Move p)) =>
+                    (a -> Algorithm p) -> (a -> m (Move p)) -> Int -> a -> m [Algorithm p]
+generateChildren getAlg genMove count node = collect 0 Set.empty []
+  where alg = getAlg node
+        collect n seen algs
+          | n >= count  = return algs
+          | otherwise   = do mv <- genMove node
+                             if mv `Set.member` seen then collect n seen algs
+                               else let alg' = alg `applyMove` mv
+                                        seen' = mv `Set.insert` seen
+                                    in if isNontrivial alg' && lastMove alg' == mv
+                                       then collect (n+1) seen' (alg':algs)
+                                       else collect n seen' algs
+
+-- | Stops generating children after reaching algorithms of a particular length.
+generateChildrenToLength :: (Monad m, Puzzle p, Ord (Move p)) =>
+                            Int -> (a -> Algorithm p) -> (a -> m (Move p)) -> Int -> a -> m [Algorithm p]
+generateChildrenToLength len getAlg genMove count node =
+  if (length . moves . getAlg) node >= len
+  then return []
+  else generateChildren getAlg genMove count node

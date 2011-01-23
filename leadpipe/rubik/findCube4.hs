@@ -2,6 +2,7 @@
 
 module Main where
 
+import Rubik.Algebra
 import Rubik.Cube
 import Rubik.Cube4
 import Rubik.Cycles
@@ -13,11 +14,16 @@ import Data.Array.IArray
 import Data.List (sort)
 import System.Random
 
+type SearchM a = Rand StdGen a
+
 main = do
-  let initialMoves = map read ["f+", "F+", "f=", "F="] :: [FaceTwist4]
-  algs <- evalRandIO $ findAlgorithms initialMoves movesTopEdges (fanOut 2 20) genMove
+  let roots = map (return . applyMove one . read) ["f+", "F+", "f=", "F="]
+  algs <- evalRandIO $ searchForest roots calcChildren (return . movesTopEdges)
   sequence_ $ map (putStrLn . show) algs
 
+
+calcChildren :: Algorithm Cube4 -> SearchM [Algorithm Cube4]
+calcChildren = generateChildrenToLength 20 id genMove 2
 
 -- | Tells whether the given algorithm moves edge pieces only on the top (U)
 -- face.  It ignores what the algorithm does to vertices and face pieces.
