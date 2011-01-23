@@ -102,6 +102,13 @@ leavesUnmoved (Wreath list) indices = f 0 indices list
 
 getIndex (WM (i, _)) = i
 
+-- | Counts the number of indices that are moved by the given wreath.  Ignores
+-- the twists: an index that is twisted in place does not add to the count.
+numIndicesMoved :: (Group t, Ord t) => Wreath t -> Int
+numIndicesMoved (Wreath list) = f list 0 0
+  where f [] _ count = count
+        f (m:ms) i count = f ms (i+1) (if i == getIndex m then count else count+1)
+
 toCycles' :: forall t. (Ord t, Group t) => Wreath t -> [[WreathMove t]]
 toCycles' (Wreath []) = []
 toCycles' (Wreath list) =

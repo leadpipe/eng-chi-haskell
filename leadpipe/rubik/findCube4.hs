@@ -18,12 +18,18 @@ type SearchM a = Rand StdGen a
 
 main = do
   let roots = map (return . applyMove one . read) ["f+", "F+", "f=", "F="]
-  algs <- evalRandIO $ searchForest roots calcChildren (return . movesTopEdges)
+  algs <- evalRandIO $ searchForest roots calcChildren (return . movesFewVerticesAndEdges)
   sequence_ $ map (putStrLn . show) algs
 
 
 calcChildren :: Algorithm Cube4 -> SearchM [Algorithm Cube4]
 calcChildren = generateChildrenToLength 20 id genMove 2
+
+
+movesFewVerticesAndEdges :: Algorithm Cube4 -> Bool
+movesFewVerticesAndEdges a = numIndicesMoved v < 4 && numIndicesMoved e < 8
+  where Cube4 (v, e, _) = result a
+
 
 -- | Tells whether the given algorithm moves edge pieces only on the top (U)
 -- face.  It ignores what the algorithm does to vertices and face pieces.
@@ -33,10 +39,6 @@ movesTopEdges a = leavesUnmoved e nonTopEdgePieceIndices
 
 nonTopEdgePieceIndices :: [Int]
 nonTopEdgePieceIndices = sort [fromEnum ep | ep <- [minBound..], U `notElem` edgePieceFaces ep]
-
-
-fanOut :: Int -> Int -> Algorithm Cube4 -> Int -> Bool
-fanOut width depth a n = n < width && length (moves a) <= depth
 
 
 -- | Generates a random move, sometimes using the given algorithm to close out
