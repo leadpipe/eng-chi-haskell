@@ -28,9 +28,6 @@ main = do
 makeRoot :: FaceTwist4 -> SearchM Node
 makeRoot mv = return (one `applyMove` mv, emptyTwists `updateTwists` mv)
 
-getAlg :: Node -> Algorithm Cube4
-getAlg (a, _) = a
-
 emptyTwists :: CumulativeTwists
 emptyTwists = accumArray (+) 0 ((minBound, minBound), (maxBound, maxBound)) []
 
@@ -38,7 +35,7 @@ updateTwists :: CumulativeTwists -> FaceTwist4 -> CumulativeTwists
 updateTwists ct (FT4 f b t) = accum (+) ct [((f, b), t)]
 
 calcChildren :: Node -> SearchM [Node]
-calcChildren node = do algs <- generateChildrenToLength 20 getAlg genMove 2 node
+calcChildren node = do algs <- generateChildrenToLength 20 fst genMove 2 node
                        return $ map addTwists algs
                       where addTwists alg = (alg, snd node `updateTwists` lastMove alg)
 
