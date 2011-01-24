@@ -12,18 +12,35 @@ import Rubik.Searching
 import Control.Monad.Random
 import Data.Array.IArray
 import Data.List (sort)
+import Data.Word
 import System.Random
 
 type SearchM a = Rand StdGen a
+type CumulativeTwists = Array (Face, Bool) Twist4
+type Node = (Algorithm Cube4, CumulativeTwists)
 
 main = do
-  let roots = map (return . applyMove one . read) ["f+", "F+", "f=", "F="]
-  algs <- evalRandIO $ searchForest roots calcChildren (return . movesFewVerticesAndEdges)
-  sequence_ $ map (putStrLn . show) algs
+  let roots = map (makeRoot . read) ["f+", "F+", "f=", "F="]
+  nodes <- evalRandIO $ searchForest roots calcChildren (return . movesFewVerticesAndEdges . fst)
+  sequence_ $ map (putStrLn . show . fst) nodes
 
 
-calcChildren :: Algorithm Cube4 -> SearchM [Algorithm Cube4]
-calcChildren = generateChildrenToLength 20 id genMove 2
+makeRoot :: FaceTwist4 -> SearchM Node
+makeRoot mv = return (one `applyMove` mv, emptyTwists `updateTwists` mv)
+
+getAlg :: Node -> Algorithm Cube4
+getAlg (a, _) = a
+
+emptyTwists :: CumulativeTwists
+emptyTwists = accumArray (+) 0 ((minBound, minBound), (maxBound, maxBound)) []
+
+updateTwists :: CumulativeTwists -> FaceTwist4 -> CumulativeTwists
+updateTwists ct (FT4 f b t) = accum (+) ct [((f, b), t)]
+
+calcChildren :: Node -> SearchM [Node]
+calcChildren node = do algs <- generateChildrenToLength 20 getAlg genMove 2 node
+                       return $ map addTwists algs
+                      where addTwists alg = (alg, snd node `updateTwists` lastMove alg)
 
 
 movesFewVerticesAndEdges :: Algorithm Cube4 -> Bool
@@ -43,26 +60,23 @@ nonTopEdgePieceIndices = sort [fromEnum ep | ep <- [minBound..], U `notElem` edg
 
 -- | Generates a random move, sometimes using the given algorithm to close out
 -- the cumulative twist for a face.
-genMove :: Algorithm Cube4 -> Rand StdGen FaceTwist4
-genMove alg = do
-  (i :: Int) <- getRandomR (1, 10)
+genMove :: Node -> Rand StdGen FaceTwist4
+genMove node = do
+  i <- getRandomR (1::Int, 10)
   if i <= 3 then randomMove else
-    let closeOuts = calcCloseOuts alg
+    let closeOuts = calcCloseOuts node
         numCloseOuts = length closeOuts
     in if numCloseOuts == 0 then randomMove else
          do j <- getRandomR (0, numCloseOuts - 1)
             return (closeOuts !! j)
     where randomMove = do
             f <- getRandomR (fromEnum (minBound::Face), fromEnum (maxBound::Face))
-            b <- getRandom
-            t <- getRandomR (1,3)
-            return (FT4 (toEnum f) b (fromInteger t))
+            b <- getRandomR (1::Int, 5) -- 20% chance of both layers, 80% outer layer only
+            t <- getRandomR (1::Int, 3)
+            return (FT4 (toEnum f) (b > 1) (toEnum t))
 
 
-calcCloseOuts :: Algorithm Cube4 -> [FaceTwist4]
-calcCloseOuts alg = [FT4 f b (-t) | (i@(f, b), t) <- assocs twists, t /= 0, i /= lastIndex]
+calcCloseOuts :: Node -> [FaceTwist4]
+calcCloseOuts (alg, twists) = [FT4 f b (-t) | (i@(f, b), t) <- assocs twists, t /= 0, i /= lastIndex]
   where lastIndex = (lf, lb)
         (FT4 lf lb _) = lastMove alg
-        twists :: Array (Face, Bool) Twist4
-        twists = accumArray (+) 0 ((minBound, minBound), (maxBound, maxBound)) ivs
-        ivs = [((f, b), t) | (FT4 f b t) <- moves alg]
