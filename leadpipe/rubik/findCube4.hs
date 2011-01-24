@@ -61,11 +61,12 @@ genMove :: Node -> Rand StdGen FaceTwist4
 genMove node = do
   i <- getRandomR (1::Int, 10)
   if i <= 3 then randomMove else
-    let closeOuts = calcCloseOuts node
-        numCloseOuts = length closeOuts
-    in if numCloseOuts == 0 then randomMove else
-         do j <- getRandomR (0, numCloseOuts - 1)
-            return (closeOuts !! j)
+    let ats = actualTwists node
+        numTwists = length ats
+    in if numTwists == 0 then randomMove else
+         do j <- getRandomR (0, numTwists - 1)
+            let ((f, b), t) = ats !! j
+            return (FT4 f b (-t))
     where randomMove = do
             f <- getRandomR (fromEnum (minBound::Face), fromEnum (maxBound::Face))
             b <- getRandomR (1::Int, 5) -- 20% chance of both layers, 80% outer layer only
@@ -73,7 +74,7 @@ genMove node = do
             return (FT4 (toEnum f) (b > 1) (toEnum t))
 
 
-calcCloseOuts :: Node -> [FaceTwist4]
-calcCloseOuts (alg, twists) = [FT4 f b (-t) | (i@(f, b), t) <- assocs twists, t /= 0, i /= lastIndex]
+actualTwists :: Node -> [((Face, Bool), Twist4)]
+actualTwists (alg, twists) = [a | a@(i@(f, b), t) <- assocs twists, t /= 0, i /= lastIndex]
   where lastIndex = (lf, lb)
         (FT4 lf lb _) = lastMove alg
