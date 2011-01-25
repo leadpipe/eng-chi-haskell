@@ -16,7 +16,7 @@
 *** Separate Group module?
 *** A bunch of the stuff in Cycles has nothing to do with cycles
 *** Separate Wreath module?
-** Resurrect space-searching code
+** DONE Resurrect space-searching code
 
 * Required cabal modules
 ** data-memocombinators
