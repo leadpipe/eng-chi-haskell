@@ -10,17 +10,17 @@ import Rubik.Puzzle
 import Rubik.Searching
 
 import Control.Monad.Random
-import Data.Array.IArray
 import Data.List (sort)
-import Data.Word
+import Data.Map (Map)
+import qualified Data.Map as Map
 import System.Random
 
 type SearchM a = Rand StdGen a
-type CumulativeTwists = Array (Face, Bool) Twist4
+type CumulativeTwists = Map (Face, Bool) Twist4
 type Node = (Algorithm Cube4, CumulativeTwists)
 
 main = do
-  let roots = map (makeRoot . read) ["f+", "F+", "f=", "F="]
+  let roots = cycle $ map (makeRoot . read) ["f+", "F+", "f=", "F="]
   nodes <- evalRandIO $ searchForest roots calcChildren (return . movesFewVerticesAndEdges . fst)
   sequence_ $ map (putStrLn . show . fst) nodes
 
@@ -29,10 +29,15 @@ makeRoot :: FaceTwist4 -> SearchM Node
 makeRoot mv = return (one `applyMove` mv, emptyTwists `updateTwists` mv)
 
 emptyTwists :: CumulativeTwists
-emptyTwists = accumArray (+) 0 ((minBound, minBound), (maxBound, maxBound)) []
+emptyTwists = Map.empty
 
 updateTwists :: CumulativeTwists -> FaceTwist4 -> CumulativeTwists
-updateTwists ct (FT4 f b t) = accum (+) ct [((f, b), t)]
+updateTwists ct (FT4 f b t) = Map.alter plus (f, b) ct
+  where plus = toMaybe . (+) t . fromMaybe
+        fromMaybe Nothing = 0
+        fromMaybe (Just t) = t
+        toMaybe 0 = Nothing
+        toMaybe t = Just t
 
 calcChildren :: Node -> SearchM [Node]
 calcChildren node = do algs <- generateChildrenToLength 20 fst genMove 2 node
@@ -41,7 +46,7 @@ calcChildren node = do algs <- generateChildrenToLength 20 fst genMove 2 node
 
 
 movesFewVerticesAndEdges :: Algorithm Cube4 -> Bool
-movesFewVerticesAndEdges a = numIndicesMoved v < 4 && numIndicesMoved e < 8
+movesFewVerticesAndEdges a = numIndicesMoved v < 4 && numIndicesMoved e < 8 && length (moves a) > 3
   where Cube4 (v, e, _) = result a
 
 
@@ -58,15 +63,17 @@ nonTopEdgePieceIndices = sort [fromEnum ep | ep <- [minBound..], U `notElem` edg
 -- | Generates a random move, sometimes using the given algorithm to close out
 -- the cumulative twist for a face.
 genMove :: Node -> Rand StdGen FaceTwist4
-genMove node = do
-  i <- getRandomR (1::Int, 10)
-  if i <= 3 then randomMove else
-    let ats = actualTwists node
-        numTwists = length ats
-    in if numTwists == 0 then randomMove else
-         do j <- getRandomR (0, numTwists - 1)
-            let ((f, b), t) = ats !! j
-            return (FT4 f b (-t))
+genMove node@(alg, twists) = do
+  let (FT4 lf lb _) = lastMove alg
+  let lastIndex = (lf, lb)
+  if Map.null twists || Map.size twists == 1 && Map.member lastIndex twists
+    then randomMove
+    else do i <- getRandomR (1::Int, 10)
+            if i <= 3 then randomMove else do
+              let ats = applicableTwists twists lastIndex
+              j <- getRandomR (0, length ats - 1)
+              let ((f, b), t) = ats !! j
+              return (FT4 f b (-t))
     where randomMove = do
             f <- getRandomR (fromEnum (minBound::Face), fromEnum (maxBound::Face))
             b <- getRandomR (1::Int, 5) -- 20% chance of both layers, 80% outer layer only
@@ -74,7 +81,5 @@ genMove node = do
             return (FT4 (toEnum f) (b > 1) (toEnum t))
 
 
-actualTwists :: Node -> [((Face, Bool), Twist4)]
-actualTwists (alg, twists) = [a | a@(i@(f, b), t) <- assocs twists, t /= 0, i /= lastIndex]
-  where lastIndex = (lf, lb)
-        (FT4 lf lb _) = lastMove alg
+applicableTwists :: CumulativeTwists -> (Face, Bool) -> [((Face, Bool), Twist4)]
+applicableTwists twists lastIndex = [a | a@(i, _) <- Map.toList twists, i /= lastIndex]
