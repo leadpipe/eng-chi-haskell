@@ -1,9 +1,13 @@
 * To do
-** DONE Recast all polyhedra in terms of type families
-** DONE Make Move be a Puzzle associated type
-** DONE Simplify Algorithm creation
-** DONE Rewrite Algorithm parser; fix cube FaceTwist parser to reject 0 moves
-** Write Tetra3
+** Make findCube4 able to run in parallel
+** Move FaceTwist4 into the Cube module, rename
+** Generalize Rubik move types: index + twist
+** Write Tetra3, findTetra3
+** Reorganize algebra code:
+*** Separate Group module (Data.Group?)
+*** A bunch of the stuff in Cycles has nothing to do with cycles
+*** Separate Wreath module
+    - Also: shouldn't Wreath be parameterized on the bounded enum it's permuting?
 ** Write Dodeca3
 ** Write Dodeca5
 ** Write Octa, Octa3, Octa4?
@@ -12,11 +16,6 @@
 ** REPL for moves?
 ** Templatize polyhedron type families
 ** Write test modules
-** Reorganize algebra code:
-*** Separate Group module?
-*** A bunch of the stuff in Cycles has nothing to do with cycles
-*** Separate Wreath module?
-** DONE Resurrect space-searching code
 
 * Required cabal modules
 ** data-memocombinators
@@ -24,3 +23,20 @@
      keep it.
 ** test-framework-th
 ** test-framework-quickcheck2
+
+* Building and running
+
+# building for profiling
+ghc -prof -auto-all --make findCube4
+
+# running with the profiler
+./findCube4 +RTS -p
+
+# building optimized
+ghc --make -O2 findCube4
+
+# building for threaded execution
+ghc --make -threaded findCube4
+
+# running threaded with 3 processors
+./findCube4 +RTS -N3
