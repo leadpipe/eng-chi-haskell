@@ -10,6 +10,7 @@ import Rubik.Puzzle
 import Rubik.Searching
 
 import Control.Monad.Random
+import Control.Parallel.Strategies
 import Data.List (sort)
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -21,9 +22,16 @@ type Node = (Algorithm Cube4, CumulativeTwists)
 
 main = do
   let roots = cycle $ map (makeRoot . read) ["f+", "F+", "f=", "F="]
-  nodes <- evalRandIO $ searchForest roots calcChildren (return . movesFewVerticesAndEdges . fst)
+  let search = searchTree calcChildren (return . movesFewVerticesAndEdges . fst)
+  gens <- stdGenList
+  let nodes = concat (zipWith (evalRand . search) roots gens `using` parBuffer 3 rseq)
   sequence_ $ map (putStrLn . show . fst) nodes
 
+stdGenList :: IO [StdGen]
+stdGenList = do
+  gen <- newStdGen
+  return $ splits gen
+    where splits gen = let (g1, g2) = split gen in g1 : splits g2
 
 makeRoot :: FaceTwist4 -> SearchM Node
 makeRoot mv = return (one `applyMove` mv, emptyTwists `updateTwists` mv)
@@ -46,7 +54,7 @@ calcChildren node = do algs <- generateChildrenToLength 20 fst genMove 2 node
 
 
 movesFewVerticesAndEdges :: Algorithm Cube4 -> Bool
-movesFewVerticesAndEdges a = numIndicesMoved v < 4 && numIndicesMoved e < 8 && length (moves a) > 3
+movesFewVerticesAndEdges a = numIndicesMoved v < 4 && numIndicesMoved e == 4
   where Cube4 (v, e, _) = result a
 
 
@@ -62,7 +70,7 @@ nonTopEdgePieceIndices = sort [fromEnum ep | ep <- [minBound..], U `notElem` edg
 
 -- | Generates a random move, sometimes using the given algorithm to close out
 -- the cumulative twist for a face.
-genMove :: Node -> Rand StdGen FaceTwist4
+genMove :: Node -> SearchM FaceTwist4
 genMove node@(alg, twists) = do
   let (FT4 lf lb _) = lastMove alg
   let lastIndex = (lf, lb)
