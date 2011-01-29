@@ -54,8 +54,12 @@ calcChildren node = do algs <- generateChildrenToLength 20 fst genMove 2 node
 
 
 movesFewVerticesAndEdges :: Algorithm Cube4 -> Bool
-movesFewVerticesAndEdges a = numIndicesMoved v < 4 && numIndicesMoved e == 4
-  where Cube4 (v, e, _) = result a
+movesFewVerticesAndEdges a = numEdges > 0 && numEdges < 4 && length mvs > 4 && hasInnerTwist && facePiecesStay
+  where Cube4 (_, e, f) = result a
+        numEdges = numIndicesMoved e
+        mvs = moves a
+        hasInnerTwist = any (\(FT4 _ b _) -> not b) mvs
+        facePiecesStay = True -- TODO
 
 
 -- | Tells whether the given algorithm moves edge pieces only on the top (U)
@@ -84,9 +88,9 @@ genMove node@(alg, twists) = do
               return (FT4 f b (-t))
     where randomMove = do
             f <- getRandomR (fromEnum (minBound::Face), fromEnum (maxBound::Face))
-            b <- getRandomR (1::Int, 5) -- 20% chance of both layers, 80% outer layer only
+            b <- getRandomR (1::Int, 5) -- 40% chance of both layers, 60% outer layer only
             t <- getRandomR (1::Int, 3)
-            return (FT4 (toEnum f) (b > 1) (toEnum t))
+            return (FT4 (toEnum f) (b > 2) (toEnum t))
 
 
 applicableTwists :: CumulativeTwists -> (Face, Bool) -> [((Face, Bool), Twist4)]
