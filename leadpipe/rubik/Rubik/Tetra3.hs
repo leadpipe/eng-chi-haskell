@@ -16,7 +16,7 @@ newtype Tetra3 = Tetra3 (VertexWreath, EdgeWreath) deriving (Eq, Ord)
 
 instance Monoid Tetra3 where
   mempty = Tetra3 one
-  mappend (Tetra3 s1) (Tetra3 s2) = Tetra3 (s1 *> s2)
+  mappend (Tetra3 s1) (Tetra3 s2) = Tetra3 (s1 $* s2)
 
 instance Group Tetra3 where
   ginvert (Tetra3 s) = Tetra3 (ginvert s)
@@ -26,10 +26,10 @@ instance Puzzle Tetra3 where
   fromMove (FaceTwist f 1) = Tetra3 (v, e)
     where v = fromCycles [asCycle' f faceVertices vertexFaces]
           e = fromCycles [asCycle' f faceEdges edgeFaces]
-  fromMove (FaceTwist f n) = fromMove (FaceTwist f 1) ^> n
+  fromMove (FaceTwist f n) = fromMove (FaceTwist f 1) $^ n
 
 instance Show Tetra3 where
-  showsPrec _ (Tetra3 (v, e)) = fromOptCycles $ showVertices *> showEdges
+  showsPrec _ (Tetra3 (v, e)) = fromOptCycles $ showVertices $* showEdges
     where showVertices = optShowCyclesDefault Vertex v
           showEdges = optShowCyclesDefault Edge e
 

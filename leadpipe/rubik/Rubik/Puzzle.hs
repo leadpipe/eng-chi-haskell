@@ -20,7 +20,7 @@ class (Read m, Show m) => PuzzleMove m where
   -- ^ The move that undoes the given move.  This means that @joinMoves m
   -- (undoMove m)@ (and vice versa) must equal the empty list.
   --
-  -- Also, for any Puzzle instance that uses this move type, @fromMove m *>
+  -- Also, for any Puzzle instance that uses this move type, @fromMove m $*
   -- fromMove (undoMove m)@ (and vice versa) must equal the Puzzle's @one@.
 
   joinMoves :: m -> m -> [m]
@@ -70,7 +70,7 @@ instance (Puzzle p) => Eq (Algorithm p) where
 -- | Algorithms are groups.
 instance (Puzzle p) => Monoid (Algorithm p) where
   mempty = Algorithm [] one
-  mappend (Algorithm ms1 s1) (Algorithm ms2 s2) = Algorithm ms (s1 *> s2)
+  mappend (Algorithm ms1 s1) (Algorithm ms2 s2) = Algorithm ms (s1 $* s2)
     where ms = foldr prependMove ms2 ms1 -- Note the reversed order
 
 -- | Algorithms are groups.
@@ -79,7 +79,7 @@ instance (Puzzle p) => Group (Algorithm p) where
 
 -- | Adds a move to an algorithm.
 applyMove :: (Puzzle p) => Algorithm p -> Move p -> Algorithm p
-applyMove a@(Algorithm ms p) m = Algorithm (prependMove m ms) (p *> fromMove m)
+applyMove a@(Algorithm ms p) m = Algorithm (prependMove m ms) (p $* fromMove m)
 
 -- | Prepends a move to a list of moves, maintaining canonicalization as
 -- implemented by 'joinMoves'.

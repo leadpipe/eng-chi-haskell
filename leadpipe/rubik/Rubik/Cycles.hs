@@ -180,7 +180,7 @@ optShowCycles showMove w = showCycles' (toCycles w)
         showCycles' [[]] = Nothing
         --showCycles' [[m]] = showMove m
         showCycles' [c] = toOptS $ showParen True (showMoves c)
-        showCycles' (c:cs) = showCycles' [c] *> showCycles' cs
+        showCycles' (c:cs) = showCycles' [c] $* showCycles' cs
         showMoves [m] = showMove m
         showMoves (m:ms) = showMove m . showChar ' ' . showMoves ms
 

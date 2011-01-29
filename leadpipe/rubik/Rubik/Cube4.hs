@@ -26,7 +26,7 @@ newtype Cube4 = Cube4 (VertexWreath, EdgeWreath, FaceWreath) deriving (Eq, Ord)
 
 instance Monoid Cube4 where
   mempty = Cube4 one
-  mappend (Cube4 s1) (Cube4 s2) = Cube4 (s1 *> s2)
+  mappend (Cube4 s1) (Cube4 s2) = Cube4 (s1 $* s2)
 
 instance Group Cube4 where
   ginvert (Cube4 s) = Cube4 $ ginvert s
@@ -173,7 +173,7 @@ fromMove4 f True 1 = Cube4 (vw, ew, fw)
         edgePieces = transpose $ map (map facesToEdgePiece)
                      [[[f, f2, f3], [f, f3, f2]] | [_, f2, f3] <- faceVerticesAsFaces f]
 
-fromMove4 f False 1 = Cube4 (one, ew, fw) *> fromMove (FT4 f True 1)
+fromMove4 f False 1 = Cube4 (one, ew, fw) $* fromMove (FT4 f True 1)
   where ew = fromCycles [asCycle f edgePieces edgePieceFaces]
         fw = fromCycles $ map asSimpleCycle facePieces
         edgePieces = map facesToEdgePiece
@@ -181,11 +181,11 @@ fromMove4 f False 1 = Cube4 (one, ew, fw) *> fromMove (FT4 f True 1)
         facePieces = transpose $ map (map facesToFacePiece)
                      [[[f2, f3, f], [f3, f2, f]] | [_, f2, f3] <- faceVerticesAsFaces f]
 
-fromMove4 f b n = fromMove (FT4 f b 1) ^> n
+fromMove4 f b n = fromMove (FT4 f b 1) $^ n
 
 
 instance Show Cube4 where
-  showsPrec _ (Cube4 (v, e, f)) = fromOptCycles $ showVertices *> showEdges *> showFaces
+  showsPrec _ (Cube4 (v, e, f)) = fromOptCycles $ showVertices $* showEdges $* showFaces
     where showVertices = optShowCyclesDefault Vertex v
           showEdges = optShowCyclesDefault EdgePiece e
           showFaces = optShowCyclesDefault FacePiece f

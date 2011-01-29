@@ -16,30 +16,34 @@ class (Monoid a, Eq a) => Group a where
 
 
 -- We define some operators to make it easier to work with monoids and groups.
--- We define "one" as a synonym for mempty; the *> operator is our synonym for
--- mappend; and we define ^> to be the result of raising a group element to an
--- integral power.
+-- We define "one" as a synonym for mempty; the $* operator is our synonym for
+-- mappend (because the group operation is sort of a combination of
+-- multiplication and function application); and we define $^ to be the result
+-- of raising a group element to an integral power.
 
 one :: Monoid m => m
 one = mempty
-(*>) :: Monoid m => m -> m -> m
-(*>) = mappend
--- This version of ^> is copied from Data.Group.Combinators.replicate
--- in the monoids Hackage package.
-(^>) :: (Group g, Integral n) => g -> n -> g
-base ^> exp
-  | exp < 0   = ginvert base ^> negate exp
+($*) :: Monoid m => m -> m -> m
+($*) = mappend
+infixl 7 $* -- matches (*)
+
+-- This version of $^ is copied from Data.Group.Combinators.replicate in the
+-- "monoids" package.
+($^) :: (Group g, Integral n) => g -> n -> g
+infixr 8 $^ -- matches (^)
+base $^ exp
+  | exp < 0   = ginvert base $^ negate exp
   | exp == 0  = one
   | otherwise = f base exp
     where
       f base exp
         | exp == 1  = base
-        | even exp  = f (base *> base) (exp `quot` 2)
-        | otherwise = g (base *> base) (exp `quot` 2) base
+        | even exp  = f (base $* base) (exp `quot` 2)
+        | otherwise = g (base $* base) (exp `quot` 2) base
       g base exp acc
-        | exp == 1  = base *> acc
-        | even exp  = g (base *> base) (exp `quot` 2) acc
-        | otherwise = g (base *> base) (exp `quot` 2) (base *> acc)
+        | exp == 1  = base $* acc
+        | even exp  = g (base $* base) (exp `quot` 2) acc
+        | otherwise = g (base $* base) (exp `quot` 2) (base $* acc)
 
 
 -- Some Group defs corresponding to (some of) the basic Monoid defs:
@@ -153,7 +157,7 @@ getWreathMove (Wreath ms) i = ms `lookup` i
 
 -- | Chain a move through a wreath.
 chainWreathMove :: (Ord t, Group t) => Wreath t -> WreathMove t -> WreathMove t
-chainWreathMove w (WM (i,t)) = let (WM (i',t')) = getWreathMove w i in WM (i', (t *> t'))
+chainWreathMove w (WM (i,t)) = let (WM (i',t')) = getWreathMove w i in WM (i', (t $* t'))
 
 
 -- | Wreaths are also Groups.
