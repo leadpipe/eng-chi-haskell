@@ -36,50 +36,50 @@ class (Read m, Show m) => PuzzleMove m where
 
 
 -- | A class for Rubik-style puzzle states.
-class (Group s, Show s, PuzzleMove (Move s), Eq (Move s)) => Puzzle s where
+class (Group p, Show p, PuzzleMove (Move p), Eq (Move p)) => Puzzle p where
 
-  type Move s
+  type Move p
   -- ^ The associated move type.  For example, a move for a standard Rubik's
   -- cube might be "twist the top face a quarter-turn clockwise."
 
-  fromMove :: Move s -> s
+  fromMove :: Move p -> p
   -- ^ Converts the given move to the associated puzzle state.
 
 
 -- | An Algorithm combines a list of moves with the resulting puzzle state.  The
 -- list is reversed: new moves go on the head.
-data (Puzzle s) => Algorithm s = Algorithm
-                                 { moves :: [Move s]
-                                 , result :: s
+data (Puzzle p) => Algorithm p = Algorithm
+                                 { moves :: [Move p]
+                                 , result :: p
                                  }
 
 -- | Is this a non-trivial algorithm?
-isNontrivial :: (Puzzle s) => Algorithm s -> Bool
+isNontrivial :: (Puzzle p) => Algorithm p -> Bool
 isNontrivial = not . null . moves
 
 -- | For non-trivial algorithms only, the algorithm's last move.  Because
 -- Algorithm canonicalizes the order of moves, this could be different from the
 -- move you most recently appended.
-lastMove :: (Puzzle s) => Algorithm s -> Move s
+lastMove :: (Puzzle p) => Algorithm p -> Move p
 lastMove = head . moves
 
 -- | Equality testing for Algorithms.
-instance (Puzzle s) => Eq (Algorithm s) where
+instance (Puzzle p) => Eq (Algorithm p) where
   a == b = moves a == moves b
 
 -- | Algorithms are groups.
-instance (Puzzle s) => Monoid (Algorithm s) where
+instance (Puzzle p) => Monoid (Algorithm p) where
   mempty = Algorithm [] one
   mappend (Algorithm ms1 s1) (Algorithm ms2 s2) = Algorithm ms (s1 *> s2)
     where ms = foldr prependMove ms2 ms1 -- Note the reversed order
 
 -- | Algorithms are groups.
-instance (Puzzle s) => Group (Algorithm s) where
-  ginvert (Algorithm ms s) = Algorithm (map undoMove . reverse $ ms) (ginvert s)
+instance (Puzzle p) => Group (Algorithm p) where
+  ginvert (Algorithm ms p) = Algorithm (map undoMove . reverse $ ms) (ginvert p)
 
 -- | Adds a move to an algorithm.
-applyMove :: (Puzzle s) => Algorithm s -> Move s -> Algorithm s
-applyMove a@(Algorithm ms s) m = Algorithm (prependMove m ms) (s *> fromMove m)
+applyMove :: (Puzzle p) => Algorithm p -> Move p -> Algorithm p
+applyMove a@(Algorithm ms p) m = Algorithm (prependMove m ms) (p *> fromMove m)
 
 -- | Prepends a move to a list of moves, maintaining canonicalization as
 -- implemented by 'joinMoves'.
@@ -93,12 +93,12 @@ prependMove m l@(pm:ms)
 
 -- | Algorithms are displayed as their moves in order, a tab, and the resulting
 -- puzzle state.
-instance (Puzzle s) => Show (Algorithm s) where
-  showsPrec _ (Algorithm ms s) = showMoves ms . showChar '\t' . shows s
+instance (Puzzle p) => Show (Algorithm p) where
+  showsPrec _ (Algorithm ms p) = showMoves ms . showChar '\t' . shows p
     where showMoves = foldl' op id
           f `op` m = shows m . f
 
-instance (Puzzle s) => Read (Algorithm s) where
+instance (Puzzle p) => Read (Algorithm p) where
   readPrec = lift $ readAndApply mempty
     where readAndApply alg =
             do skipSpaces
