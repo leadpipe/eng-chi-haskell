@@ -22,13 +22,14 @@ import qualified Data.Set as Set
 -- Rubik-style puzzle.  We've generalized the types to allow for additional
 -- state to be included with the algorithms, for efficiency's sake: this extra
 -- state can be maintained incrementally rather than recalculated for each node.
-searchTree :: (Monad m) => (a -> m [a]) -> (a -> m Bool) -> m a -> m [a]
+searchTree :: (Monad m) => (a -> Bool -> m [a]) -> (a -> m Bool) -> m a -> m [a]
 searchTree calcChildren satisfies root = root >>= st
   where st node = do
           sat <- satisfies node
-          if sat then return [node] else do
-            children <- calcChildren node
-            concatM (map st children)
+          let this = if sat then [return [node]] else []
+          children <- calcChildren node sat
+          let results = this ++ map st children
+          concatM results
 
 
 concatM :: (Monad m) => [m [a]] -> m [a]

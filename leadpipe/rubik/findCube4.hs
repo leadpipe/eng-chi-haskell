@@ -22,7 +22,7 @@ type Node = (Algorithm Cube4, CumulativeTwists)
 
 main = do
   let roots = cycle $ map (makeRoot . read) ["f+", "F+", "f=", "F="]
-  let search = searchTree calcChildren (return . movesFewVerticesAndEdges . fst)
+  let search = searchTree calcChildren (return . whatWe'reLookingFor . fst)
   gens <- stdGenList
   let nodes = concat (zipWith (evalRand . search) roots gens `using` parBuffer 3 rseq)
   sequence_ $ map (putStrLn . show . fst) nodes
@@ -47,14 +47,14 @@ updateTwists ct (FT4 f b t) = Map.alter plus (f, b) ct
         toMaybe 0 = Nothing
         toMaybe t = Just t
 
-calcChildren :: Node -> SearchM [Node]
-calcChildren node = do algs <- generateChildrenToLength 20 fst genMove 2 node
-                       return $ map addTwists algs
-                      where addTwists alg = (alg, snd node `updateTwists` lastMove alg)
+calcChildren :: Node -> Bool -> SearchM [Node]
+calcChildren node _ = do algs <- generateChildrenToLength 20 fst genMove 2 node
+                         return $ map addTwists algs
+  where addTwists alg = (alg, snd node `updateTwists` lastMove alg)
 
 
-movesFewVerticesAndEdges :: Algorithm Cube4 -> Bool
-movesFewVerticesAndEdges a = numEdges > 0 && numEdges < 4 && length mvs > 4 && hasInnerTwist && facePiecesStay
+whatWe'reLookingFor :: Algorithm Cube4 -> Bool
+whatWe'reLookingFor a = numEdges > 0 && numEdges < 4 && length mvs > 4 && hasInnerTwist && facePiecesStay
   where Cube4 (_, e, f) = result a
         numEdges = numIndicesMoved e
         mvs = moves a
