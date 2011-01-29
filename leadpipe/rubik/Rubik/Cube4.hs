@@ -154,8 +154,7 @@ instance Read FaceTwist4 where
   readsPrec _ (c:s) = maybeToList $ do
     f <- nameToMaybeFace (toLower c)
     (t, s') <- listToMaybe (reads s)
-    if t == 0 then fail "no twist"
-      else return (FT4 f (not.isUpper$c) t, s')
+    return (FT4 f (not.isUpper$c) t, s')
 
 
 instance Puzzle Cube4 where

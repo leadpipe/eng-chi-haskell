@@ -15,7 +15,7 @@ import Text.Read hiding ((<++))
 
 
 -- | A class for the moves that can be performed on a Rubik-style puzzle.
-class (Read m, Show m) => PuzzleMove m where
+class (Eq m, Read m, Show m) => PuzzleMove m where
   undoMove :: m -> m
   -- ^ The move that undoes the given move.  This means that @joinMoves m
   -- (undoMove m)@ (and vice versa) must equal the empty list.
@@ -24,19 +24,19 @@ class (Read m, Show m) => PuzzleMove m where
   -- fromMove (undoMove m)@ (and vice versa) must equal the Puzzle's @one@.
 
   joinMoves :: m -> m -> [m]
-  -- ^ Combines two moves.  If one is the opposite of the other, returns the
-  -- empty list.  If they can be combined into a single move, returns a list
-  -- containing that single move.  If they do not interact, returns the same two
-  -- moves but in a canonical order (ie, passing the same two moves in the
-  -- opposite order will return the same list).  And if they do interact,
-  -- returns the same two moves in the same order.
+  -- ^ Combines two moves.  If they are opposites, returns the empty list.  If
+  -- they can be combined into a single move, returns a list containing that
+  -- single move.  If they do not interact, returns the same two moves but in a
+  -- canonical order (ie, passing the same two moves in the opposite order will
+  -- return the same list).  And if they do interact, returns the same two moves
+  -- in the same order.
 
   isTrivialMove :: m -> Bool
   -- ^ Tells whether the given move is trivial, ie, is equivalent to not moving.
 
 
 -- | A class for Rubik-style puzzle states.
-class (Group p, Show p, PuzzleMove (Move p), Eq (Move p)) => Puzzle p where
+class (Group p, Show p, PuzzleMove (Move p)) => Puzzle p where
 
   type Move p
   -- ^ The associated move type.  For example, a move for a standard Rubik's
@@ -89,12 +89,16 @@ prependMove m []
   | otherwise       = [m]
 prependMove m l@(pm:ms)
   | isTrivialMove m = l
-  | otherwise       = joinMoves m pm ++ ms
+  | otherwise       = case joinMoves m pm of
+    [] -> ms
+    [m'] -> m' : ms
+    [m1, m2] -> if m2 == pm then m1 : l
+                else m1 : prependMove m2 ms
 
--- | Algorithms are displayed as their moves in order, a tab, and the resulting
--- puzzle state.
+-- | Algorithms are displayed as their moves in order, some spaces, and the
+-- resulting puzzle state.
 instance (Puzzle p) => Show (Algorithm p) where
-  showsPrec _ (Algorithm ms p) = showMoves ms . showChar '\t' . shows p
+  showsPrec _ (Algorithm ms p) = showMoves ms . showString "    " . shows p
     where showMoves = foldl' op id
           f `op` m = shows m . f
 

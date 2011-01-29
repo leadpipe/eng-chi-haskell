@@ -73,8 +73,7 @@ instance Read FaceTwist where
   readsPrec _ (c:s) = maybeToList $ do
     f <- nameToMaybeFace c
     (t, s') <- listToMaybe (reads s)
-    if t == 0 then fail "no twist specified"
-      else return (FaceTwist f t, s')
+    return (FaceTwist f t, s')
 
 type EdgeWreath = Wreath Flip
 type VertexWreath = Wreath Twist3
