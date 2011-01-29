@@ -1,5 +1,5 @@
 * To do
-** Make findCube4 able to run in parallel
+** DONE Make findCube4 able to run in parallel
 ** Move FaceTwist4 into the Cube module, rename
 ** Generalize Rubik move types: index + twist
 ** Write Tetra3, findTetra3
@@ -13,8 +13,8 @@
 ** Write Octa, Octa3, Octa4?
 ** Write GearedCube?
 ** Write Cube5?
-** REPL for moves?
-** Templatize polyhedron type families
+** REPL for moves? -- need transforms, like mirrors and rotations
+** Templatize polyhedron type families (?)
 ** Write test modules
 
 * Required cabal modules
@@ -23,6 +23,7 @@
      keep it.
 ** test-framework-th
 ** test-framework-quickcheck2
+** parallel (current version)
 
 * Building and running
 
@@ -36,7 +37,7 @@ ghc -prof -auto-all --make findCube4
 ghc --make -O2 findCube4
 
 # building for threaded execution
-ghc --make -threaded findCube4
+ghc --make -threaded -O2 findCube4
 
 # running threaded with 3 processors
 ./findCube4 +RTS -N3
