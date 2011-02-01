@@ -3,11 +3,13 @@
 -- | Describes a cube in terms of faces, edges, and vertices.
 module Rubik.Cube where
 
-import Rubik.Algebra
 import Rubik.Cycles
+import Rubik.Group
 import qualified Rubik.Memo as Memo
 import Rubik.Polyhedron
 import Rubik.Puzzle
+import Rubik.Twists
+import Rubik.Wreath
 
 import Data.Ix (Ix)
 import Data.Maybe (listToMaybe, maybeToList)
@@ -75,11 +77,14 @@ instance Read FaceTwist where
     (t, s') <- listToMaybe (reads s)
     return (FaceTwist f t, s')
 
-type EdgeWreath = Wreath Flip
-type VertexWreath = Wreath Twist3
-
 type Edge = PolyEdge Face
 type Vertex = PolyVertex Face
+
+instance WreathPermutable Edge where
+  type WreathTwist Edge = Flip
+
+instance WreathPermutable Vertex where
+  type WreathTwist Vertex = Twist3
 
 instance Show Face where
   showsPrec _ = showChar . faceToName

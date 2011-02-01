@@ -3,11 +3,13 @@
 -- | Describes a dodecahedron in terms of faces, edges, and vertices.
 module Rubik.Dodeca where
 
-import Rubik.Algebra
 import Rubik.Cycles
+import Rubik.Group
 import Rubik.Lists
 import qualified Rubik.Memo as Memo
 import Rubik.Polyhedron
+import Rubik.Twists
+import Rubik.Wreath
 
 import Data.Array.IArray (Ix, (!), Array, listArray)
 import Data.List (transpose)
@@ -80,8 +82,11 @@ instance PolyFace Face where
 type Edge = PolyEdge Face
 type Vertex = PolyVertex Face
 
-type EdgeWreath = Wreath Flip
-type VertexWreath = Wreath Twist3
+instance WreathPermutable Edge where
+  type WreathTwist Edge = Flip
+
+instance WreathPermutable Vertex where
+  type WreathTwist Vertex = Twist3
 
 instance Show Face where
   showsPrec _ = showChar . faceToName

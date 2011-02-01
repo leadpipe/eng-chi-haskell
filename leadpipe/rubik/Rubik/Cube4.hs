@@ -2,12 +2,14 @@
 -- | Defines the basic 3x3 cube puzzle.
 module Rubik.Cube4 where
 
-import Rubik.Algebra
 import Rubik.Cycles
 import Rubik.Cube
+import Rubik.Group
 import qualified Rubik.Memo as Memo
 import Rubik.Polyhedron
 import Rubik.Puzzle
+import Rubik.Wreath
+import Rubik.Twists
 
 import Control.Monad (mapM)
 import Data.Array.IArray ((!), Array, listArray)
@@ -20,9 +22,7 @@ import Data.Maybe (fromJust, listToMaybe, maybeToList)
 import Data.Monoid (Monoid, mappend, mempty)
 import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
 
-type FaceWreath = Wreath Twistless
-
-newtype Cube4 = Cube4 (VertexWreath, EdgeWreath, FaceWreath) deriving (Eq, Ord)
+newtype Cube4 = Cube4 (Wreath Vertex, Wreath EdgePiece, Wreath FacePiece) deriving (Eq, Ord)
 
 instance Monoid Cube4 where
   mempty = Cube4 one
@@ -46,6 +46,9 @@ instance Enum FacePiece where
 instance Bounded FacePiece where
   minBound = FacePiece 0
   maxBound = FacePiece $ length allFacePiecesAsFaces - 1
+
+instance WreathPermutable FacePiece where
+  type WreathTwist FacePiece = Twistless
 
 allFacePiecesAsFaces = concat [faceVerticesAsFaces f | f <- [minBound..]]
 
@@ -94,6 +97,9 @@ instance Enum EdgePiece where
 instance Bounded EdgePiece where
   minBound = EdgePiece 0
   maxBound = EdgePiece $ length allEdgePiecesAsFaces - 1
+
+instance WreathPermutable EdgePiece where
+  type WreathTwist EdgePiece = Twistless
 
 allEdgePiecesAsFaces = concat [pieces e | e <- [minBound..]]
   where pieces :: Edge -> [[Face]]
@@ -184,10 +190,7 @@ fromMove4 f b n = fromMove (FT4 f b 1) $^ n
 
 
 instance Show Cube4 where
-  showsPrec _ (Cube4 (v, e, f)) = fromOptCycles $ showVertices $* showEdges $* showFaces
-    where showVertices = optShowCyclesDefault Vertex v
-          showEdges = optShowCyclesDefault EdgePiece e
-          showFaces = optShowCyclesDefault FacePiece f
+  showsPrec _ (Cube4 (v, e, f)) = fromOptCycles $ optShowCycles v $* optShowCycles e $* optShowCycles f
 
 c4 :: String -> Algorithm Cube4
 c4 = read

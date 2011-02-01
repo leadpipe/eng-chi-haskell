@@ -4,7 +4,7 @@
 -- manipulating them.
 module Rubik.Puzzle where
 
-import Rubik.Algebra
+import Rubik.Group
 
 import Data.List (foldl')
 import Data.Maybe (listToMaybe)

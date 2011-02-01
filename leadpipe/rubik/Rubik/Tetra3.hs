@@ -2,17 +2,18 @@
 -- | Defines the 3x3 tetrahedron puzzle.
 module Rubik.Tetra3 where
 
-import Rubik.Algebra
 import Rubik.Cycles
+import Rubik.Group
 import Rubik.Polyhedron
 import Rubik.Puzzle
 import Rubik.Tetra
+import Rubik.Wreath
 
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)
 import Data.Monoid (Monoid, mappend, mempty)
 
-newtype Tetra3 = Tetra3 (VertexWreath, EdgeWreath) deriving (Eq, Ord)
+newtype Tetra3 = Tetra3 (Wreath Vertex, Wreath Edge) deriving (Eq, Ord)
 
 instance Monoid Tetra3 where
   mempty = Tetra3 one
@@ -29,9 +30,7 @@ instance Puzzle Tetra3 where
   fromMove (FaceTwist f n) = fromMove (FaceTwist f 1) $^ n
 
 instance Show Tetra3 where
-  showsPrec _ (Tetra3 (v, e)) = fromOptCycles $ showVertices $* showEdges
-    where showVertices = optShowCyclesDefault Vertex v
-          showEdges = optShowCyclesDefault Edge e
+  showsPrec _ (Tetra3 (v, e)) = fromOptCycles $ optShowCycles v $* optShowCycles e
 
 t3 :: String -> Algorithm Tetra3
 t3 = read

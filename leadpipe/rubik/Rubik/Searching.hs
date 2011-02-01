@@ -3,7 +3,7 @@
 -- | Functions for finding algorithms that satisfy some given conditions.
 module Rubik.Searching where
 
-import Rubik.Algebra
+import Rubik.Group
 import Rubik.Puzzle
 
 import Control.Monad

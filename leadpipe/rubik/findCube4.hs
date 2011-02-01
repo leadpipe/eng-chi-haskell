@@ -2,12 +2,14 @@
 
 module Main where
 
-import Rubik.Algebra
 import Rubik.Cube
 import Rubik.Cube4
 import Rubik.Cycles
+import Rubik.Group
 import Rubik.Puzzle
 import Rubik.Searching
+import Rubik.Twists
+import Rubik.Wreath (numIndicesMoved)
 
 import Control.Monad.Random
 import Control.Parallel.Strategies
@@ -60,16 +62,6 @@ whatWe'reLookingFor a = numEdges > 0 && numEdges < 4 && length mvs > 4 && hasInn
         mvs = moves a
         hasInnerTwist = any (\(FT4 _ b _) -> not b) mvs
         facePiecesStay = True -- TODO
-
-
--- | Tells whether the given algorithm moves edge pieces only on the top (U)
--- face.  It ignores what the algorithm does to vertices and face pieces.
-movesTopEdges :: Algorithm Cube4 -> Bool
-movesTopEdges a = leavesUnmoved e nonTopEdgePieceIndices
-  where Cube4 (_, e, _) = result a
-
-nonTopEdgePieceIndices :: [Int]
-nonTopEdgePieceIndices = sort [fromEnum ep | ep <- [minBound..], U `notElem` edgePieceFaces ep]
 
 
 -- | Generates a random move, sometimes using the given algorithm to close out
