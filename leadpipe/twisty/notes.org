@@ -1,13 +1,15 @@
 * To do
 ** DONE Make findCube4 able to run in parallel
-** Move FaceTwist4 into the Cube module, rename
-** Generalize Rubik move types: index + twist
-** Write Tetra3, findTetra3
-** Reorganize algebra code:
+** DONE Reorganize algebra code:
 *** Separate Group module (Data.Group?)
 *** A bunch of the stuff in Cycles has nothing to do with cycles
 *** Separate Wreath module
     - Also: shouldn't Wreath be parameterized on the bounded enum it's permuting?
+** Try out using arrays in Wreath
+** Rename everything to Twisty
+** Move FaceTwist4 into the Cube module, rename
+** Generalize Rubik move types: index + twist
+** Write Tetra3, findTetra3
 ** Write Dodeca3
 ** Write Dodeca5
 ** Write Octa, Octa3, Octa4?
