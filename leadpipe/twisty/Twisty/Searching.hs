@@ -1,10 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 -- | Functions for finding algorithms that satisfy some given conditions.
-module Rubik.Searching where
+module Twisty.Searching where
 
-import Rubik.Group
-import Rubik.Puzzle
+import Twisty.Group
+import Twisty.Puzzle
 
 import Control.Monad
 import Control.Monad.Random

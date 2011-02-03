@@ -2,7 +2,7 @@
 
 -- | Defines a type class for polyhedra that ties together its faces, edges, and
 -- vertices.
-module Rubik.Polyhedron where
+module Twisty.Polyhedron where
 
 import Data.Array.IArray ((!), Array, Ix, array, listArray)
 import Data.Bits ((.|.), bit, shiftL)
@@ -14,8 +14,8 @@ import qualified Data.Map as Map
 import Data.Maybe (fromJust, maybeToList)
 
 
--- | A class for the faces of polyhedra used as the bases for Rubik-style
--- puzzles; contains associated types for the edges and verrtices.
+-- | A class for the faces of polyhedra used as the bases for twisty puzzles;
+-- contains associated types for the edges and verrtices.
 class (Enum f, Bounded f, Ix f,
        Enum (PolyEdge f), Bounded (PolyEdge f),
        Enum (PolyVertex f), Bounded (PolyVertex f))

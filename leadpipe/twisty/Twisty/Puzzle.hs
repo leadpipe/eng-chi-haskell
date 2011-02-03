@@ -2,9 +2,9 @@
 
 -- | Defines types representing Rubik-style puzzles and algorithms for
 -- manipulating them.
-module Rubik.Puzzle where
+module Twisty.Puzzle where
 
-import Rubik.Group
+import Twisty.Group
 
 import Data.List (foldl')
 import Data.Maybe (listToMaybe)

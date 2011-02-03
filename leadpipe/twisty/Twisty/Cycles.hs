@@ -1,9 +1,9 @@
 {-# LANGUAGE FlexibleContexts, ScopedTypeVariables #-}
-module Rubik.Cycles where
+module Twisty.Cycles where
 
-import Rubik.Group
-import Rubik.Lists
-import Rubik.Wreath
+import Twisty.Group
+import Twisty.Lists
+import Twisty.Wreath
 
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)

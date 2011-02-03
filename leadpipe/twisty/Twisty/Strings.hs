@@ -1,5 +1,5 @@
 -- | String utilities.
-module Rubik.Strings where
+module Twisty.Strings where
 
 import Data.Monoid (Endo(..))
 

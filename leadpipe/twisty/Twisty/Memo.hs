@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 -- | Building on Data.MemoCombinators.
-module Rubik.Memo (
+module Twisty.Memo (
   module Data.MemoCombinators
   , array
   ) where

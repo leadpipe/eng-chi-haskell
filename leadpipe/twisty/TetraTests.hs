@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-import Rubik.Polyhedron
-import Rubik.Tetra
+import Twisty.Polyhedron
+import Twisty.Tetra
 import Testing
 
 import Test.Framework

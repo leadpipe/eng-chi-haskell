@@ -2,14 +2,14 @@
 
 module Main where
 
-import Rubik.Cube
-import Rubik.Cube4
-import Rubik.Cycles
-import Rubik.Group
-import Rubik.Puzzle
-import Rubik.Searching
-import Rubik.Twists
-import Rubik.Wreath (numIndicesMoved)
+import Twisty.Cube
+import Twisty.Cube4
+import Twisty.Cycles
+import Twisty.Group
+import Twisty.Puzzle
+import Twisty.Searching
+import Twisty.Twists
+import Twisty.Wreath (numIndicesMoved)
 
 import Control.Monad.Random
 import Control.Parallel.Strategies

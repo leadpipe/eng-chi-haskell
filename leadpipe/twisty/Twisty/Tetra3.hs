@@ -1,13 +1,13 @@
 {-# LANGUAGE TypeFamilies #-}
 -- | Defines the 3x3 tetrahedron puzzle.
-module Rubik.Tetra3 where
+module Twisty.Tetra3 where
 
-import Rubik.Cycles
-import Rubik.Group
-import Rubik.Polyhedron
-import Rubik.Puzzle
-import Rubik.Tetra
-import Rubik.Wreath
+import Twisty.Cycles
+import Twisty.Group
+import Twisty.Polyhedron
+import Twisty.Puzzle
+import Twisty.Tetra
+import Twisty.Wreath
 
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)

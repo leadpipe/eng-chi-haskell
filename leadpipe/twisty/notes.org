@@ -8,7 +8,7 @@
 ** Try out using arrays in Wreath
 ** Rename everything to Twisty
 ** Move FaceTwist4 into the Cube module, rename
-** Generalize Rubik move types: index + twist
+** Generalize Twisty move types: index + twist
 ** Write Tetra3, findTetra3
 ** Write Dodeca3
 ** Write Dodeca5

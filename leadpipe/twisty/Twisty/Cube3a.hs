@@ -1,15 +1,15 @@
 {-# LANGUAGE TypeFamilies #-}
 -- | Defines the "ad-supported" 3x3 cube puzzle with faces that have a
 -- right way up.
-module Rubik.Cube3a where
+module Twisty.Cube3a where
 
-import Rubik.Cycles
-import Rubik.Cube
-import Rubik.Cube3
-import Rubik.Group
-import Rubik.Puzzle
-import Rubik.Twists
-import Rubik.Wreath
+import Twisty.Cycles
+import Twisty.Cube
+import Twisty.Cube3
+import Twisty.Group
+import Twisty.Puzzle
+import Twisty.Twists
+import Twisty.Wreath
 
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)

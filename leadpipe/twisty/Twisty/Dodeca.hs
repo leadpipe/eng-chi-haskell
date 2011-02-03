@@ -1,15 +1,15 @@
 {-# LANGUAGE TypeFamilies, TypeSynonymInstances #-}
 
 -- | Describes a dodecahedron in terms of faces, edges, and vertices.
-module Rubik.Dodeca where
+module Twisty.Dodeca where
 
-import Rubik.Cycles
-import Rubik.Group
-import Rubik.Lists
-import qualified Rubik.Memo as Memo
-import Rubik.Polyhedron
-import Rubik.Twists
-import Rubik.Wreath
+import Twisty.Cycles
+import Twisty.Group
+import Twisty.Lists
+import qualified Twisty.Memo as Memo
+import Twisty.Polyhedron
+import Twisty.Twists
+import Twisty.Wreath
 
 import Data.Array.IArray (Ix, (!), Array, listArray)
 import Data.List (transpose)

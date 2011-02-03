@@ -2,8 +2,8 @@
 
 -- | Defines some simple additive group types corresponding to Z1 through Z6
 -- (the natural numbers mod 1 through 6).  These can be used to model the twists
--- that the individual pieces of a Rubik-style puzzle undergo.
-module Rubik.Twists
+-- that the individual pieces of a twisty puzzle undergo.
+module Twisty.Twists
        ( Twistless
        , Flip
        , Twist3
@@ -13,7 +13,7 @@ module Rubik.Twists
        )
 where
 
-import Rubik.Nat
+import Twisty.Nat
 
 
 data Tw1

@@ -3,9 +3,9 @@
 -- | Defines the Nat class, which lets us identify a type with a natural number,
 -- which in turn makes it possible to have a type corresponding to the integers
 -- mod that number.
-module Rubik.Nat where
+module Twisty.Nat where
 
-import Rubik.Group
+import Twisty.Group
 
 import Data.Ix (Ix(..))
 import Data.Monoid (Monoid, mappend, mempty)

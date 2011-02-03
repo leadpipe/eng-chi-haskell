@@ -1,13 +1,13 @@
 {-# LANGUAGE TypeFamilies #-}
 -- | Defines the basic 3x3 cube puzzle.
-module Rubik.Cube3 where
+module Twisty.Cube3 where
 
-import Rubik.Cycles
-import Rubik.Cube
-import Rubik.Group
-import Rubik.Polyhedron
-import Rubik.Puzzle
-import Rubik.Wreath
+import Twisty.Cycles
+import Twisty.Cube
+import Twisty.Group
+import Twisty.Polyhedron
+import Twisty.Puzzle
+import Twisty.Wreath
 
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)

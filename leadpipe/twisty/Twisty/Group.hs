@@ -1,7 +1,7 @@
 -- | Defines the 'Group' class as an extension of the standard 'Monoid' class.
 -- Extends several of the standard Monoid instances to be Groups.  Defines some
 -- synonyms and operators to make it easier to work with monoids and groups.
-module Rubik.Group where
+module Twisty.Group where
 
 import Data.Monoid (Monoid, mappend, mempty, Dual(..), Sum(..))
 

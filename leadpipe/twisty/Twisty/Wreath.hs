@@ -4,7 +4,7 @@
 -- with a way to twist each enum element as it's permuted.  This embodies the
 -- group theoretic notion of "wreath product."
 
-module Rubik.Wreath
+module Twisty.Wreath
        ( Wreath
        , WreathEntry(..)
        , WreathPermutable
@@ -18,9 +18,9 @@ module Rubik.Wreath
        )
 where
 
-import Rubik.Group
-import Rubik.Lists
-import Rubik.Strings
+import Twisty.Group
+import Twisty.Lists
+import Twisty.Strings
 
 import Data.Array ((//), array, elems)
 import Data.Ix (Ix)

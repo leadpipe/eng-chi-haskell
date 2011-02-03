@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-import Rubik.Cube
-import Rubik.Polyhedron
+import Twisty.Cube
+import Twisty.Polyhedron
 import Testing
 
 import Test.Framework
