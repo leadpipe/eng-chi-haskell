@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts, ScopedTypeVariables, TypeFamilies #-}
 
--- | Defines types representing Rubik-style puzzles and algorithms for
--- manipulating them.
+-- | Defines types representing twisty puzzles and algorithms for manipulating
+-- them.
 module Twisty.Puzzle where
 
 import Twisty.Group
@@ -14,7 +14,7 @@ import Text.ParserCombinators.ReadPrec (lift)
 import Text.Read hiding ((<++))
 
 
--- | A class for the moves that can be performed on a Rubik-style puzzle.
+-- | A class for the moves that can be performed on a twisty puzzle.
 class (Eq m, Read m, Show m) => PuzzleMove m where
   undoMove :: m -> m
   -- ^ The move that undoes the given move.  This means that @joinMoves m
@@ -35,7 +35,7 @@ class (Eq m, Read m, Show m) => PuzzleMove m where
   -- ^ Tells whether the given move is trivial, ie, is equivalent to not moving.
 
 
--- | A class for Rubik-style puzzle states.
+-- | A class for twisty puzzle states.
 class (Group p, Show p, PuzzleMove (Move p)) => Puzzle p where
 
   type Move p

@@ -19,9 +19,9 @@ import qualified Data.Set as Set
 -- and I/O in the callbacks.
 --
 -- Typically the trees in question will be successive algorithms through a
--- Rubik-style puzzle.  We've generalized the types to allow for additional
--- state to be included with the algorithms, for efficiency's sake: this extra
--- state can be maintained incrementally rather than recalculated for each node.
+-- twisty puzzle.  We've generalized the types to allow for additional state to
+-- be included with the algorithms, for efficiency's sake: this extra state can
+-- be maintained incrementally rather than recalculated for each node.
 searchTree :: (Monad m) => (a -> Bool -> m [a]) -> (a -> m Bool) -> m a -> m [a]
 searchTree calcChildren satisfies root = root >>= st
   where st node = do
@@ -35,8 +35,8 @@ searchTree calcChildren satisfies root = root >>= st
 concatM :: (Monad m) => [m [a]] -> m [a]
 concatM = liftM concat . sequence
 
--- | For nodes that encapsulate Rubik-style algorithms, produces a list of
--- successor algorithms given a way to generate moves.
+-- | For nodes that encapsulate twisty algorithms, produces a list of successor
+-- algorithms given a way to generate moves.
 generateChildren :: (Monad m, Puzzle p, Ord (Move p)) =>
                     (a -> Algorithm p) -> (a -> m (Move p)) -> Int -> a -> m [Algorithm p]
 generateChildren getAlg genMove count node = collect 0 Set.empty []
