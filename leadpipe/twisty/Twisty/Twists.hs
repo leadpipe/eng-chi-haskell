@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
-{-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances, EmptyDataDecls #-}
+{-# LANGUAGE EmptyDataDecls #-}
 
 -- | Defines some simple additive group types corresponding to Z1 through Z6
 -- (the natural numbers mod 1 through 6).  These can be used to model the twists
@@ -29,31 +29,38 @@ module Twisty.Twists
        )
 where
 
-import Twisty.Nat
+import Twisty.Zn
 
 
 data Tw1
 instance Nat Tw1 where
-  value _ = 1
+  toInt _ = 1
+instance NatShow Tw1 where
   showsInt _ _ = id
+instance NatRead Tw1 where
+  readsInt _ s = [(0, s)]
 
 data Tw2
 instance Nat Tw2 where
-  value _ = 2
+  toInt _ = 2
+instance NatShow Tw2 where
   showsInt _ = showTwist
     where showTwist 0 = id
           showTwist 1 = showChar '+'
+instance NatRead Tw2 where
   readsInt _ = readTwist
     where readTwist ('+':s) = [(1, s)]
           readTwist s = [(0, s)]
 
 data Tw3
 instance Nat Tw3 where
-  value _ = 3
+  toInt _ = 3
+instance NatShow Tw3 where
   showsInt _ = showTwist
     where showTwist 0 = id
           showTwist 1 = showChar '+'
           showTwist 2 = showChar '-'
+instance NatRead Tw3 where
   readsInt _ = readTwist
     where readTwist ('+':s) = [(1, s)]
           readTwist ('-':s) = [(2, s)]
@@ -61,12 +68,14 @@ instance Nat Tw3 where
 
 data Tw4
 instance Nat Tw4 where
-  value _ = 4
+  toInt _ = 4
+instance NatShow Tw4 where
   showsInt _ = showTwist
     where showTwist 0 = id
           showTwist 1 = showChar '+'
           showTwist 2 = showChar '='
           showTwist 3 = showChar '-'
+instance NatRead Tw4 where
   readsInt _ = readTwist
     where readTwist ('+':s) = [(1, s)]
           readTwist ('=':s) = [(2, s)]
@@ -75,13 +84,15 @@ instance Nat Tw4 where
 
 data Tw5
 instance Nat Tw5 where
-  value _ = 5
+  toInt _ = 5
+instance NatShow Tw5 where
   showsInt _ = showTwist
     where showTwist 0 = id
           showTwist 1 = showChar '+'
           showTwist 2 = showString "++"
           showTwist 3 = showString "--"
           showTwist 4 = showChar '-'
+instance NatRead Tw5 where
   readsInt _ = readTwist
     where readTwist ('+':'+':s) = [(2, s)]
           readTwist ('+':s) = [(1, s)]
@@ -91,7 +102,8 @@ instance Nat Tw5 where
 
 data Tw6
 instance Nat Tw6 where
-  value _ = 6
+  toInt _ = 6
+instance NatShow Tw6 where
   showsInt _ = showTwist
     where showTwist 0 = id
           showTwist 1 = showChar '+'
@@ -99,6 +111,7 @@ instance Nat Tw6 where
           showTwist 3 = showChar '='
           showTwist 4 = showString "--"
           showTwist 5 = showChar '-'
+instance NatRead Tw6 where
   readsInt _ = readTwist
     where readTwist ('+':'+':s) = [(2, s)]
           readTwist ('+':s) = [(1, s)]
