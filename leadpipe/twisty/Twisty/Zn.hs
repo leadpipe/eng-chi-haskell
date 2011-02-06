@@ -51,8 +51,6 @@ class NatShow n where
   showsInt :: Integral i => n -> i -> ShowS
   showsInt _ = shows
 
-instance Nat n => NatShow n
-
 -- | Type class for parsing natural numbers.
 class NatRead n where
   -- | Reads an int in a way appropriate for the type.  Non-strict in the first
@@ -60,14 +58,12 @@ class NatRead n where
   readsInt :: (Integral i, Read i) => n -> ReadS i
   readsInt _ = reads
 
-instance Nat n => NatRead n
-
 
 -- | The natural numbers mod n.  The type parameter must be an instance of Nat:
 -- that is, it must have a natural number n associated with the type.
 newtype Zn n = Zn Int deriving (Eq, Ord)
 
-instance Nat n => Num (Zn n) where
+instance (Nat n, NatShow n) => Num (Zn n) where
   Zn x + Zn y = Zn $ (x+y) `mod` toInt (undefined :: n)
   negate (Zn 0) = 0
   negate (Zn x) = Zn $ toInt (undefined :: n) - x
@@ -86,40 +82,41 @@ instance NatRead n => Read (Zn n) where
   readsPrec _ s = map f $ readsInt (undefined::n) s
     where f (x, s) = (Zn x, s)
 
-instance Nat n => Real (Zn n) where
+instance (Nat n, NatShow n) => Real (Zn n) where
   toRational (Zn n) = toRational n
 
-instance Nat n => Integral (Zn n) where
+instance (Nat n, NatShow n) => Integral (Zn n) where
   (Zn n1) `quotRem` (Zn n2) = (Zn q, Zn r)
     where (q, r) = n1 `quotRem` n2
   toInteger (Zn n) = toInteger n
 
-instance Nat n => Enum (Zn n) where
+instance (Nat n, NatShow n) => Enum (Zn n) where
   toEnum i = Zn $ i `mod` toInt (undefined::n)
   fromEnum (Zn n) = n
   enumFrom = boundedEnumFrom
   enumFromThen = boundedEnumFromThen
 
-instance Nat n => Bounded (Zn n) where
+instance (Nat n, NatShow n) => Bounded (Zn n) where
   minBound = 0
   maxBound = Zn $ toInt (undefined::n) - 1
 
-instance Nat n => Ix (Zn n) where
+instance (Nat n, NatShow n) => Ix (Zn n) where
   range (l, u) = [l..u]
   index (l, u) e = fromEnum e - fromEnum l
   inRange (l, u) e = e >= l && e <= u
 
-instance Nat n => Monoid (Zn n) where
+instance (Nat n, NatShow n) => Monoid (Zn n) where
   mempty = 0
   mappend = (+)
 
-instance Nat n => Group (Zn n) where
+instance (Nat n, NatShow n) => Group (Zn n) where
   ginvert = negate
 
 
 -- A simple Zn type (ie integers mod n) can be had like this:
 --   data T33
 --   instance Nat T33 where toInt _ = 33
+--   instance NatShow T33
 --   type Z33 = Zn T33
 --
 -- Then a value of type Z33 will be printed as an integer in the range 0..32;
