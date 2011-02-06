@@ -1,14 +1,9 @@
 * To do
-** DONE Make findCube4 able to run in parallel
-** DONE Reorganize algebra code:
-*** Separate Group module (Data.Group?)
-*** A bunch of the stuff in Cycles has nothing to do with cycles
-*** Separate Wreath module
-    - Also: shouldn't Wreath be parameterized on the bounded enum it's permuting?
 ** Try out using arrays in Wreath
-** Rename everything to Twisty
+** DONE Rename everything to Twisty
 ** Move FaceTwist4 into the Cube module, rename
 ** Generalize Twisty move types: index + twist
+** Come up with Alg transforms for Cube
 ** Write Tetra3, findTetra3
 ** Write Dodeca3
 ** Write Dodeca5
@@ -21,8 +16,6 @@
 
 * Required cabal modules
 ** data-memocombinators
-   - This is a simple module that doesn't currently work on 7.0; we'll see if we
-     keep it.
 ** test-framework-th
 ** test-framework-quickcheck2
 ** parallel (current version)
