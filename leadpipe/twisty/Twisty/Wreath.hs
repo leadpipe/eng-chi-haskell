@@ -38,11 +38,12 @@ import Twisty.Group
 import Twisty.Lists
 import Twisty.Strings
 
-import Data.Array ((//), array, elems)
+import Data.Array
 import Data.Ix (Ix)
-import Data.List (elemIndex, sort)
+import Data.List (foldl')
 import qualified Data.Map as Map
 import Data.Monoid (Monoid, mappend, mempty)
+import qualified Data.Set as Set
 
 
 -- | A class for types that can be permuted in a 'Wreath'.  Such types must be
@@ -57,10 +58,7 @@ class (Enum a, Bounded a, Ix a, Eq a, Ord a,
 -- and some other subgroup, which we designate the "twist" group.  For example,
 -- the corner pieces of a Rubik's cube are permuted by each move, but they are
 -- also twisted.
---
--- This implementation was inspired by the Polyonimo permutation code:
---   http://www.polyomino.f2s.com/david/haskell/hs/PermutationGroups.hs.txt
-newtype (WreathPermutable a) => Wreath a = Wreath [Entry a]
+newtype (WreathPermutable a) => Wreath a = Wreath (Array a (Entry a)) deriving (Eq, Ord)
 
 -- | A WreathEntry combines the target value and the twist for the source value.
 newtype (WreathPermutable a) => WreathEntry a = Entry (a, WreathTwist a)
@@ -77,89 +75,88 @@ instance (WreathPermutable a, Show a, Show (WreathTwist a)) => Show (WreathEntry
 
 -- | Look up the entry for a value within a wreath.
 getEntry :: (WreathPermutable a) => Wreath a -> a -> Entry a
-getEntry (Wreath es) a = es `lookup` toIndex a
-  where lookup (e:es) 0 = e
-        lookup (e:es) i = lookup es (i-1)
-        lookup [] _ = Entry (a, one) -- If the index isn't there, it's not moved
+getEntry (Wreath arr) a = if inRange (bounds arr) a then arr!a else Entry (a, one)
 
 -- | Chain an entry through a wreath.
 chainEntry :: (WreathPermutable a) => Wreath a -> Entry a -> Entry a
 chainEntry w (Entry (a, t)) = let (Entry (a', t')) = getEntry w a in Entry (a', (t $* t'))
 
--- | Converts a bounded enum value into the list index within the wreath.
-toIndex :: forall a. (Enum a, Bounded a) => a -> Int
-toIndex a = fromEnum a - fromEnum (minBound::a)
+-- | The array we use for empty wreaths.
+emptyWreathArray :: (WreathPermutable a) => Array a (Entry a)
+emptyWreathArray = listArray (maxBound, pred maxBound) []
 
--- | Converts a wreath index into the corresponding bounded enum value.
-fromIndex :: forall a. (Enum a, Bounded a) => Int -> a
-fromIndex i = toEnum (i + fromEnum (minBound::a))
-
--- | Wreaths are also Groups.
+-- | Wreaths are Monoids: the identity is the identity permutation, and the
+-- append operation is composition of permutations.
 instance (WreathPermutable a) => Monoid (Wreath a) where
-  mempty = Wreath []
-  mappend (Wreath es1) w2@(Wreath es2) = Wreath (map (chainEntry w2) es)
-    where es = es1 ++ [Entry (fromIndex i, one) | i <- [length es1..length es2 - 1]]
+  mempty = Wreath emptyWreathArray
+  mappend w1@(Wreath arr1) w2@(Wreath arr2) = Wreath (trim comp)
+    where comp = listArray nb [chainEntry w2 (getEntry w1 a) | a <- [fst nb..snd nb]]
+          nb = (union (bounds arr1) (bounds arr2))
+          union (b11, b12) (b21, b22) = (min b11 b21, max b12 b22)
 
+-- | Trims the bounds of an array of entries so it consists only of those
+-- elements that are either moved or twisted.
+trim :: (WreathPermutable a) => Array a (Entry a) -> Array a (Entry a)
+trim = trimDown . trimUp
+  where trimUp arr = subarray arr (minMoved arr, snd (bounds arr))
+        trimDown arr = subarray arr (fst (bounds arr), maxMoved arr)
+        subarray arr nb@(n1, n2) = if nb == bounds arr then arr
+                                   else if n1 > n2 then emptyWreathArray
+                                        else listArray nb [arr!a | a <- [n1..n2]]
+        -- minMoved returns the upper bound if nothing below it moves.
+        minMoved arr = let (b1, b2) = bounds arr in mm b1 b2
+          where mm b1 b2 = if b1 >= b2 || arr `moves` b1 then b1
+                           else mm (succ b1) b2
+        -- maxMoved returns the pred of the lower bound if nothing above the
+        -- lower bound moves and the lower bound doesn't move either.
+        maxMoved arr = let (b1, b2) = bounds arr in mm b1 b2
+          where mm b1 b2 = if b2 < b1 || arr `moves` b2 then b2
+                           else mm b1 (pred b2)
+        moves arr a = arr!a /= Entry (a, one)
+
+-- | Wreaths are Groups: the inverse is the inverse permutation with all the
+-- twists also inverted.
 instance (WreathPermutable a) => Group (Wreath a) where
-  ginvert (Wreath es) = Wreath (map inv (sort (zip es [0..])))
-    where inv (Entry (_,t), i) = Entry (fromIndex i, (ginvert t))
-
-instance (WreathPermutable a) => Eq (Wreath a) where
-  Wreath es1 == Wreath es2 = eqw 0 es1 es2
-    where eqw i (e1:es1) (e2:es2) = e1 == e2 && eqw (i+1) es1 es2
-          eqw _ [] [] = True
-          eqw i (e:es) [] = e == Entry (fromIndex i, one) && eqw (i+1) es []
-          eqw i [] (e:es) = e == Entry (fromIndex i, one) && eqw (i+1) [] es
-
-instance (WreathPermutable a) => Ord (Wreath a) where
-  compare w1@(Wreath es1) w2@(Wreath es2) = if w1 == w2 then EQ else compare es1 es2
+  ginvert (Wreath arr) = Wreath (if Map.null invMap then emptyWreathArray else trim inv)
+    where invMap = Map.fromList [(tgt, Entry (src, ginvert t)) | (src, Entry (tgt, t)) <- assocs arr]
+          inv = listArray (b1, b2) [Map.findWithDefault (Entry (a, one)) a invMap | a <- [b1..b2]]
+          (b1, _) = Map.findMin invMap
+          (b2, _) = Map.findMax invMap
 
 instance (WreathPermutable a, Show a, Show (WreathTwist a)) => Show (Wreath a) where
     showsPrec _ = fromOptCycles . optShowCycles
 
 
-getIndex (Entry (a, _)) = toIndex a
-
 -- | Counts the number of indices that are moved by the given wreath.  Ignores
 -- the twists: an index that is twisted in place does not add to the count.
 numIndicesMoved :: (WreathPermutable a) => Wreath a -> Int
-numIndicesMoved (Wreath list) = f list 0 0
-  where f [] _ count = count
-        f (e:es) i count = f es (i+1) (if i == getIndex e then count else count+1)
-
-toCycles' :: forall a. (WreathPermutable a) => Wreath a -> [[Entry a]]
-toCycles' (Wreath []) = []
-toCycles' (Wreath list) =
-    let mappings :: Map.Map Int (Entry a)
-        mappings = Map.fromDistinctAscList (zip [0..] list)
-    in findCycles ([], 0, [], mappings)
-    where
-      findCycles (cs, i, c, mappings) =
-          if Map.null mappings
-          then reverse (map invert (c:cs))
-          else
-              case Map.lookup i mappings of
-                Nothing ->
-                    let (j, e) = Map.findMin mappings
-                    in findCycles (c:cs, getIndex e, [e], Map.delete j mappings)
-                Just e -> findCycles (cs, getIndex e, e:c, Map.delete i mappings)
-      invert (e:es) = e:(reverse es)
-
+numIndicesMoved (Wreath arr) = foldl' f 0 (assocs arr)
+  where f count (src, Entry (tgt, _))
+          | src == tgt = count
+          | otherwise  = succ count
 
 -- | Converts a wreath into disjoint cycles.
-toCycles :: (WreathPermutable a) => Wreath a -> [[Entry a]]
-toCycles w = filter (not . isUnmoved) (toCycles' w)
-    where isUnmoved [(Entry (_, t))] = t == one
-          isUnmoved [] = True
-          isUnmoved _ = False
+toCycles :: forall a. (WreathPermutable a) => Wreath a -> [[Entry a]]
+toCycles (Wreath arr) =
+  let (cs, _) = foldl' findCycle ([], Set.empty) (range (bounds arr)) in reverse cs
+  where findCycle (cs, seen) src =
+          if src `Set.member` seen then (cs, seen)
+          else let e@(Entry (tgt, t)) = arr ! src
+               in if tgt == src && t == one then (cs, seen)
+                  else let (c, srce, seen') = cycle src e seen in ((srce:c):cs, seen')
+        cycle hd e@(Entry (a, t)) seen =
+          if a == hd then ([], e, seen)
+          else let (c, srce, seen') = cycle hd (arr!a) (Set.insert a seen)
+               in (e:c, srce, seen')
 
 
 -- | Converts a list of cycles into a wreath.
 fromCycles :: (WreathPermutable a) => [[Entry a]] -> Wreath a
-fromCycles cs = Wreath (elems (array (0, n) [(i, Entry (fromIndex i, one)) | i <- [0..n]] //
-                               (concatMap fromCycle cs)))
-    where n = maximum (map getIndex (concat cs))
-          fromCycle es = zip (map getIndex es) (rotate 1 es)
+fromCycles cs = Wreath (trim arr)
+  where arr = base // concatMap fromCycle cs
+        base = array (minBound, maxBound) [(a, Entry (a, one)) | a <- [minBound..maxBound]]
+        fromCycle es = zip (map getItem es) (rotate 1 es)
+        getItem (Entry (a, _)) = a
 
 
 -- | Optionally shows a wreath as its disjoint cycles; an empty wreath returns
@@ -167,7 +164,6 @@ fromCycles cs = Wreath (elems (array (0, n) [(i, Entry (fromIndex i, one)) | i <
 optShowCycles :: (WreathPermutable a, Show a, Show (WreathTwist a)) => Wreath a -> OptS
 optShowCycles w = showCycles' (toCycles w)
   where showCycles' [] = Nothing
-        showCycles' [[]] = Nothing
         showCycles' [c] = toOptS $ showParen True (showEntries c)
         showCycles' (c:cs) = showCycles' [c] $* showCycles' cs
         showEntries [e] = shows e
