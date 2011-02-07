@@ -39,7 +39,7 @@ type CumulativeTwists = Map (Face, Bool) Twist4
 type Node = (Algorithm Cube4, CumulativeTwists)
 
 main = do
-  let roots = cycle $ map (makeRoot . read) ["f+", "F+", "f=", "F="]
+  let roots = {-cycle $-} map (makeRoot . read) ["f+", "F+", "f=", "F="]
   let search = searchTree calcChildren (return . whatWe'reLookingFor . fst)
   gens <- stdGenList
   let nodes = concat (zipWith (evalRand . search) roots gens `using` parBuffer 3 rseq)
@@ -47,7 +47,8 @@ main = do
 
 stdGenList :: IO [StdGen]
 stdGenList = do
-  gen <- newStdGen
+  --gen <- newStdGen
+  let gen = mkStdGen 0
   return $ splits gen
     where splits gen = let (g1, g2) = split gen in g1 : splits g2
 
