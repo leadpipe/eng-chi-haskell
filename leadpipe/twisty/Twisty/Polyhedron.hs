@@ -193,7 +193,7 @@ makeFaceBitsetMap xxFaces =
 -- | A helper to implement the toEnum methods of edge and vertex types.
 toBoundedEnum :: forall a. (Bounded a, Enum a) => (Int -> a) -> Int -> a
 toBoundedEnum ctor i = if i < fromEnum (minBound::a) || i > fromEnum (maxBound::a)
-                       then undefined
+                       then error "Enum out of bounds"
                        else ctor i
 
 -- | A helper to implement allVerticesAsFaces for polyhedra with 3 faces per
