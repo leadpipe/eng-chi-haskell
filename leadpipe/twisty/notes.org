@@ -23,7 +23,7 @@
 * Building and running
 
 # building for profiling
-ghc -prof -auto-all --make findCube4
+ghc -prof -auto-all --make -O2 findCube4
 
 # running with the profiler
 ./findCube4 +RTS -p
