@@ -14,7 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
-{-# LANGUAGE FlexibleContexts, ScopedTypeVariables, StandaloneDeriving, TypeFamilies, UndecidableInstances #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Defines the 'Wreath' type, which combines a permutation of a bounded enum
 -- with a way to twist each enum element as it's permuted.  This embodies the
@@ -85,7 +90,7 @@ getEntry (Wreath arr) a = if inRange (bounds arr) a then arr!a else Entry (a, on
 
 -- | Chain an entry through a wreath.
 chainEntry :: (WreathPermutable a) => Wreath a -> Entry a -> Entry a
-chainEntry w (Entry (a, t)) = let (Entry (a', t')) = getEntry w a in Entry (a', (t $* t'))
+chainEntry w !(Entry (a, t)) = let !(Entry (a', t')) = getEntry w a in Entry (a', (t $* t'))
 
 -- | The array we use for empty wreaths.
 emptyWreathArray :: (WreathPermutable a) => Array a (Entry a)
