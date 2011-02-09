@@ -58,7 +58,13 @@ class (Enum a, Bounded a, Ix a, Eq a, Ord a,
 -- and some other subgroup, which we designate the "twist" group.  For example,
 -- the corner pieces of a Rubik's cube are permuted by each move, but they are
 -- also twisted.
-newtype (WreathPermutable a) => Wreath a = Wreath (Array a (Entry a)) deriving (Eq, Ord)
+newtype (WreathPermutable a) => Wreath a = Wreath (Array a (Entry a))
+
+instance (WreathPermutable a) => Eq (Wreath a) where
+  Wreath arr1 == Wreath arr2 = trim arr1 == trim arr2
+
+instance (WreathPermutable a) => Ord (Wreath a) where
+  Wreath arr1 `compare` Wreath arr2 = trim arr1 `compare` trim arr2
 
 -- | A WreathEntry combines the target value and the twist for the source value.
 newtype (WreathPermutable a) => WreathEntry a = Entry (a, WreathTwist a)
@@ -89,7 +95,7 @@ emptyWreathArray = listArray (maxBound, pred maxBound) []
 -- append operation is composition of permutations.
 instance (WreathPermutable a) => Monoid (Wreath a) where
   mempty = Wreath emptyWreathArray
-  mappend w1@(Wreath arr1) w2@(Wreath arr2) = Wreath (trim comp)
+  mappend w1@(Wreath arr1) w2@(Wreath arr2) = Wreath comp
     where comp = listArray nb [chainEntry w2 (getEntry w1 a) | a <- [fst nb..snd nb]]
           nb = (union (bounds arr1) (bounds arr2))
           union (b11, b12) (b21, b22) = (min b11 b21, max b12 b22)
