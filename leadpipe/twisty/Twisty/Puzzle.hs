@@ -18,7 +18,15 @@ limitations under the License.
 
 -- | Defines types representing twisty puzzles and algorithms for manipulating
 -- them.
-module Twisty.Puzzle where
+module Twisty.Puzzle
+       ( Puzzle(..)
+       , PuzzleMove(..)
+       , Algorithm(..)
+       , isNontrivial
+       , lastMove
+       , applyMove
+       )
+where
 
 import Twisty.Group
 
