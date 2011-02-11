@@ -71,6 +71,6 @@ generateChildren getAlg genMove count node = collect 0 Set.empty []
 generateChildrenToLength :: (Monad m, Puzzle p, Ord (Move p)) =>
                             Int -> (a -> Algorithm p) -> (a -> m (Move p)) -> Int -> a -> m [Algorithm p]
 generateChildrenToLength len getAlg genMove count node =
-  if (length . moves . getAlg) node >= len
+  if (moveCount . getAlg) node >= len
   then return []
   else generateChildren getAlg genMove count node

@@ -21,7 +21,10 @@ limitations under the License.
 module Twisty.Puzzle
        ( Puzzle(..)
        , PuzzleMove(..)
-       , Algorithm(..)
+       , Algorithm
+       , result
+       , moves
+       , moveCount
        , isNontrivial
        , lastMove
        , applyMove
@@ -70,36 +73,46 @@ class (Group p, Show p, PuzzleMove (Move p)) => Puzzle p where
   -- ^ Converts the given move to the associated puzzle state.
 
 
--- | An Algorithm combines a list of moves with the resulting puzzle state.  The
--- list is reversed: new moves go on the head.
-data (Puzzle p) => Algorithm p = Algorithm
-                                 { moves :: [Move p]
-                                 , result :: p
-                                 }
+-- | An Algorithm combines a list of moves with the resulting puzzle state.
+data (Puzzle p) => Algorithm p =
+  Algorithm
+  { rMoves :: [Move p] -- ^ The list of moves, in reverse order (most recent first).
+  , result :: p        -- ^ The resulting puzzle state.
+  }
 
 -- | Is this a non-trivial algorithm?
 isNontrivial :: (Puzzle p) => Algorithm p -> Bool
-isNontrivial = not . null . moves
+isNontrivial = not . null . rMoves
 
 -- | For non-trivial algorithms only, the algorithm's last move.  Because
 -- Algorithm canonicalizes the order of moves, this could be different from the
 -- move you most recently appended.
 lastMove :: (Puzzle p) => Algorithm p -> Move p
-lastMove = head . moves
+lastMove = head . rMoves
 
--- | Equality testing for Algorithms.
+-- | The list of moves that comprises the algorithm.
+moves :: (Puzzle p) => Algorithm p -> [Move p]
+moves = reverse . rMoves
+
+-- | The number of moves in an algorithm.
+moveCount :: (Puzzle p) => Algorithm p -> Int
+moveCount = length . rMoves
+
+-- | Equality testing for Algorithms.  Just comparing the moves works because we
+-- canonicalize their order.
 instance (Puzzle p) => Eq (Algorithm p) where
-  a == b = moves a == moves b
+  a == b = rMoves a == rMoves b
 
 -- | Algorithms are groups.
 instance (Puzzle p) => Monoid (Algorithm p) where
   mempty = Algorithm [] one
   mappend (Algorithm ms1 s1) (Algorithm ms2 s2) = Algorithm ms (s1 $* s2)
-    where ms = foldr prependMove ms2 ms1 -- Note the reversed order
+    where ms = foldr prependMove ms1 ms2
 
 -- | Algorithms are groups.
 instance (Puzzle p) => Group (Algorithm p) where
-  ginvert (Algorithm ms p) = Algorithm (map undoMove . reverse $ ms) (ginvert p)
+  ginvert (Algorithm ms p) = Algorithm ms' (ginvert p)
+    where ms' = foldl' (flip (prependMove . undoMove)) [] ms
 
 -- | Adds a move to an algorithm.
 applyMove :: (Puzzle p) => Algorithm p -> Move p -> Algorithm p
