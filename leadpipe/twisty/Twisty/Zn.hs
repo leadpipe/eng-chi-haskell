@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -27,6 +28,11 @@ module Twisty.Zn
        , Nat(..)
        , NatShow(..)
        , NatRead(..)
+         -- * Some Zn specializations
+       , Z1
+       , Z2
+       , Z3
+       , Z4
        )
 where
 
@@ -78,9 +84,9 @@ instance (Nat n, NatShow n) => Num (Zn n) where
 instance NatShow n => Show (Zn n) where
   showsPrec _ (Zn x) = showsInt (undefined::n) x
 
-instance NatRead n => Read (Zn n) where
+instance (Nat n, NatShow n, NatRead n) => Read (Zn n) where
   readsPrec _ s = map f $ readsInt (undefined::n) s
-    where f (x, s) = (Zn x, s)
+    where f (x, s) = (fromInteger x, s)
 
 instance (Nat n, NatShow n) => Real (Zn n) where
   toRational (Zn n) = toRational n
@@ -113,12 +119,31 @@ instance (Nat n, NatShow n) => Group (Zn n) where
   ginvert = negate
 
 
--- A simple Zn type (ie integers mod n) can be had like this:
---   data T33
---   instance Nat T33 where toInt _ = 33
---   instance NatShow T33
---   type Z33 = Zn T33
---
--- Then a value of type Z33 will be printed as an integer in the range 0..32;
--- adding two of them will produce a new one in the same range, wrapping as
--- needed.
+data T1
+instance Nat T1 where
+  toInt _ = 1
+instance NatShow T1
+instance NatRead T1
+
+data T2
+instance Nat T2 where
+  toInt _ = 2
+instance NatShow T2
+instance NatRead T2
+
+data T3
+instance Nat T3 where
+  toInt _ = 3
+instance NatShow T3
+instance NatRead T3
+
+data T4
+instance Nat T4 where
+  toInt _ = 4
+instance NatShow T4
+instance NatRead T4
+
+type Z1 = Zn T1
+type Z2 = Zn T2
+type Z3 = Zn T3
+type Z4 = Zn T4
