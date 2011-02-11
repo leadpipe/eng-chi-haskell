@@ -48,7 +48,7 @@ main = do
 stdGenList :: IO [StdGen]
 stdGenList = do
   --gen <- newStdGen
-  let gen = mkStdGen 0
+  let gen = mkStdGen 15
   return $ splits gen
     where splits gen = let (g1, g2) = split gen in g1 : splits g2
 
