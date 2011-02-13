@@ -90,6 +90,10 @@ nextNeighbor f n = next ns
         next (f:fs@(f2:_)) = if n == f then f2 else next fs
         next [f] = if n == f then head ns else undefined
 
+-- | Tells whether two faces are neighbors.
+neighbors :: (PolyFace f) => f -> f -> Bool
+neighbors f = flip elem $ neighboringFaces f
+
 -- | The edges of a given face, as length-2 lists of their faces.  The given
 -- face appears first.
 faceEdgesAsFaces :: (PolyFace f) => f -> [[f]]

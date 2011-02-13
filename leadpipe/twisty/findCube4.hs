@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
@@ -22,21 +23,22 @@ import Twisty.Cube
 import Twisty.Cube4
 import Twisty.Cycles
 import Twisty.Group
+import Twisty.FaceTwist
 import Twisty.Puzzle
 import Twisty.Searching
 import Twisty.Twists
 import Twisty.Wreath (numIndicesMoved)
+import Twisty.Zn
 
 import Control.Monad.Random
 import Control.Parallel.Strategies
-import Data.List (sort)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Monoid (Any(..))
 import System.Random
 
 type SearchM a = Rand StdGen a
-type CumulativeTwists = Map (Face, Bool) Twist4
-type Node = (Algorithm Cube4, CumulativeTwists)
+type Node = (Algorithm Cube4, CubeTwists2)
 
 main = do
   let roots = {-cycle $-} map (makeRoot . read) ["f+", "F+", "f=", "F="]
@@ -52,19 +54,8 @@ stdGenList = do
   return $ splits gen
     where splits gen = let (g1, g2) = split gen in g1 : splits g2
 
-makeRoot :: FaceTwist4 -> SearchM Node
+makeRoot :: CubeMove2 -> SearchM Node
 makeRoot mv = return (one `applyMove` mv, emptyTwists `updateTwists` mv)
-
-emptyTwists :: CumulativeTwists
-emptyTwists = Map.empty
-
-updateTwists :: CumulativeTwists -> FaceTwist4 -> CumulativeTwists
-updateTwists ct (FT4 f b t) = Map.alter plus (f, b) ct
-  where plus = toMaybe . (+) t . fromMaybe
-        fromMaybe Nothing = 0
-        fromMaybe (Just t) = t
-        toMaybe 0 = Nothing
-        toMaybe t = Just t
 
 calcChildren :: Node -> Bool -> SearchM [Node]
 calcChildren node _ = do algs <- generateChildrenToLength 20 fst genMove 2 node
@@ -73,34 +64,32 @@ calcChildren node _ = do algs <- generateChildrenToLength 20 fst genMove 2 node
 
 
 whatWe'reLookingFor :: Algorithm Cube4 -> Bool
-whatWe'reLookingFor a = numEdges > 0 && numEdges < 4 && length mvs > 4 && hasInnerTwist && facePiecesStay
+whatWe'reLookingFor a = numEdges > 0 && numEdges < 4 && moveCount a > 4 && getAny hasInnerTwist && facePiecesStay
   where Cube4 (_, e, f) = result a
         numEdges = numIndicesMoved e
-        mvs = moves a
-        hasInnerTwist = any (\(FT4 _ b _) -> not b) mvs
-        facePiecesStay = True -- TODO
+        hasInnerTwist = foldMoves (\(FaceTwist _ _ d) -> Any (d == 1)) a
+        facePiecesStay = True -- TODO: idea is, ensure face pieces don't map to different faces
 
 
 -- | Generates a random move, sometimes using the given algorithm to close out
 -- the cumulative twist for a face.
-genMove :: Node -> SearchM FaceTwist4
+genMove :: Node -> SearchM CubeMove2
 genMove node@(alg, twists) = do
-  let (FT4 lf lb _) = lastMove alg
-  let lastIndex = (lf, lb)
+  let (FaceTwist lf _ ld) = lastMove alg
+  let lastIndex = (lf, ld)
   if Map.null twists || Map.size twists == 1 && Map.member lastIndex twists
     then randomMove
     else do i <- getRandomR (1::Int, 10)
             if i <= 3 then randomMove else do
               let ats = applicableTwists twists lastIndex
               j <- getRandomR (0, length ats - 1)
-              let ((f, b), t) = ats !! j
-              return (FT4 f b (-t))
+              let ((f, d), t) = ats !! j
+              return (FaceTwist f (-t) d)
     where randomMove = do
             f <- getRandomR (fromEnum (minBound::Face), fromEnum (maxBound::Face))
-            b <- getRandomR (1::Int, 5) -- 40% chance of both layers, 60% outer layer only
+            d <- getRandomR (1::Int, 5) -- 40% chance of both layers, 60% outer layer only
             t <- getRandomR (1::Int, 3)
-            return (FT4 (toEnum f) (b > 2) (toEnum t))
+            return (FaceTwist (toEnum f) (toEnum t) (if d > 2 then 0 else 1))
 
-
-applicableTwists :: CumulativeTwists -> (Face, Bool) -> [((Face, Bool), Twist4)]
+applicableTwists :: CubeTwists2 -> (Face, Z2) -> [((Face, Z2), Twist4)]
 applicableTwists twists lastIndex = [a | a@(i, _) <- Map.toList twists, i /= lastIndex]

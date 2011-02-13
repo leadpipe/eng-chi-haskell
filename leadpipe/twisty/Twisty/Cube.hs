@@ -20,13 +20,16 @@ limitations under the License.
 module Twisty.Cube where
 
 import Twisty.Cycles
+import Twisty.FaceTwist
 import Twisty.Group
 import qualified Twisty.Memo as Memo
 import Twisty.Polyhedron
 import Twisty.Puzzle
 import Twisty.Twists
 import Twisty.Wreath
+import Twisty.Zn
 
+import Data.Char (isUpper, toLower, toUpper)
 import Data.Ix (Ix)
 import Data.Maybe (listToMaybe, maybeToList)
 import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
@@ -70,28 +73,68 @@ instance PolyFace Face where
   allVerticesAsFaces = faceNeighborTriples U ++ faceNeighborTriples D
 
 
-data FaceTwist = FaceTwist Face Twist4 deriving (Eq, Ord)
+-- | The generic cube move type.
+type CubeMove depth = FaceTwist Face Twist4 depth
 
-instance PuzzleMove FaceTwist where
-  undoMove (FaceTwist f t) = FaceTwist f (-t)
+-- | Single-layer cube moves: for 2x2, 3x3 cubes.  These show as just the face
+-- and the twist.
+type CubeMove1 = CubeMove Z1
 
-  joinMoves m1@(FaceTwist f1 t1) m2@(FaceTwist f2 t2)
-    | f1 == f2           = let t = t1 + t2 in
-                           if t == 0 then [] else [FaceTwist f1 t]
-    | f1 `isOpposite` f2 = [max m1 m2, min m1 m2]
-    | otherwise          = [m1, m2]
+-- | Double-layer cube moves: for 4x4, 5x5 cubes.  These use upper case for the
+-- face name to indicate moving both layers, and lower case for just the outer
+-- layer.
+type CubeMove2 = CubeMove Z2
 
-  isTrivialMove (FaceTwist _ t) = t == 0
+-- | Triple-layer cube moves: for 6x6, 7x7 cubes.  These use an upper case face
+-- name followed by a caret to mean moving all 3 layers; upper case for the
+-- outer 2 layers; and lower case for the outer layer.
+type CubeMove3 = CubeMove Z3
 
-instance Show FaceTwist where
-  showsPrec _ (FaceTwist f t) = shows f . shows t
+instance Show CubeMove1 where
+  showsPrec _ (FaceTwist f t d) = shows f . shows t
 
-instance Read FaceTwist where
+instance Read CubeMove1 where
   readsPrec _ "" = []
   readsPrec _ (c:s) = maybeToList $ do
     f <- nameToMaybeFace c
     (t, s') <- listToMaybe (reads s)
-    return (FaceTwist f t, s')
+    return (FaceTwist f t 0, s')
+
+instance Show CubeMove2 where
+  showsPrec _ (FaceTwist f t d) = (if d == 0 then shows else showChar.toUpper.faceToName) f . shows t
+
+instance Read CubeMove2 where
+  readsPrec _ "" = []
+  readsPrec _ (c:s) = maybeToList $ do
+    f <- nameToMaybeFace (toLower c)
+    (t, s') <- listToMaybe (reads s)
+    return (FaceTwist f t (if isUpper c then 1 else 0), s')
+
+instance Show CubeMove3 where
+  showsPrec _ (FaceTwist f t d) = showFace d f . shows t
+    where showFace 0 = shows
+          showFace 1 = showChar . toUpper . faceToName
+          showFace 2 = \f -> showFace 1 f . showChar '^'
+
+instance Read CubeMove3 where
+  readsPrec _ "" = []
+  readsPrec _ (c:s) = maybeToList $ do
+    f <- nameToMaybeFace (toLower c)
+    let (d, s') = readDepth (isUpper c) s
+    (t, s'') <- listToMaybe (reads s')
+    return (FaceTwist f t d, s'')
+      where readDepth upper s =
+              if upper && not (null s) && head s == '^' then (2, tail s)
+              else (if upper then 1 else 0, s)
+
+
+-- | The generic twist accumulator for cubes.
+type CubeTwists depth = CumulativeTwists Face Twist4 depth
+
+type CubeTwists1 = CubeTwists Z1
+type CubeTwists2 = CubeTwists Z2
+type CubeTwists3 = CubeTwists Z3
+
 
 type Edge = PolyEdge Face
 type Vertex = PolyVertex Face

@@ -14,7 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
-{-# LANGUAGE FlexibleContexts, ScopedTypeVariables, TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Defines types representing twisty puzzles and algorithms for manipulating
 -- them.
@@ -27,7 +30,9 @@ module Twisty.Puzzle
        , moveCount
        , isNontrivial
        , lastMove
+       , foldMoves
        , applyMove
+       , morph
        )
 where
 
@@ -42,7 +47,7 @@ import Text.Read hiding ((<++))
 
 
 -- | A class for the moves that can be performed on a twisty puzzle.
-class (Eq m, Read m, Show m) => PuzzleMove m where
+class Eq m => PuzzleMove m where
   undoMove :: m -> m
   -- ^ The move that undoes the given move.  This means that @joinMoves m
   -- (undoMove m)@ (and vice versa) must equal the empty list.
@@ -98,6 +103,11 @@ moves = reverse . rMoves
 moveCount :: (Puzzle p) => Algorithm p -> Int
 moveCount = length . rMoves
 
+-- | Accumulates values over an algorithm's moves, from most recent to oldest
+-- move.
+foldMoves :: (Puzzle p, Monoid m) => (Move p -> m) -> Algorithm p -> m
+foldMoves op = foldl' (\val -> (val $*) . op) one . rMoves
+
 -- | Equality testing for Algorithms.  Just comparing the moves works because we
 -- canonicalize their order.
 instance (Puzzle p) => Eq (Algorithm p) where
@@ -132,14 +142,20 @@ prependMove m l@(pm:ms)
     [m1, m2] -> if m2 == pm then m1 : l
                 else m1 : prependMove m2 ms
 
+-- | Transforms an algorithm to a related algorithm by transforming each move in
+-- the list.
+morph :: forall p. (Puzzle p) => (Move p -> Move p) -> Algorithm p -> Algorithm p
+morph f (Algorithm ms _) = foldr g one ms
+  where g = flip applyMove . f
+
 -- | Algorithms are displayed as their moves in order, some spaces, and the
 -- resulting puzzle state.
-instance (Puzzle p) => Show (Algorithm p) where
+instance (Puzzle p, Show (Move p)) => Show (Algorithm p) where
   showsPrec _ (Algorithm ms p) = showMoves ms . showString "    " . shows p
     where showMoves = foldl' op id
           f `op` m = shows m . f
 
-instance (Puzzle p) => Read (Algorithm p) where
+instance (Puzzle p, Read (Move p)) => Read (Algorithm p) where
   readPrec = lift $ readAndApply mempty
     where readAndApply alg =
             do skipSpaces

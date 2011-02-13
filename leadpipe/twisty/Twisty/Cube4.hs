@@ -20,12 +20,14 @@ module Twisty.Cube4 where
 
 import Twisty.Cycles
 import Twisty.Cube
+import Twisty.FaceTwist
 import Twisty.Group
 import qualified Twisty.Memo as Memo
 import Twisty.Polyhedron
 import Twisty.Puzzle
 import Twisty.Wreath
 import Twisty.Twists
+import Twisty.Zn
 
 import Control.Monad (mapM)
 import Data.Array.IArray ((!), Array, listArray)
@@ -152,41 +154,15 @@ instance Read EdgePiece where
        return (ep, cs)
   readsPrec _ _ = []
 
--- | Possible moves for a 4x4 cube; the boolean means "outer layer only", so
--- when false means to twist both layers.
-data FaceTwist4 = FT4 Face Bool Twist4 deriving (Eq, Ord, Bounded)
-
-instance PuzzleMove FaceTwist4 where
-  undoMove (FT4 f b t) = FT4 f b (-t)
-
-  joinMoves m1@(FT4 f1 b1 t1) m2@(FT4 f2 b2 t2)
-    | f1 == f2 && b1 == b2           = let t = t1 + t2 in
-                                       if t == 0 then [] else [FT4 f1 b1 t]
-    | f1 == f2 || f1 `isOpposite` f2 = [max m1 m2, min m1 m2]
-    | otherwise                      = [m1, m2]
-
-  isTrivialMove (FT4 _ _ t) = t == 0
-
-
-instance Show FaceTwist4 where
-  showsPrec _ (FT4 f b t) = (if b then shows else showChar.toUpper.faceToName) f . shows t
-
-instance Read FaceTwist4 where
-  readsPrec _ "" = []
-  readsPrec _ (c:s) = maybeToList $ do
-    f <- nameToMaybeFace (toLower c)
-    (t, s') <- listToMaybe (reads s)
-    return (FT4 f (not.isUpper$c) t, s')
-
 
 instance Puzzle Cube4 where
-  type Move Cube4 = FaceTwist4
+  type Move Cube4 = CubeMove2
 
-  fromMove = table $ Memo.memo3 Memo.array Memo.bool Memo.array fromMove4
-    where table m (FT4 f b t) = m f b t
+  fromMove = table $ Memo.array fromMove2
+    where table m (FaceTwist f t d) = m (f, t, d)
 
-fromMove4 :: Face -> Bool -> Twist4 -> Cube4
-fromMove4 f True 1 = Cube4 (vw, ew, fw)
+fromMove2 :: (Face, Twist4, Z2) -> Cube4
+fromMove2 (f, 1, 0) = Cube4 (vw, ew, fw)
   where vw = fromCycles [asCycle' f faceVertices vertexFaces]
         ew = fromCycles $ map edgeCycle edgePieces
         fw = fromCycles [asSimpleCycle $ faceFacePieces f]
@@ -194,7 +170,7 @@ fromMove4 f True 1 = Cube4 (vw, ew, fw)
         edgePieces = transpose $ map (map facesToEdgePiece)
                      [[[f, f2, f3], [f, f3, f2]] | [_, f2, f3] <- faceVerticesAsFaces f]
 
-fromMove4 f False 1 = Cube4 (one, ew, fw) $* fromMove (FT4 f True 1)
+fromMove2 (f, 1, 1) = Cube4 (one, ew, fw) $* fromMove (FaceTwist f 1 0)
   where ew = fromCycles [asCycle f edgePieces edgePieceFaces]
         fw = fromCycles $ map asSimpleCycle facePieces
         edgePieces = map facesToEdgePiece
@@ -202,7 +178,7 @@ fromMove4 f False 1 = Cube4 (one, ew, fw) $* fromMove (FT4 f True 1)
         facePieces = transpose $ map (map facesToFacePiece)
                      [[[f2, f3, f], [f3, f2, f]] | [_, f2, f3] <- faceVerticesAsFaces f]
 
-fromMove4 f b n = fromMove (FT4 f b 1) $^ n
+fromMove2 (f, n, d) = fromMove (FaceTwist f 1 d) $^ n
 
 
 instance Show Cube4 where
