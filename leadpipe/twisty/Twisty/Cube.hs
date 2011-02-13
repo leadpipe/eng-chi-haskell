@@ -91,7 +91,7 @@ type CubeMove2 = CubeMove Z2
 type CubeMove3 = CubeMove Z3
 
 instance Show CubeMove1 where
-  showsPrec _ (FaceTwist f t d) = shows f . shows t
+  showsPrec _ (FaceTwist f t _) = shows f . shows t
 
 instance Read CubeMove1 where
   readsPrec _ "" = []

@@ -3,10 +3,13 @@
 module Twisty.Tetra3 where
 
 import Twisty.Cycles
+import Twisty.FaceTwist
 import Twisty.Group
+import qualified Twisty.Memo as Memo
 import Twisty.Polyhedron
 import Twisty.Puzzle
 import Twisty.Tetra
+import Twisty.Twists
 import Twisty.Wreath
 
 import Data.List (elemIndex)
@@ -23,11 +26,14 @@ instance Group Tetra3 where
   ginvert (Tetra3 s) = Tetra3 (ginvert s)
 
 instance Puzzle Tetra3 where
-  type Move Tetra3 = FaceTwist
-  fromMove (FaceTwist f 1) = Tetra3 (v, e)
-    where v = fromCycles [asCycle' f faceVertices vertexFaces]
-          e = fromCycles [asCycle' f faceEdges edgeFaces]
-  fromMove (FaceTwist f n) = fromMove (FaceTwist f 1) $^ n
+  type Move Tetra3 = TetraMove1
+  fromMove = Memo.array fromMove1
+
+fromMove1 :: TetraMove1 -> Tetra3
+fromMove1 (FaceTwist f 1 _) = Tetra3 (v, e)
+  where v = fromCycles [asCycle' f faceVertices vertexFaces]
+        e = fromCycles [asCycle' f faceEdges edgeFaces]
+fromMove1 (FaceTwist f n d) = fromMove (FaceTwist f 1 d) $^ n
 
 instance Show Tetra3 where
   showsPrec _ (Tetra3 (v, e)) = fromOptCycles $ optShowCycles v $* optShowCycles e

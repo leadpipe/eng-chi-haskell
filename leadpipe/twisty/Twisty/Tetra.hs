@@ -19,11 +19,13 @@ limitations under the License.
 -- | Describes a tetrahedron in terms of faces, edges, and vertices.
 module Twisty.Tetra where
 
+import Twisty.FaceTwist
 import Twisty.Group
 import Twisty.Polyhedron
 import Twisty.Puzzle
 import Twisty.Twists
 import Twisty.Wreath
+import Twisty.Zn
 
 import Data.Ix (Ix)
 import Data.Maybe (listToMaybe, maybeToList)
@@ -50,28 +52,28 @@ instance PolyFace Face where
   allVerticesAsFaces = faceNeighborTriples F ++ [[D, R, L]]
 
 
-data FaceTwist = FaceTwist Face Twist3 deriving (Eq, Ord)
+-- | The generic tetra move type.
+type TetraMove depth = FaceTwist Face Twist3 depth
 
-instance PuzzleMove FaceTwist where
-  undoMove (FaceTwist f t) = FaceTwist f (-t)
+-- | Single-layer tetra moves: for 3x3 tetrahedra.  These show as just the face
+-- and the twist.
+type TetraMove1 = TetraMove Z1
 
-  joinMoves m1@(FaceTwist f1 t1) m2@(FaceTwist f2 t2)
-    | f1 == f2           = let t = t1 + t2 in
-                           if t == 0 then [] else [FaceTwist f1 t]
-    | otherwise          = [m1, m2]
+instance Show TetraMove1 where
+  showsPrec _ (FaceTwist f t _) = shows f . shows t
 
-  isTrivialMove (FaceTwist _ t) = t == 0
-
-instance Show FaceTwist where
-  showsPrec _ (FaceTwist f t) = shows f . shows t
-
-instance Read FaceTwist where
+instance Read TetraMove1 where
   readsPrec _ "" = []
   readsPrec _ (c:s) = maybeToList $ do
     f <- nameToMaybeFace c
     (t, s') <- listToMaybe (reads s)
-    if t == 0 then fail "no twist specified"
-      else return (FaceTwist f t, s')
+    return (FaceTwist f t 0, s')
+
+-- | The generic twist accumulator for tetras.
+type TetraTwists depth = CumulativeTwists Face Twist3 depth
+
+type TetraTwists1 = TetraTwists Z1
+
 
 type Edge = PolyEdge Face
 type Vertex = PolyVertex Face
