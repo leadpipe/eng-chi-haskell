@@ -84,11 +84,13 @@ previousNeighbor f n = if n == head ns then last ns else prev ns
         prev (f:fs@(f2:_)) = if n == f2 then f else prev fs
 
 -- | The neighbor just clockwise of the given face's given neighbor.
-nextNeighbor :: (PolyFace f) => f -> f -> f
+nextNeighbor :: (PolyFace f, Show f) => f -> f -> f
 nextNeighbor f n = next ns
   where ns = neighboringFaces f
         next (f:fs@(f2:_)) = if n == f then f2 else next fs
-        next [f] = if n == f then head ns else undefined
+        next [f] = if n == f then head ns
+                   else error (show n ++ " isn't a neighbor of " ++ show origF)
+        origF = f
 
 -- | Tells whether two faces are neighbors.
 neighbors :: (PolyFace f) => f -> f -> Bool
