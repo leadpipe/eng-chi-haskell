@@ -86,3 +86,12 @@ instance (Group a) => Group (Dual a) where
 
 instance (Num a) => Group (Sum a) where
   ginvert (Sum x) = Sum (negate x)
+
+
+-- | The conjugate of y according to x.
+conjugate :: (Group g) => g -> g -> g
+conjugate x y = x $* y $* ginvert x
+
+-- | The commutator of x and y.
+commutator :: (Group g) => g -> g -> g
+commutator x y = x $* y $* ginvert x $* ginvert y
