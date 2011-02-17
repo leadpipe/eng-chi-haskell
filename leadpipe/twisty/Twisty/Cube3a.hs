@@ -21,7 +21,7 @@ module Twisty.Cube3a where
 
 import Twisty.Cycles
 import Twisty.Cube
-import Twisty.Cube3 hiding (fromMove1)
+import Twisty.Cube3
 import Twisty.FaceTwist
 import Twisty.Group
 import qualified Twisty.Memo as Memo
@@ -48,10 +48,9 @@ instance Group Cube3a where
 instance Puzzle Cube3a where
   type Move Cube3a = CubeMove1
   fromMove = Memo.array fromMove1
-
-fromMove1 :: CubeMove1 -> Cube3a
-fromMove1 m@(FaceTwist f 1 _) = Cube3a (fromMove m, fromCycles [[Entry (f, 1)]])
-fromMove1 (FaceTwist f n d) = fromMove (FaceTwist f 1 d) $^ n
+    where fromMove1 :: CubeMove1 -> Cube3a
+          fromMove1 m@(FaceTwist f 1 _) = Cube3a (fromMove m, fromCycles [[Entry (f, 1)]])
+          fromMove1 (FaceTwist f n d) = fromMove (FaceTwist f 1 d) $^ n
 
 instance Show Cube3a where
   showsPrec _ (Cube3a ((Cube3 (v, e)), f)) = fromOptCycles $ optShowCycles v $* optShowCycles e $* optShowCycles f
