@@ -92,6 +92,18 @@ instance (Num a) => Group (Sum a) where
 conjugate :: (Group g) => g -> g -> g
 conjugate x y = x $* y $* ginvert x
 
+-- | An operator for conjugate.  Mnemonic: normal group operation on the
+-- arguments followed by appending the inverse of the first argument.
+($*~) :: (Group g) => g -> g -> g
+($*~) = conjugate
+infixl 6 $*~    -- matches +, lower than $*
+
 -- | The commutator of x and y.
 commutator :: (Group g) => g -> g -> g
 commutator x y = x $* y $* ginvert x $* ginvert y
+
+-- | An operator for commutator.  Mnemonic: normal group operation on the
+-- arguments followed by appending the inverses of both arguments.
+($*~~) :: (Group g) => g -> g -> g
+($*~~) = commutator
+infixl 6 $*~~   -- matches +
