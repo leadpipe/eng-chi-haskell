@@ -74,3 +74,16 @@ generateChildrenToLength len getAlg genMove count node =
   if (moveCount . getAlg) node >= len
   then return []
   else generateChildren getAlg genMove count node
+
+
+-- | Returns a stream of deterministic random number generators given a seed.
+seededStdGens :: Int -> IO [StdGen]
+seededStdGens = return . stdGenToStream . mkStdGen
+
+-- | A stream of random number generators.
+stdGenStream :: IO [StdGen]
+stdGenStream = newStdGen >>= return . stdGenToStream
+
+-- | Returns a stream of random number generators given an initial generator.
+stdGenToStream :: StdGen -> [StdGen]
+stdGenToStream gen = let (g1, g2) = split gen in g1 : stdGenToStream g2
