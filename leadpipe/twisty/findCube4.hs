@@ -41,18 +41,11 @@ type SearchM a = Rand StdGen a
 type Node = (Algorithm Cube4, CubeTwists2)
 
 main = do
-  let roots = {-cycle $-} map (makeRoot . read) ["f+", "F+", "f=", "F="]
+  let roots = cycle $ map (makeRoot . read) ["f+", "F+", "f=", "F="]
   let search = searchTree calcChildren (return . whatWe'reLookingFor . fst)
-  gens <- stdGenList
+  gens <- stdGenStream  -- seededStdGens 0
   let nodes = concat (zipWith (evalRand . search) roots gens `using` parBuffer 3 rseq)
   sequence_ $ map (putStrLn . show . fst) nodes
-
-stdGenList :: IO [StdGen]
-stdGenList = do
-  --gen <- newStdGen
-  let gen = mkStdGen 15
-  return $ splits gen
-    where splits gen = let (g1, g2) = split gen in g1 : splits g2
 
 makeRoot :: CubeMove2 -> SearchM Node
 makeRoot mv = return (one `applyMove` mv, emptyTwists `updateTwists` mv)
@@ -64,7 +57,7 @@ calcChildren node _ = do algs <- generateChildrenToLength 20 fst genMove 2 node
 
 
 whatWe'reLookingFor :: Algorithm Cube4 -> Bool
-whatWe'reLookingFor a = numEdges > 0 && numEdges < 4 && moveCount a > 4 && getAny hasInnerTwist && facePiecesStay
+whatWe'reLookingFor a = numEdges > 0 && numEdges <= 4 && moveCount a > 4 && getAny hasInnerTwist && facePiecesStay
   where Cube4 (_, e, f) = result a
         numEdges = numIndicesMoved e
         hasInnerTwist = foldMoves (\(FaceTwist _ _ d) -> Any (d == 1)) a
