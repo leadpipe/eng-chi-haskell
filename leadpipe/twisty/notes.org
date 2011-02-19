@@ -3,7 +3,7 @@
 ** DONE Rename everything to Twisty
 ** DONE Move FaceTwist4 into the Cube module, rename
 ** DONE Generalize Twisty move types: index + twist
-** Come up with Alg transforms for Cube
+** DONE Come up with Alg transforms for Cube
 ** Write Tetra3, findTetra3
 ** Write Dodeca3
 ** Write Dodeca5
