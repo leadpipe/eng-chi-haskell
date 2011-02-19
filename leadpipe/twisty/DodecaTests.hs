@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
-{-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 import Twisty.Dodeca
 import Twisty.Lists
@@ -41,7 +41,7 @@ prop_oppositesDiffer f = f /= oppositeFace f
 
 -- Ensure a face's neighbors don't include the face, its opposite, or
 -- its opposite's neighbors.
-prop_neighborsDiffer f = and $ map (`notElem` neighboringFaces f) faces
+prop_neighborsDiffer f = all (`notElem` neighboringFaces f) faces
   where faces = f : oppositeFace f : neighboringFaces (oppositeFace f)
 
 -- Ensure a face's neighbors list doesn't have opposites next to each

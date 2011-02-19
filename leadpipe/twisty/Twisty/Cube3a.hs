@@ -15,6 +15,7 @@ limitations under the License.
 -}
 
 {-# LANGUAGE TypeFamilies #-}
+
 -- | Defines the \"ad-supported\" 3x3 cube puzzle with faces that have a right
 -- way up.
 module Twisty.Cube3a where
@@ -53,7 +54,7 @@ instance Puzzle Cube3a where
           fromMove1 (FaceTwist f n d) = fromMove (FaceTwist f 1 d) $^ n
 
 instance Show Cube3a where
-  showsPrec _ (Cube3a ((Cube3 (v, e)), f)) = fromOptCycles $ optShowCycles v $* optShowCycles e $* optShowCycles f
+  showsPrec _ (Cube3a (Cube3 (v, e), f)) = fromOptCycles $ optShowCycles v $* optShowCycles e $* optShowCycles f
 
 c3a :: String -> Algorithm Cube3a
 c3a = read

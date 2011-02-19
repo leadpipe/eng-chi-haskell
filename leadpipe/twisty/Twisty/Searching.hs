@@ -42,7 +42,7 @@ searchTree :: (Monad m) => (a -> Bool -> m [a]) -> (a -> m Bool) -> m a -> m [a]
 searchTree calcChildren satisfies root = root >>= st
   where st node = do
           sat <- satisfies node
-          let this = if sat then [return [node]] else []
+          let this = [return [node] | sat]
           children <- calcChildren node sat
           let results = this ++ map st children
           concatM results
@@ -82,7 +82,7 @@ seededStdGens = return . stdGenToStream . mkStdGen
 
 -- | A stream of random number generators.
 stdGenStream :: IO [StdGen]
-stdGenStream = newStdGen >>= return . stdGenToStream
+stdGenStream = fmap stdGenToStream newStdGen
 
 -- | Returns a stream of random number generators given an initial generator.
 stdGenToStream :: StdGen -> [StdGen]

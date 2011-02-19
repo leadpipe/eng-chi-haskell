@@ -29,7 +29,7 @@ main = $(defaultMainGenerator)
 
 -- Ensure a face's neighbors don't include the face.
 prop_neighborsDiffer :: Face -> Bool
-prop_neighborsDiffer f = notElem f ns
+prop_neighborsDiffer f = f `notElem` ns
   where ns = neighboringFaces f
 
 -- Every face must have exactly 3 neighbors.

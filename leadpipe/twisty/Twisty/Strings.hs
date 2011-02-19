@@ -28,4 +28,4 @@ toOptS f = Just (Endo f)
 
 -- | Converts an OptS to a show function, given a default.
 fromOptS :: ShowS -> OptS -> ShowS
-fromOptS def opt = maybe def appEndo opt
+fromOptS def = maybe def appEndo

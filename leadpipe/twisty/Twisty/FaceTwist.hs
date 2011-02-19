@@ -52,7 +52,7 @@ instance (PolyFace f, Group t, Bounded t, Ord t, Ix t, Bounded d, Ord d, Ix d) =
   joinMoves = table (Memo.array jm)
     where table memo move1 move2 = memo (move1, move2)
           jm (m1@(FaceTwist f1 t1 d1), m2@(FaceTwist f2 t2 d2))
-            | (f1 == f2 && d1 == d2) = let t = t1 $* t2 in
+            | f1 == f2 && d1 == d2   = let t = t1 $* t2 in
                                        if t == one then [] else [FaceTwist f1 t d1]
             | f1 `neighbors` f2      = [m1, m2]
             | otherwise              = [max m1 m2, min m1 m2]

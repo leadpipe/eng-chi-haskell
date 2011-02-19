@@ -48,6 +48,7 @@ import Data.Ix (Ix)
 import Data.List (foldl')
 import qualified Data.Map as Map
 import Data.Monoid (Monoid, mappend, mempty)
+import Data.Ord (comparing)
 import qualified Data.Set as Set
 
 
@@ -70,7 +71,7 @@ instance (WreathPermutable a) => Eq (Wreath a) where
   Wreath arr1 == Wreath arr2 = trim arr1 == trim arr2
 
 instance (WreathPermutable a) => Ord (Wreath a) where
-  Wreath arr1 `compare` Wreath arr2 = trim arr1 `compare` trim arr2
+  Wreath arr1 `compare` Wreath arr2 = comparing trim arr1 arr2
 
 -- | A WreathEntry combines the target value and the twist for the source value.
 newtype (WreathPermutable a) => WreathEntry a = Entry (a, WreathTwist a)
@@ -91,7 +92,7 @@ getEntry (Wreath arr) a = if inRange (bounds arr) a then arr!a else Entry (a, on
 
 -- | Chain an entry through a wreath.
 chainEntry :: (WreathPermutable a) => Wreath a -> Entry a -> Entry a
-chainEntry w !(Entry (a, t)) = let !(Entry (a', t')) = getEntry w a in Entry (a', (t $* t'))
+chainEntry w !(Entry (a, t)) = let !(Entry (a', t')) = getEntry w a in Entry (a', t $* t')
 
 -- | The array we use for empty wreaths.
 emptyWreathArray :: (WreathPermutable a) => Array a (Entry a)
@@ -103,7 +104,7 @@ instance (WreathPermutable a) => Monoid (Wreath a) where
   mempty = Wreath emptyWreathArray
   mappend w1@(Wreath arr1) w2@(Wreath arr2) = Wreath comp
     where comp = listArray nb [chainEntry w2 (getEntry w1 a) | a <- [fst nb..snd nb]]
-          nb = (union (bounds arr1) (bounds arr2))
+          nb = bounds arr1 `union` bounds arr2
           union (b11, b12) (b21, b22) = (min b11 b21, max b12 b22)
 
 -- | Trims the bounds of an array of entries so it consists only of those
@@ -112,9 +113,10 @@ trim :: (WreathPermutable a) => Array a (Entry a) -> Array a (Entry a)
 trim = trimDown . trimUp
   where trimUp arr = subarray arr (minMoved arr, snd (bounds arr))
         trimDown arr = subarray arr (fst (bounds arr), maxMoved arr)
-        subarray arr nb@(n1, n2) = if nb == bounds arr then arr
-                                   else if n1 > n2 then emptyWreathArray
-                                        else listArray nb [arr!a | a <- [n1..n2]]
+        subarray arr nb@(n1, n2)
+          | nb == bounds arr = arr
+          | n1 > n2          = emptyWreathArray
+          | otherwise        = listArray nb [arr!a | a <- [n1..n2]]
         -- minMoved returns the upper bound if nothing below it moves.
         minMoved arr = let (b1, b2) = bounds arr in mm b1 b2
           where mm b1 b2 = if b1 >= b2 || arr `moves` b1 then b1

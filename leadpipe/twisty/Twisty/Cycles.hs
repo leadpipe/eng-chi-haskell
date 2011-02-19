@@ -14,7 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
-{-# LANGUAGE FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Twisty.Cycles where
 
 import Twisty.Group
@@ -42,7 +44,7 @@ asCycle f as toFs = zipWith toEntry as twists
 -- as a function of the face.
 asCycle' :: forall f a. (Eq f, WreathPermutable a, Num (WreathTwist a)) =>
             f -> (f -> [a]) -> (a -> [f]) -> [WreathEntry a]
-asCycle' f toAs toFs = asCycle f (toAs f) toFs
+asCycle' f toAs = asCycle f (toAs f)
 
 
 -- | Creates a cycle from a list of pieces, for situations where no twisting is

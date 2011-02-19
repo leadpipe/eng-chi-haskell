@@ -45,7 +45,7 @@ main = do
   let search = searchTree calcChildren (return . whatWe'reLookingFor . fst)
   gens <- stdGenStream  -- seededStdGens 0
   let nodes = concat (zipWith (evalRand . search) roots gens `using` parBuffer 3 rseq)
-  sequence_ $ map (putStrLn . show . fst) nodes
+  mapM_ (print . fst) nodes
 
 makeRoot :: CubeMove2 -> SearchM Node
 makeRoot mv = return (one `applyMove` mv, emptyTwists `updateTwists` mv)
