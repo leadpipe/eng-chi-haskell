@@ -23,7 +23,7 @@ limitations under the License.
 
 -- | Defines the 'Wreath' type, which combines a permutation of a bounded enum
 -- with a way to twist each enum element as it's permuted.  This embodies the
--- group theoretic notion of "wreath product."
+-- group theoretic notion of \"wreath product.\"
 
 module Twisty.Wreath
        ( Wreath
@@ -53,16 +53,17 @@ import qualified Data.Set as Set
 
 -- | A class for types that can be permuted in a 'Wreath'.  Such types must be
 -- bounded, indexable enums with equality testing and order.  And they must have
--- a corresponding type for the ways they can be "twisted."
+-- a corresponding type for the ways they can be \"twisted.\"
 class (Enum a, Bounded a, Ix a, Eq a, Ord a,
        Group (WreathTwist a), Eq (WreathTwist a), Ord (WreathTwist a))
       => WreathPermutable a where
-  type WreathTwist a -- ^ The twist group that corresponds to the permuted type.
+  -- | The twist group that corresponds to the permuted type.
+  type WreathTwist a
 
 -- | A wreath product is a way to factor a group into two parts, a permutation
--- and some other subgroup, which we designate the "twist" group.  For example,
--- the corner pieces of a Rubik's cube are permuted by each move, but they are
--- also twisted.
+-- and some other subgroup, which we designate the \"twist\" group.  For
+-- example, the corner pieces of a Rubik's cube are permuted by each move, but
+-- they are also twisted.
 newtype (WreathPermutable a) => Wreath a = Wreath (Array a (Entry a))
 
 instance (WreathPermutable a) => Eq (Wreath a) where

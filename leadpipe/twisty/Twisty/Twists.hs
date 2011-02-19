@@ -32,6 +32,7 @@ where
 import Twisty.Zn
 
 
+-- | Twist type corresponding to natural number 1.
 data Tw1
 instance Nat Tw1 where
   toInt _ = 1
@@ -40,6 +41,7 @@ instance NatShow Tw1 where
 instance NatRead Tw1 where
   readsInt _ s = [(0, s)]
 
+-- | Twist type corresponding to natural number 2.
 data Tw2
 instance Nat Tw2 where
   toInt _ = 2
@@ -52,6 +54,7 @@ instance NatRead Tw2 where
     where readTwist ('+':s) = [(1, s)]
           readTwist s = [(0, s)]
 
+-- | Twist type corresponding to natural number 3.
 data Tw3
 instance Nat Tw3 where
   toInt _ = 3
@@ -66,6 +69,7 @@ instance NatRead Tw3 where
           readTwist ('-':s) = [(2, s)]
           readTwist s = [(0, s)]
 
+-- | Twist type corresponding to natural number 4.
 data Tw4
 instance Nat Tw4 where
   toInt _ = 4
@@ -82,6 +86,7 @@ instance NatRead Tw4 where
           readTwist ('-':s) = [(3, s)]
           readTwist s = [(0, s)]
 
+-- | Twist type corresponding to natural number 5.
 data Tw5
 instance Nat Tw5 where
   toInt _ = 5
@@ -100,6 +105,7 @@ instance NatRead Tw5 where
           readTwist ('-':s) = [(4, s)]
           readTwist s = [(0, s)]
 
+-- | Twist type corresponding to natural number 6.
 data Tw6
 instance Nat Tw6 where
   toInt _ = 6
@@ -120,9 +126,9 @@ instance NatRead Tw6 where
           readTwist ('-':s) = [(5, s)]
           readTwist s = [(0, s)]
 
-type Twistless = Zn Tw1
-type Flip = Zn Tw2
-type Twist3 = Zn Tw3
-type Twist4 = Zn Tw4
-type Twist5 = Zn Tw5
-type Twist6 = Zn Tw6
+type Twistless = Zn Tw1 -- ^ Trivial twist group.
+type Flip = Zn Tw2      -- ^ Order-2 twist group.
+type Twist3 = Zn Tw3    -- ^ Order-3 twist group.
+type Twist4 = Zn Tw4    -- ^ Order-4 twist group.
+type Twist5 = Zn Tw5    -- ^ Order-5 twist group.
+type Twist6 = Zn Tw6    -- ^ Order-6 twist group.

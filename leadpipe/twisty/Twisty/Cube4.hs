@@ -15,7 +15,8 @@ limitations under the License.
 -}
 
 {-# LANGUAGE TypeFamilies #-}
--- | Defines the basic 3x3 cube puzzle.
+
+-- | Defines the 4x4 cube puzzle.
 module Twisty.Cube4 where
 
 import Twisty.Cycles

@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
 
 -- | Operators for transforming algorithms of cube-based puzzles according to
@@ -38,68 +39,107 @@ reflectMove f (FaceTwist f2 t d)
   | f2 `neighbors` f = FaceTwist f2 (-t) d
   | otherwise        = FaceTwist (oppositeFace f2) (-t) d
 
-rotU, rotF, rotL, rotR, rotB, rotD,
-  rotUD, rotFB, rotLR,
-  rotFR, rotFL, rotUL, rotUR, rotUB, rotUF,
-  rotURF, rotUFR, rotUFL, rotULF, rotURB, rotUBR, rotUBL, rotULB,
-  mirUD, mirFB, mirLR,
-  rotMirU, rotMirF, rotMirL, rotMirR, rotMirB, rotMirD,
-  mirUL, mirUR, mirUF, mirUB, mirFL, mirFR,
-  rotMirUFL, rotMirUBL, rotMirULB, rotMirULF, rotMirURF, rotMirURB, rotMirUFR, rotMirUBR,
-  mir :: (Puzzle p, Ord d, Move p ~ CubeMove d) => Algorithm p -> Algorithm p
+type CubeSymmetry = forall p d. (Puzzle p, Ord d, Move p ~ CubeMove d) => Algorithm p -> Algorithm p
 
-rotU = morph (rotateMove U) -- ^ 1/4 turn around UD axis, clockwise according to U.
-rotF = morph (rotateMove F) -- ^ 1/4 turn around FB axis, clockwise according to F.
-rotL = morph (rotateMove L) -- ^ 1/4 turn around LR axis, clockwise according to L.
-rotR = morph (rotateMove R) -- ^ 1/4 turn around LR axis, clockwise according to R.
-rotB = morph (rotateMove B) -- ^ 1/4 turn around FB axis, clockwise according to B.
-rotD = morph (rotateMove D) -- ^ 1/4 turn around UD axis, clockwise according to D.
+rotU :: CubeSymmetry -- ^ 1/4 turn around UD axis, clockwise according to U.
+rotU = morph (rotateMove U)
+rotF :: CubeSymmetry -- ^ 1/4 turn around FB axis, clockwise according to F.
+rotF = morph (rotateMove F)
+rotL :: CubeSymmetry -- ^ 1/4 turn around LR axis, clockwise according to L.
+rotL = morph (rotateMove L)
+rotR :: CubeSymmetry -- ^ 1/4 turn around LR axis, clockwise according to R.
+rotR = morph (rotateMove R)
+rotB :: CubeSymmetry -- ^ 1/4 turn around FB axis, clockwise according to B.
+rotB = morph (rotateMove B)
+rotD :: CubeSymmetry -- ^ 1/4 turn around UD axis, clockwise according to D.
+rotD = morph (rotateMove D)
 
-rotUD = rotU . rotU -- ^ 1/2 turn around UD axis.
-rotFB = rotF . rotF -- ^ 1/2 turn around FB axis.
-rotLR = rotL . rotL -- ^ 1/2 turn around LR axis.
+rotUD :: CubeSymmetry -- ^ 1/2 turn around UD axis.
+rotUD = rotU . rotU
+rotFB :: CubeSymmetry -- ^ 1/2 turn around FB axis.
+rotFB = rotF . rotF
+rotLR :: CubeSymmetry -- ^ 1/2 turn around LR axis.
+rotLR = rotL . rotL
 
-rotFR = rotFB . rotU -- ^ 1/2 turn around FR edge.
-rotFL = rotU . rotFB -- ^ 1/2 turn around FL edge.
-rotUL = rotUD . rotF -- ^ 1/2 turn around UL edge.
-rotUR = rotF . rotUD -- ^ 1/2 turn around UR edge.
-rotUB = rotUD . rotL -- ^ 1/2 turn around UB edge.
-rotUF = rotL . rotUD -- ^ 1/2 turn around UF edge.
+rotFR :: CubeSymmetry -- ^ 1/2 turn around FR edge.
+rotFR = rotFB . rotU
+rotFL :: CubeSymmetry -- ^ 1/2 turn around FL edge.
+rotFL = rotU . rotFB
+rotUL :: CubeSymmetry -- ^ 1/2 turn around UL edge.
+rotUL = rotUD . rotF
+rotUR :: CubeSymmetry -- ^ 1/2 turn around UR edge.
+rotUR = rotF . rotUD
+rotUB :: CubeSymmetry -- ^ 1/2 turn around UB edge.
+rotUB = rotUD . rotL
+rotUF :: CubeSymmetry -- ^ 1/2 turn around UF edge.
+rotUF = rotL . rotUD
 
-rotURF = rotF . rotU -- ^ 1/3 turn around diagonal.
-rotUFR = rotD . rotB -- ^ 1/3 turn around diagonal.
-rotUFL = rotU . rotF -- ^ 1/3 turn around diagonal.
-rotULF = rotB . rotD -- ^ 1/3 turn around diagonal.
-rotURB = rotF . rotD -- ^ 1/3 turn around diagonal.
-rotUBR = rotU . rotB -- ^ 1/3 turn around diagonal.
-rotUBL = rotD . rotF -- ^ 1/3 turn around diagonal.
-rotULB = rotB . rotU -- ^ 1/3 turn around diagonal.
+rotURF :: CubeSymmetry -- ^ 1/3 turn around diagonal.
+rotURF = rotF . rotU
+rotUFR :: CubeSymmetry -- ^ 1/3 turn around diagonal.
+rotUFR = rotD . rotB
+rotUFL :: CubeSymmetry -- ^ 1/3 turn around diagonal.
+rotUFL = rotU . rotF
+rotULF :: CubeSymmetry -- ^ 1/3 turn around diagonal.
+rotULF = rotB . rotD
+rotURB :: CubeSymmetry -- ^ 1/3 turn around diagonal.
+rotURB = rotF . rotD
+rotUBR :: CubeSymmetry -- ^ 1/3 turn around diagonal.
+rotUBR = rotU . rotB
+rotUBL :: CubeSymmetry -- ^ 1/3 turn around diagonal.
+rotUBL = rotD . rotF
+rotULB :: CubeSymmetry -- ^ 1/3 turn around diagonal.
+rotULB = rotB . rotU
 
-mirUD = morph (reflectMove U) -- ^ Reflection across UD axis.
-mirFB = morph (reflectMove F) -- ^ Reflection across FB axis.
-mirLR = morph (reflectMove L) -- ^ Reflection across LR axis.
+mirUD :: CubeSymmetry -- ^ Reflection across UD axis.
+mirUD = morph (reflectMove U)
+mirFB :: CubeSymmetry -- ^ Reflection across FB axis.
+mirFB = morph (reflectMove F)
+mirLR :: CubeSymmetry -- ^ Reflection across LR axis.
+mirLR = morph (reflectMove L)
 
-rotMirU = rotU . mirUD -- ^ 1/4 turn around, and reflection across, UD axis, clockwise according to U.
-rotMirF = rotF . mirFB -- ^ 1/4 turn around, and reflection across, FB axis, clockwise according to F.
-rotMirL = rotL . mirLR -- ^ 1/4 turn around, and reflection across, LR axis, clockwise according to L.
-rotMirR = rotR . mirLR -- ^ 1/4 turn around, and reflection across, UD axis, clockwise according to R.
-rotMirB = rotB . mirFB -- ^ 1/4 turn around, and reflection across, FB axis, clockwise according to B.
-rotMirD = rotD . mirUD -- ^ 1/4 turn around, and reflection across, LR axis, clockwise according to D.
+rotMirU :: CubeSymmetry -- ^ 1/4 turn around, and reflection across, UD axis, clockwise according to U.
+rotMirU = rotU . mirUD
+rotMirF :: CubeSymmetry -- ^ 1/4 turn around, and reflection across, FB axis, clockwise according to F.
+rotMirF = rotF . mirFB
+rotMirL :: CubeSymmetry -- ^ 1/4 turn around, and reflection across, LR axis, clockwise according to L.
+rotMirL = rotL . mirLR
+rotMirR :: CubeSymmetry -- ^ 1/4 turn around, and reflection across, UD axis, clockwise according to R.
+rotMirR = rotR . mirLR
+rotMirB :: CubeSymmetry -- ^ 1/4 turn around, and reflection across, FB axis, clockwise according to B.
+rotMirB = rotB . mirFB
+rotMirD :: CubeSymmetry -- ^ 1/4 turn around, and reflection across, LR axis, clockwise according to D.
+rotMirD = rotD . mirUD
 
-mirUL = rotF . mirUD -- ^ Reflection across UL edge.
-mirUR = mirUD . rotF -- ^ Reflection across UR edge.
-mirUF = mirUD . rotL -- ^ Reflection across UF edge.
-mirUB = rotL . mirUD -- ^ Reflection across UB edge.
-mirFL = mirFB . rotU -- ^ Reflection across FL edge.
-mirFR = rotU . mirFB -- ^ Reflection across FR edge.
+mirUL :: CubeSymmetry -- ^ Reflection across UL edge.
+mirUL = rotF . mirUD
+mirUR :: CubeSymmetry -- ^ Reflection across UR edge.
+mirUR = mirUD . rotF
+mirUF :: CubeSymmetry -- ^ Reflection across UF edge.
+mirUF = mirUD . rotL
+mirUB :: CubeSymmetry -- ^ Reflection across UB edge.
+mirUB = rotL . mirUD
+mirFL :: CubeSymmetry -- ^ Reflection across FL edge.
+mirFL = mirFB . rotU
+mirFR :: CubeSymmetry -- ^ Reflection across FR edge.
+mirFR = rotU . mirFB
 
-rotMirUFL = rotURF . mirFB -- ^ 1/6 turn around, and reflection across, diagonal.
-rotMirUBL = mirFB . rotURF -- ^ 1/6 turn around, and reflection across, diagonal.
-rotMirULB = rotUFR . mirFB -- ^ 1/6 turn around, and reflection across, diagonal.
-rotMirULF = mirFB . rotUFR -- ^ 1/6 turn around, and reflection across, diagonal.
-rotMirURF = rotUBL . mirFB -- ^ 1/6 turn around, and reflection across, diagonal.
-rotMirURB = mirFB . rotUBL -- ^ 1/6 turn around, and reflection across, diagonal.
-rotMirUFR = mirFB . rotULB -- ^ 1/6 turn around, and reflection across, diagonal.
-rotMirUBR = rotULB . mirFB -- ^ 1/6 turn around, and reflection across, diagonal.
+rotMirUFL :: CubeSymmetry -- ^ 1/6 turn around, and reflection across, diagonal.
+rotMirUFL = rotURF . mirFB
+rotMirUBL :: CubeSymmetry -- ^ 1/6 turn around, and reflection across, diagonal.
+rotMirUBL = mirFB . rotURF
+rotMirULB :: CubeSymmetry -- ^ 1/6 turn around, and reflection across, diagonal.
+rotMirULB = rotUFR . mirFB
+rotMirULF :: CubeSymmetry -- ^ 1/6 turn around, and reflection across, diagonal.
+rotMirULF = mirFB . rotUFR
+rotMirURF :: CubeSymmetry -- ^ 1/6 turn around, and reflection across, diagonal.
+rotMirURF = rotUBL . mirFB
+rotMirURB :: CubeSymmetry -- ^ 1/6 turn around, and reflection across, diagonal.
+rotMirURB = mirFB . rotUBL
+rotMirUFR :: CubeSymmetry -- ^ 1/6 turn around, and reflection across, diagonal.
+rotMirUFR = mirFB . rotULB
+rotMirUBR :: CubeSymmetry -- ^ 1/6 turn around, and reflection across, diagonal.
+rotMirUBR = rotULB . mirFB
 
-mir = mirUD . mirFB . mirLR -- ^ Reflection across center of cube.
+mir :: CubeSymmetry -- ^ Reflection across center of cube.
+mir = mirUD . mirFB . mirLR

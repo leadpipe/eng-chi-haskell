@@ -36,9 +36,13 @@ import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
 
 -- | The faces of the cube.  The order is such that the opposite face
 -- for face X is the same distance from the back of the list as X is
--- from the front.  (The names stand for up, front, left, right, back,
--- and down.)
-data Face = U | F | L | R | B | D
+-- from the front.
+data Face = U  -- ^ The \"up\" (top) face.
+          | F  -- ^ The front face.
+          | L  -- ^ The left face.
+          | R  -- ^ The right face.
+          | B  -- ^ The back face.
+          | D  -- ^ The \"down\" (bottom) face.
           deriving (Eq, Ord, Enum, Bounded, Ix)
 
 oppositeFaceNumber :: Int -> Int

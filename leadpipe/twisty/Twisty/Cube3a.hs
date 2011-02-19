@@ -15,8 +15,8 @@ limitations under the License.
 -}
 
 {-# LANGUAGE TypeFamilies #-}
--- | Defines the "ad-supported" 3x3 cube puzzle with faces that have a
--- right way up.
+-- | Defines the \"ad-supported\" 3x3 cube puzzle with faces that have a right
+-- way up.
 module Twisty.Cube3a where
 
 import Twisty.Cycles

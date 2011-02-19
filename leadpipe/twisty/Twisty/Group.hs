@@ -25,7 +25,7 @@ import Data.Monoid (Monoid, mappend, mempty, Dual(..), Sum(..))
 class (Monoid a) => Group a where
   ginvert :: a -> a
   -- ^ Returns the inverse of the given group element, ie the element that
-  -- yields mempty when mappend'ed to the original element.
+  -- yields 'mempty' when 'mappend'-ed to the original element.
 
 
 -- | This is a synonym for 'mempty', using a common group-theoretic name for the
@@ -88,8 +88,10 @@ instance (Num a) => Group (Sum a) where
   ginvert (Sum x) = Sum (negate x)
 
 
--- | The conjugate of y according to x.
-conjugate :: (Group g) => g -> g -> g
+-- | The conjugate of y according to x: @x '$*' y $* 'ginvert' x@.
+conjugate :: (Group g) => g -- ^ x
+             -> g -- ^ y
+             -> g
 conjugate x y = x $* y $* ginvert x
 
 -- | An operator for conjugate.  Mnemonic: normal group operation on the
@@ -98,8 +100,10 @@ conjugate x y = x $* y $* ginvert x
 ($*~) = conjugate
 infixl 6 $*~    -- matches +, lower than $*
 
--- | The commutator of x and y.
-commutator :: (Group g) => g -> g -> g
+-- | The commutator of x and y: @x '$*' y $* 'ginvert' x $* ginvert y@.
+commutator :: (Group g) => g -- ^ x
+              -> g -- ^ y
+              -> g
 commutator x y = x $* y $* ginvert x $* ginvert y
 
 -- | An operator for commutator.  Mnemonic: normal group operation on the

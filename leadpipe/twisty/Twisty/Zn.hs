@@ -22,8 +22,9 @@ limitations under the License.
 -- | Defines the Zn type: integers mod n.  Sometimes known as Z/nZ.  This is a
 -- group under addition.
 module Twisty.Zn
-       -- * The Zn type
-       ( Zn()
+       (
+         -- * The Zn type
+         Zn()
          -- * The Nat classes
        , Nat(..)
        , NatShow(..)
@@ -47,7 +48,7 @@ import Numeric (showInt)
 -- | Type class for natural numbers.
 class Nat n where
   -- | Produces the integral value associated with the type.  This must be a
-  -- non-strict function: Zn will call this with an undefined arguments.
+  -- non-strict function: Zn will call this with an undefined argument.
   toInt :: Integral i => n -> i
 
 -- | Type class for displaying natural numbers.
@@ -119,31 +120,35 @@ instance (Nat n, NatShow n) => Group (Zn n) where
   ginvert = negate
 
 
+-- | Type corresponding to natural number 1.
 data T1
 instance Nat T1 where
   toInt _ = 1
 instance NatShow T1
 instance NatRead T1
 
+-- | Type corresponding to natural number 2.
 data T2
 instance Nat T2 where
   toInt _ = 2
 instance NatShow T2
 instance NatRead T2
 
+-- | Type corresponding to natural number 3.
 data T3
 instance Nat T3 where
   toInt _ = 3
 instance NatShow T3
 instance NatRead T3
 
+-- | Type corresponding to natural number 4.
 data T4
 instance Nat T4 where
   toInt _ = 4
 instance NatShow T4
 instance NatRead T4
 
-type Z1 = Zn T1
-type Z2 = Zn T2
-type Z3 = Zn T3
-type Z4 = Zn T4
+type Z1 = Zn T1 -- ^ Integers mod 1 (trivial type, consisting of 0 only).
+type Z2 = Zn T2 -- ^ Integers mod 2.
+type Z3 = Zn T3 -- ^ Integers mod 3.
+type Z4 = Zn T4 -- ^ Integers mod 4.

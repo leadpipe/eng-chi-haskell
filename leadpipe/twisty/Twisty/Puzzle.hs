@@ -72,7 +72,7 @@ class (Group p, Show p, PuzzleMove (Move p)) => Puzzle p where
 
   type Move p
   -- ^ The associated move type.  For example, a move for a standard Rubik's
-  -- cube might be "twist the top face a quarter-turn clockwise."
+  -- cube might be \"twist the top face a quarter-turn clockwise.\"
 
   fromMove :: Move p -> p
   -- ^ Converts the given move to the associated puzzle state.

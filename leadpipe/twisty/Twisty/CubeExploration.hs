@@ -16,8 +16,7 @@ limitations under the License.
 
 {-# LANGUAGE TypeFamilies #-}
 
--- | Operators for transforming algorithms of cube-based puzzles according to
--- the symmetries of the cube.
+-- | Assembles the modules needed to explore cube-based twisty puzzles.
 module Twisty.CubeExploration
        ( module Twisty.Cube
        , module Twisty.Cube3
