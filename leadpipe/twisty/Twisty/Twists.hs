@@ -48,10 +48,10 @@ instance Nat Tw2 where
 instance NatShow Tw2 where
   showsInt _ = showTwist
     where showTwist 0 = id
-          showTwist 1 = showChar '+'
+          showTwist 1 = showChar '='
 instance NatRead Tw2 where
   readsInt _ = readTwist
-    where readTwist ('+':s) = [(1, s)]
+    where readTwist ('=':s) = [(1, s)]
           readTwist s = [(0, s)]
 
 -- | Twist type corresponding to natural number 3.
