@@ -53,24 +53,24 @@ instance PolyFace Face where
 
 
 -- | The generic tetra move type.
-type TetraMove depth = FaceTwist Face Twist3 depth
+type TetraMove depth = FaceTwist Face depth Twist3
 
 -- | Single-layer tetra moves: for 3x3 tetrahedra.  These show as just the face
 -- and the twist.
 type TetraMove1 = TetraMove Z1
 
 instance Show TetraMove1 where
-  showsPrec _ (FaceTwist f t _) = shows f . shows t
+  showsPrec _ (FaceTwist f _ t) = shows f . shows t
 
 instance Read TetraMove1 where
   readsPrec _ "" = []
   readsPrec _ (c:s) = maybeToList $ do
     f <- nameToMaybeFace c
     (t, s') <- listToMaybe (reads s)
-    return (FaceTwist f t 0, s')
+    return (FaceTwist f 0 t, s')
 
 -- | The generic twist accumulator for tetras.
-type TetraTwists depth = CumulativeTwists Face Twist3 depth
+type TetraTwists depth = CumulativeTwists Face depth Twist3
 
 type TetraTwists1 = TetraTwists Z1
 

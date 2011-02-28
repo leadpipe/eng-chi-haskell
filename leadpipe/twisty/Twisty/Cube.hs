@@ -79,7 +79,7 @@ instance PolyFace Face where
 
 
 -- | The generic cube move type.
-type CubeMove depth = FaceTwist Face Twist4 depth
+type CubeMove depth = FaceTwist Face depth Twist4
 
 -- | Single-layer cube moves: for 2x2, 3x3 cubes.  These show as just the face
 -- and the twist.
@@ -96,27 +96,27 @@ type CubeMove2 = CubeMove Z2
 type CubeMove3 = CubeMove Z3
 
 instance Show CubeMove1 where
-  showsPrec _ (FaceTwist f t _) = shows f . shows t
+  showsPrec _ (FaceTwist f _ t) = shows f . shows t
 
 instance Read CubeMove1 where
   readsPrec _ "" = []
   readsPrec _ (c:s) = maybeToList $ do
     f <- nameToMaybeFace c
     (t, s') <- listToMaybe (reads s)
-    return (FaceTwist f t 0, s')
+    return (FaceTwist f 0 t, s')
 
 instance Show CubeMove2 where
-  showsPrec _ (FaceTwist f t d) = (if d == 0 then shows else showChar.toUpper.faceToName) f . shows t
+  showsPrec _ (FaceTwist f d t) = (if d == 0 then shows else showChar.toUpper.faceToName) f . shows t
 
 instance Read CubeMove2 where
   readsPrec _ "" = []
   readsPrec _ (c:s) = maybeToList $ do
     f <- nameToMaybeFace (toLower c)
     (t, s') <- listToMaybe (reads s)
-    return (FaceTwist f t (if isUpper c then 1 else 0), s')
+    return (FaceTwist f (if isUpper c then 1 else 0) t, s')
 
 instance Show CubeMove3 where
-  showsPrec _ (FaceTwist f t d) = showFace d f . shows t
+  showsPrec _ (FaceTwist f d t) = showFace d f . shows t
     where showFace 0 = shows
           showFace 1 = showChar . toUpper . faceToName
           showFace 2 = \f -> showFace 1 f . showChar '^'
@@ -127,14 +127,14 @@ instance Read CubeMove3 where
     f <- nameToMaybeFace (toLower c)
     let (d, s') = readDepth (isUpper c) s
     (t, s'') <- listToMaybe (reads s')
-    return (FaceTwist f t d, s'')
+    return (FaceTwist f d t, s'')
       where readDepth upper s =
               if upper && not (null s) && head s == '^' then (2, tail s)
               else (if upper then 1 else 0, s)
 
 
 -- | The generic twist accumulator for cubes.
-type CubeTwists depth = CumulativeTwists Face Twist4 depth
+type CubeTwists depth = CumulativeTwists Face depth Twist4
 
 type CubeTwists1 = CubeTwists Z1
 type CubeTwists2 = CubeTwists Z2

@@ -160,7 +160,7 @@ instance Puzzle Cube4 where
   type Move Cube4 = CubeMove2
   fromMove = Memo.array fromMove2
     where fromMove2 :: CubeMove2 -> Cube4
-          fromMove2 (FaceTwist f 1 0) = Cube4 (vw, ew, fw)
+          fromMove2 (FaceTwist f 0 1) = Cube4 (vw, ew, fw)
             where vw = fromCycles [asCycle' f faceVertices vertexFaces]
                   ew = fromCycles $ map edgeCycle edgePieces
                   fw = fromCycles [asSimpleCycle $ faceFacePieces f]
@@ -168,7 +168,7 @@ instance Puzzle Cube4 where
                   edgePieces = transpose $ map (map facesToEdgePiece)
                                [[[f, f2, f3], [f, f3, f2]] | [_, f2, f3] <- faceVerticesAsFaces f]
 
-          fromMove2 (FaceTwist f 1 1) = Cube4 (one, ew, fw) $* fromMove (FaceTwist f 1 0)
+          fromMove2 (FaceTwist f 1 1) = Cube4 (one, ew, fw) $* fromMove (FaceTwist f 0 1)
             where ew = fromCycles [asCycle f edgePieces edgePieceFaces]
                   fw = fromCycles $ map asSimpleCycle facePieces
                   edgePieces = map facesToEdgePiece
@@ -176,7 +176,7 @@ instance Puzzle Cube4 where
                   facePieces = transpose $ map (map facesToFacePiece)
                                [[[f2, f3, f], [f3, f2, f]] | [_, f2, f3] <- faceVerticesAsFaces f]
 
-          fromMove2 (FaceTwist f n d) = fromMove (FaceTwist f 1 d) $^ n
+          fromMove2 (FaceTwist f d n) = fromMove (FaceTwist f d 1) $^ n
 
 
 instance Show Cube4 where

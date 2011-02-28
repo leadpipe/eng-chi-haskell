@@ -29,15 +29,15 @@ import Twisty.Puzzle
 -- | Transforms a move by rotating it on the cube a quarter turn clockwise
 -- around the given face.
 rotateMove :: (Ord d) => Face -> CubeMove d -> CubeMove d
-rotateMove f m@(FaceTwist f2 t d)
-  | f2 `neighbors` f = FaceTwist (nextNeighbor f f2) t d
+rotateMove f m@(FaceTwist f2 d t)
+  | f2 `neighbors` f = FaceTwist (nextNeighbor f f2) d t
   | otherwise        = m
 
 -- | Transforms a move by reflecting it on the cube parallel to the given face.
 reflectMove :: (Ord d) => Face -> CubeMove d -> CubeMove d
-reflectMove f (FaceTwist f2 t d)
-  | f2 `neighbors` f = FaceTwist f2 (-t) d
-  | otherwise        = FaceTwist (oppositeFace f2) (-t) d
+reflectMove f (FaceTwist f2 d t)
+  | f2 `neighbors` f = FaceTwist f2 d (-t)
+  | otherwise        = FaceTwist (oppositeFace f2) d (-t)
 
 type CubeSymmetry = forall p d. (Puzzle p, Ord d, Move p ~ CubeMove d) => Algorithm p -> Algorithm p
 

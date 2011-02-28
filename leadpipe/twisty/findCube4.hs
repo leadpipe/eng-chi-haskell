@@ -60,7 +60,7 @@ whatWe'reLookingFor :: Algorithm Cube4 -> Bool
 whatWe'reLookingFor a = numEdges > 0 && numEdges <= 4 && moveCount a > 4 && getAny hasInnerTwist && facePiecesStay
   where Cube4 (_, e, f) = result a
         numEdges = numIndicesMoved e
-        hasInnerTwist = foldMoves (\(FaceTwist _ _ d) -> Any (d == 1)) a
+        hasInnerTwist = foldMoves (\(FaceTwist _ d _) -> Any (d == 1)) a
         facePiecesStay = True -- TODO: idea is, ensure face pieces don't map to different faces
 
 
@@ -68,7 +68,7 @@ whatWe'reLookingFor a = numEdges > 0 && numEdges <= 4 && moveCount a > 4 && getA
 -- the cumulative twist for a face.
 genMove :: Node -> SearchM CubeMove2
 genMove node@(alg, twists) = do
-  let (FaceTwist lf _ ld) = lastMove alg
+  let (FaceTwist lf ld _) = lastMove alg
   let lastIndex = (lf, ld)
   if Map.null twists || Map.size twists == 1 && Map.member lastIndex twists
     then randomMove
@@ -77,12 +77,12 @@ genMove node@(alg, twists) = do
               let ats = applicableTwists twists lastIndex
               j <- getRandomR (0, length ats - 1)
               let ((f, d), t) = ats !! j
-              return (FaceTwist f (-t) d)
+              return (FaceTwist f d (-t))
     where randomMove = do
             f <- getRandomR (fromEnum (minBound::Face), fromEnum (maxBound::Face))
             d <- getRandomR (1::Int, 5) -- 40% chance of both layers, 60% outer layer only
             t <- getRandomR (1::Int, 3)
-            return (FaceTwist (toEnum f) (toEnum t) (if d > 2 then 0 else 1))
+            return (FaceTwist (toEnum f) (if d > 2 then 0 else 1) (toEnum t))
 
 applicableTwists :: CubeTwists2 -> (Face, Z2) -> [((Face, Z2), Twist4)]
 applicableTwists twists lastIndex = [a | a@(i, _) <- Map.toList twists, i /= lastIndex]

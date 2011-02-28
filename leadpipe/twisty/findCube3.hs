@@ -77,7 +77,7 @@ nonUpEdges = [minBound..] \\ faceEdges U
 -- the cumulative twist for a face.
 genMove :: Node -> SearchM CubeMove1
 genMove node@(alg, twists) = do
-  let (FaceTwist lf _ ld) = lastMove alg
+  let (FaceTwist lf ld _) = lastMove alg
   let lastIndex = (lf, ld)
   if Map.null twists || Map.size twists == 1 && Map.member lastIndex twists
     then randomMove
@@ -86,11 +86,11 @@ genMove node@(alg, twists) = do
               let ats = applicableTwists twists lastIndex
               j <- getRandomR (0, length ats - 1)
               let ((f, d), t) = ats !! j
-              return (FaceTwist f (-t) d)
+              return (FaceTwist f d (-t))
     where randomMove = do
             f <- getRandomR (fromEnum (minBound::Face), fromEnum (maxBound::Face))
             t <- getRandomR (1::Int, 3)
-            return (FaceTwist (toEnum f) (toEnum t) 0)
+            return (FaceTwist (toEnum f) 0 (toEnum t))
 
 applicableTwists :: CubeTwists1 -> (Face, Z1) -> [((Face, Z1), Twist4)]
 applicableTwists twists lastIndex = [a | a@(i, _) <- Map.toList twists, i /= lastIndex]

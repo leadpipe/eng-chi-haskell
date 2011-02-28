@@ -45,10 +45,10 @@ instance Puzzle Cube3 where
   type Move Cube3 = CubeMove1
   fromMove = Memo.array fromMove1
     where fromMove1 :: CubeMove1 -> Cube3
-          fromMove1 (FaceTwist f 1 _) = Cube3 (v, e)
+          fromMove1 (FaceTwist f _ 1) = Cube3 (v, e)
             where v = fromCycles [asCycle' f faceVertices vertexFaces]
                   e = fromCycles [asCycle' f faceEdges edgeFaces]
-          fromMove1 (FaceTwist f n d) = fromMove (FaceTwist f 1 d) $^ n
+          fromMove1 (FaceTwist f d n) = fromMove (FaceTwist f d 1) $^ n
 
 instance Show Cube3 where
   showsPrec _ (Cube3 (v, e)) = fromOptCycles $ optShowCycles v $* optShowCycles e
