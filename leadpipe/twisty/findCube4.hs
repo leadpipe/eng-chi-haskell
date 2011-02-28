@@ -70,7 +70,7 @@ genMove :: Node -> SearchM CubeMove2
 genMove node@(alg, twists) = do
   let (FaceTwist lf ld _) = lastMove alg
   let lastIndex = (lf, ld)
-  if Map.null twists || Map.size twists == 1 && Map.member lastIndex twists
+  if nothingApplicable twists lastIndex
     then randomMove
     else do i <- getRandomR (1::Int, 10)
             if i <= 3 then randomMove else do
@@ -83,6 +83,3 @@ genMove node@(alg, twists) = do
             d <- getRandomR (1::Int, 5) -- 40% chance of both layers, 60% outer layer only
             t <- getRandomR (1::Int, 3)
             return (FaceTwist (toEnum f) (if d > 2 then 0 else 1) (toEnum t))
-
-applicableTwists :: CubeTwists2 -> (Face, Z2) -> [((Face, Z2), Twist4)]
-applicableTwists twists lastIndex = [a | a@(i, _) <- Map.toList twists, i /= lastIndex]

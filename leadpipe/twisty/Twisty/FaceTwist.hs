@@ -22,6 +22,8 @@ module Twisty.FaceTwist
        , CumulativeTwists
        , emptyTwists
        , updateTwists
+       , applicableTwists
+       , nothingApplicable
        )
 where
 
@@ -89,3 +91,13 @@ updateTwists ct (FaceTwist f d t) = Map.alter applyTwist (f, d) ct
         toMaybe t
           | t == one  = Nothing
           | otherwise = Just t
+
+-- | Returns all the indices and twists except the given index.
+applicableTwists :: (PolyFace f, Ord d, Group t, Ord t) =>
+                    CumulativeTwists f d t -> (f, d) -> [((f, d), t)]
+applicableTwists twists index = [a | a@(i, _) <- Map.toList twists, i /= index]
+
+-- | Tells whether 'applicableTwists' would be empty.
+nothingApplicable :: (PolyFace f, Ord d, Group t, Ord t) =>
+                     CumulativeTwists f d t -> (f, d) -> Bool
+nothingApplicable twists index = Map.null twists || Map.size twists == 1 && Map.member index twists
