@@ -30,7 +30,10 @@ module Twisty.Wreath
        , WreathEntry(..)
        , WreathPermutable
        , WreathTwist
+       , getEntry
        , numIndicesMoved
+       , getAlteredEntries
+       , leavesAllUnaltered
        , toCycles
        , fromCycles
        , optShowCycles
@@ -148,6 +151,25 @@ numIndicesMoved (Wreath arr) = foldl' f 0 (assocs arr)
   where f count (src, Entry (tgt, _))
           | src == tgt = count
           | otherwise  = succ count
+
+-- | Returns the elements that are moved or twisted by this wreath, and how they
+-- are moved or twisted.
+getAlteredEntries :: (WreathPermutable a) => Wreath a -> [(a, Entry a)]
+getAlteredEntries (Wreath arr) = [assoc | assoc@(src, Entry (tgt, t)) <- assocs arr,
+                                  src /= tgt || t /= one]
+
+-- | Tells whether this wreath leaves all of the elements of the given list
+-- unmoved and untwisted.  The list must be sorted.
+leavesAllUnaltered :: (WreathPermutable a) => Wreath a -> [a] -> Bool
+leavesAllUnaltered (Wreath arr) = check (assocs arr)
+  where check [] _ = True
+        check _ [] = True
+        check assocsAll@((src, Entry (tgt, t)):assocsTail) asAll@(a:asTail) =
+          case compare a src of
+            LT -> check assocsAll asTail
+            GT -> check assocsTail asAll
+            EQ -> if src == tgt && t == one
+                  then check assocsTail asTail else False
 
 -- | Converts a wreath into disjoint cycles.
 toCycles :: forall a. (WreathPermutable a) => Wreath a -> [[Entry a]]
