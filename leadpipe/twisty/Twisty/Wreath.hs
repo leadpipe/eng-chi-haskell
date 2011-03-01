@@ -77,7 +77,9 @@ instance (WreathPermutable a) => Ord (Wreath a) where
   Wreath arr1 `compare` Wreath arr2 = comparing trim arr1 arr2
 
 -- | A WreathEntry combines the target value and the twist for the source value.
-newtype (WreathPermutable a) => WreathEntry a = Entry (a, WreathTwist a)
+data (WreathPermutable a) => WreathEntry a = Entry { entryTarget :: a
+                                                   , entryTwist :: WreathTwist a
+                                                   }
 
 deriving instance (WreathPermutable a) => Eq (WreathEntry a)
 deriving instance (WreathPermutable a) => Ord (WreathEntry a)
@@ -86,16 +88,16 @@ deriving instance (WreathPermutable a) => Ord (WreathEntry a)
 type Entry = WreathEntry
 
 instance (WreathPermutable a, Show a, Show (WreathTwist a)) => Show (WreathEntry a) where
-    showsPrec n (Entry (a, t)) = showsPrec n a . showsPrec n t
+    showsPrec n (Entry a t) = showsPrec n a . showsPrec n t
 
 
 -- | Look up the entry for a value within a wreath.
 getEntry :: (WreathPermutable a) => Wreath a -> a -> Entry a
-getEntry (Wreath arr) a = if inRange (bounds arr) a then arr!a else Entry (a, one)
+getEntry (Wreath arr) a = if inRange (bounds arr) a then arr!a else Entry a one
 
 -- | Chain an entry through a wreath.
 chainEntry :: (WreathPermutable a) => Wreath a -> Entry a -> Entry a
-chainEntry w !(Entry (a, t)) = let !(Entry (a', t')) = getEntry w a in Entry (a', t $* t')
+chainEntry w !(Entry a t) = let !(Entry a' t') = getEntry w a in Entry a' (t $* t')
 
 -- | The array we use for empty wreaths.
 emptyWreathArray :: (WreathPermutable a) => Array a (Entry a)
@@ -129,14 +131,14 @@ trim = trimDown . trimUp
         maxMoved arr = let (b1, b2) = bounds arr in mm b1 b2
           where mm b1 b2 = if b2 < b1 || arr `moves` b2 then b2
                            else mm b1 (pred b2)
-        moves arr a = arr!a /= Entry (a, one)
+        moves arr a = arr!a /= Entry a one
 
 -- | Wreaths are Groups: the inverse is the inverse permutation with all the
 -- twists also inverted.
 instance (WreathPermutable a) => Group (Wreath a) where
   ginvert (Wreath arr) = Wreath (if Map.null invMap then emptyWreathArray else trim inv)
-    where invMap = Map.fromList [(tgt, Entry (src, ginvert t)) | (src, Entry (tgt, t)) <- assocs arr]
-          inv = listArray (b1, b2) [Map.findWithDefault (Entry (a, one)) a invMap | a <- [b1..b2]]
+    where invMap = Map.fromList [(tgt, Entry src (ginvert t)) | (src, Entry tgt t) <- assocs arr]
+          inv = listArray (b1, b2) [Map.findWithDefault (Entry a one) a invMap | a <- [b1..b2]]
           (b1, _) = Map.findMin invMap
           (b2, _) = Map.findMax invMap
 
@@ -148,14 +150,14 @@ instance (WreathPermutable a, Show a, Show (WreathTwist a)) => Show (Wreath a) w
 -- the twists: an index that is twisted in place does not add to the count.
 numIndicesMoved :: (WreathPermutable a) => Wreath a -> Int
 numIndicesMoved (Wreath arr) = foldl' f 0 (assocs arr)
-  where f count (src, Entry (tgt, _))
+  where f count (src, Entry tgt _)
           | src == tgt = count
           | otherwise  = succ count
 
 -- | Returns the elements that are moved or twisted by this wreath, and how they
 -- are moved or twisted.
 getAlteredEntries :: (WreathPermutable a) => Wreath a -> [(a, Entry a)]
-getAlteredEntries (Wreath arr) = [assoc | assoc@(src, Entry (tgt, t)) <- assocs arr,
+getAlteredEntries (Wreath arr) = [assoc | assoc@(src, Entry tgt t) <- assocs arr,
                                   src /= tgt || t /= one]
 
 -- | Tells whether this wreath leaves all of the elements of the given list
@@ -164,7 +166,7 @@ leavesAllUnaltered :: (WreathPermutable a) => Wreath a -> [a] -> Bool
 leavesAllUnaltered (Wreath arr) = check (assocs arr)
   where check [] _ = True
         check _ [] = True
-        check assocsAll@((src, Entry (tgt, t)):assocsTail) asAll@(a:asTail) =
+        check assocsAll@((src, Entry tgt t):assocsTail) asAll@(a:asTail) =
           case compare a src of
             LT -> check assocsAll asTail
             GT -> check assocsTail asAll
@@ -177,10 +179,10 @@ toCycles (Wreath arr) =
   let (cs, _) = foldl' findCycle ([], Set.empty) (range (bounds arr)) in reverse cs
   where findCycle (cs, seen) src =
           if src `Set.member` seen then (cs, seen)
-          else let e@(Entry (tgt, t)) = arr ! src
+          else let e@(Entry tgt t) = arr ! src
                in if tgt == src && t == one then (cs, seen)
                   else let (c, srce, seen') = cycle src e seen in ((srce:c):cs, seen')
-        cycle hd e@(Entry (a, t)) seen =
+        cycle hd e@(Entry a t) seen =
           if a == hd then ([], e, seen)
           else let (c, srce, seen') = cycle hd (arr!a) (Set.insert a seen)
                in (e:c, srce, seen')
@@ -190,9 +192,8 @@ toCycles (Wreath arr) =
 fromCycles :: (WreathPermutable a) => [[Entry a]] -> Wreath a
 fromCycles cs = Wreath (trim arr)
   where arr = base // concatMap fromCycle cs
-        base = array (minBound, maxBound) [(a, Entry (a, one)) | a <- [minBound..maxBound]]
-        fromCycle es = zip (map getItem es) (rotate 1 es)
-        getItem (Entry (a, _)) = a
+        base = array (minBound, maxBound) [(a, Entry a one) | a <- [minBound..maxBound]]
+        fromCycle es = zip (map entryTarget es) (rotate 1 es)
 
 
 -- | Optionally shows a wreath as its disjoint cycles; an empty wreath returns

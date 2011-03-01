@@ -32,9 +32,8 @@ import Data.Maybe (fromJust)
 -- difference in location of the face within each pair of pieces' faces.
 asCycle :: forall f a. (Eq f, WreathPermutable a, Num (WreathTwist a)) =>
            f -> [a] -> (a -> [f]) -> [WreathEntry a]
-asCycle f as toFs = zipWith toEntry as twists
-  where toEntry a t = Entry (a, t)
-        indices = map indexIn as
+asCycle f as toFs = zipWith Entry as twists
+  where indices = map indexIn as
         indexIn a = toInteger $ fromJust $ f `elemIndex` toFs a
         twists = zipWith toTwist indices $ rotate 1 indices
         toTwist i j = fromInteger (i - j)
@@ -51,4 +50,4 @@ asCycle' f toAs = asCycle f (toAs f)
 -- possible.
 asSimpleCycle :: forall a. (WreathPermutable a) => [a] -> [WreathEntry a]
 asSimpleCycle as = map toEntry as
-  where toEntry a = Entry (a, one)
+  where toEntry a = Entry a one
