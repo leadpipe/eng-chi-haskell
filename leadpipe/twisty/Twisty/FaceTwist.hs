@@ -79,6 +79,9 @@ instance (PolyFace f, Bounded d, Ord d, Ix d, Group t, Bounded t, Ord t, Ix t) =
 -- | Adds up all the twists associated with each (face, depth) pair.
 type CumulativeTwists f d t = Map (f, d) t
 
+twistIndex :: (PolyFace f, Ord d, Group t, Ord t) => FaceTwist f d t -> (f, d)
+twistIndex (FaceTwist f d _) = (f, d)
+
 emptyTwists :: CumulativeTwists f d t
 emptyTwists = Map.empty
 
@@ -92,12 +95,13 @@ updateTwists ct (FaceTwist f d t) = Map.alter applyTwist (f, d) ct
           | t == one  = Nothing
           | otherwise = Just t
 
--- | Returns all the indices and twists except the given index.
+-- | Returns all the indices and twists except the index for the given move.
 applicableTwists :: (PolyFace f, Ord d, Group t, Ord t) =>
-                    CumulativeTwists f d t -> (f, d) -> [((f, d), t)]
-applicableTwists twists index = [a | a@(i, _) <- Map.toList twists, i /= index]
+                    CumulativeTwists f d t -> FaceTwist f d t -> [((f, d), t)]
+applicableTwists twists move = [a | a@(i, _) <- Map.toList twists, i /= twistIndex move]
 
 -- | Tells whether 'applicableTwists' would be empty.
 nothingApplicable :: (PolyFace f, Ord d, Group t, Ord t) =>
-                     CumulativeTwists f d t -> (f, d) -> Bool
-nothingApplicable twists index = Map.null twists || Map.size twists == 1 && Map.member index twists
+                     CumulativeTwists f d t -> FaceTwist f d t -> Bool
+nothingApplicable twists move = Map.null twists ||
+                                Map.size twists == 1 && Map.member (twistIndex move) twists

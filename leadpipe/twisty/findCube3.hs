@@ -77,13 +77,12 @@ nonUpEdges = [minBound..] \\ faceEdges U
 -- the cumulative twist for a face.
 genMove :: Node -> SearchM CubeMove1
 genMove node@(alg, twists) = do
-  let (FaceTwist lf ld _) = lastMove alg
-  let lastIndex = (lf, ld)
-  if nothingApplicable twists lastIndex
+  let move = lastMove alg
+  if nothingApplicable twists move
     then randomMove
     else do i <- getRandomR (1::Int, 10)
             if i <= 3 then randomMove else do
-              let ats = applicableTwists twists lastIndex
+              let ats = applicableTwists twists move
               j <- getRandomR (0, length ats - 1)
               let ((f, d), t) = ats !! j
               return (FaceTwist f d (-t))
