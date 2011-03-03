@@ -15,11 +15,18 @@ limitations under the License.
 -}
 
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -- | Functions for finding algorithms that satisfy some given conditions.
 module Twisty.Searching where
 
+import Twisty.FaceTwist
 import Twisty.Group
+import Twisty.Polyhedron
 import Twisty.Puzzle
 
 import Control.Monad
@@ -54,8 +61,8 @@ concatM = liftM concat . sequence
 -- | For nodes that encapsulate twisty algorithms, produces a list of successor
 -- algorithms given a way to generate moves.
 generateChildren :: (Monad m, Puzzle p, Ord (Move p)) =>
-                    (a -> Algorithm p) -> (a -> m (Move p)) -> Int -> a -> m [Algorithm p]
-generateChildren getAlg genMove count node = collect 0 Set.empty []
+                    Int -> (a -> Algorithm p) -> (a -> m (Move p)) -> a -> m [Algorithm p]
+generateChildren count getAlg genMove node = collect 0 Set.empty []
   where alg = getAlg node
         collect n seen algs
           | n >= count  = return algs
@@ -69,11 +76,11 @@ generateChildren getAlg genMove count node = collect 0 Set.empty []
 
 -- | Stops generating children after reaching algorithms of a particular length.
 generateChildrenToLength :: (Monad m, Puzzle p, Ord (Move p)) =>
-                            Int -> (a -> Algorithm p) -> (a -> m (Move p)) -> Int -> a -> m [Algorithm p]
-generateChildrenToLength len getAlg genMove count node =
-  if (moveCount . getAlg) node >= len
+                            Int -> Int -> (a -> Algorithm p) -> (a -> m (Move p)) -> a -> m [Algorithm p]
+generateChildrenToLength len count getAlg genMove node =
+  if moveCount (getAlg node) >= len
   then return []
-  else generateChildren getAlg genMove count node
+  else generateChildren count getAlg genMove node
 
 
 -- | Returns a stream of deterministic random number generators given a seed.
@@ -87,3 +94,71 @@ stdGenStream = fmap stdGenToStream newStdGen
 -- | Returns a stream of random number generators given an initial generator.
 stdGenToStream :: StdGen -> [StdGen]
 stdGenToStream gen = let (g1, g2) = split gen in g1 : stdGenToStream g2
+
+
+-- | This is just a way to bundle up a bunch of constraints.
+class (Puzzle p, PolyFace f, Ord d, Group t, Ord t {-, Move p ~ FaceTwist f d t-}) => PolyPuzzle p f d t
+instance (Puzzle p, PolyFace f, Ord d, Group t, Ord t {-, Move p ~ FaceTwist f d t-}) => PolyPuzzle p f d t
+
+-- | A node type for 'searchTree' that lets us track cumulative twists.
+type SearchNode p f d t = (Algorithm p, CumulativeTwists f d t)
+
+-- | A useful monad for 'searchTree'.
+type SearchM = Rand StdGen
+
+-- | Turns a move into a node.
+makeRoot :: --(Puzzle p, PolyFace f, Ord d, Group t, Ord t, Move p ~ FaceTwist f d t, Monad m) =>
+            (PolyPuzzle p f d t, Move p ~ FaceTwist f d t, Monad m) =>
+            FaceTwist f d t -> m (SearchNode p f d t)
+makeRoot mv = return (one `applyMove` mv, emptyTwists `updateTwists` mv)
+
+genNodeChildrenToLength :: (PolyPuzzle p f d t, Monad m, Move p ~ FaceTwist f d t) =>
+                           Int -> Int -> (SearchNode p f d t -> m (Move p)) ->
+                           SearchNode p f d t -> Bool -> m [SearchNode p f d t]
+genNodeChildrenToLength len count genMove node _ =
+  do algs <- generateChildrenToLength len count fst genMove node
+     return $ map addTwists algs
+  where addTwists alg = (alg, snd node `updateTwists` lastMove alg)
+
+
+-- | Generalized searcher using SearchNode.
+searchNodeTree :: (PolyPuzzle p f d t, Move p ~ FaceTwist f d t, Read (Move p), Show (Move p)) =>
+                  (SearchNode p f d t -> Bool -> SearchM [SearchNode p f d t]) ->
+                  (Algorithm p -> Bool) ->
+                  IO [StdGen] ->
+                  Int ->
+                  [String] ->
+                  IO [Algorithm p]
+searchNodeTree calcChildren satisfies generatorStream n starts = do
+  let roots = map (makeRoot . read) starts
+  let search = searchTree calcChildren (return . satisfies . fst)
+  gens <- generatorStream
+  let nodes = concat (zipWith (evalRand . search) roots gens `using` parBuffer n rseq)
+  mapM (return . fst) nodes
+
+
+-- | Searches forever using nondeterministic generators.
+searchForever :: (PolyPuzzle p f d t, Move p ~ FaceTwist f d t, Read (Move p), Show (Move p)) =>
+                 (SearchNode p f d t -> Bool -> SearchM [SearchNode p f d t]) ->
+                 (Algorithm p -> Bool) ->
+                 Int ->
+                 [String] ->
+                 IO [Algorithm p]
+searchForever calcChildren satisfies n starts =
+  searchNodeTree calcChildren satisfies stdGenStream n (cycle starts)
+
+
+-- | Searches once using seeded generators.
+searchOnce :: (PolyPuzzle p f d t, Move p ~ FaceTwist f d t, Read (Move p), Show (Move p)) =>
+              (SearchNode p f d t -> Bool -> SearchM [SearchNode p f d t]) ->
+              (Algorithm p -> Bool) ->
+              Int ->
+              Int ->
+              [String] ->
+              IO [Algorithm p]
+searchOnce calcChildren satisfies n seed starts =
+  searchNodeTree calcChildren satisfies (seededStdGens seed) n starts
+
+
+printAll :: (Show a) => IO [a] -> IO ()
+printAll = (>>= mapM_ print)

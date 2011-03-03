@@ -39,31 +39,24 @@ import qualified Data.Map as Map
 import Data.Monoid (Any(..))
 import System.Random
 
-type SearchM a = Rand StdGen a
 type Node = (Algorithm Cube3, CubeTwists1)
 
-main = do
-  let roots = cycle $ map (makeRoot . read) ["f+", "f="]
-  let search = searchTree calcChildren (return . whatWe'reLookingFor . fst)
-  gens <- stdGenStream  -- seededStdGens 0
-  let nodes = concat (zipWith (evalRand . search) roots gens `using` parBuffer 3 rseq)
-  mapM_ (print . fst) nodes
+main = printAll $ searchForever calcChildren upFaceOnly 3 starts
 
-makeRoot :: CubeMove1 -> SearchM Node
-makeRoot mv = return (one `applyMove` mv, emptyTwists `updateTwists` mv)
+-- | Use this for profiling
+main' = printAll $ searchOnce calcChildren upFaceOnly 3 0 starts
+
+starts = ["f+", "f="]
 
 calcChildren :: Node -> Bool -> SearchM [Node]
-calcChildren node _ = do algs <- generateChildrenToLength 12 fst genMove 3 node
-                         return $ map addTwists algs
-  where addTwists alg = (alg, snd node `updateTwists` lastMove alg)
+calcChildren = genNodeChildrenToLength 12 3 genMove
 
-
-whatWe'reLookingFor :: Algorithm Cube3 -> Bool
-whatWe'reLookingFor a = moveCount a > 4
-                        && v `leavesAllUnaltered` nonUpVertices
-                        && e `leavesAllUnaltered` nonUpEdges
-                        && lastMoveFace /= U
-                        && s /= one
+upFaceOnly :: Algorithm Cube3 -> Bool
+upFaceOnly a = moveCount a > 4
+               && v `leavesAllUnaltered` nonUpVertices
+               && e `leavesAllUnaltered` nonUpEdges
+               && lastMoveFace /= U
+               && s /= one
   where Cube3 s@(v, e) = result a
         FaceTwist lastMoveFace _ _ = lastMove a
 

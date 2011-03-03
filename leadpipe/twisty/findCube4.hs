@@ -37,23 +37,14 @@ import qualified Data.Map as Map
 import Data.Monoid (Any(..))
 import System.Random
 
-type SearchM a = Rand StdGen a
 type Node = (Algorithm Cube4, CubeTwists2)
 
-main = do
-  let roots = cycle $ map (makeRoot . read) ["f+", "F+", "f=", "F="]
-  let search = searchTree calcChildren (return . whatWe'reLookingFor . fst)
-  gens <- stdGenStream  -- seededStdGens 0
-  let nodes = concat (zipWith (evalRand . search) roots gens `using` parBuffer 3 rseq)
-  mapM_ (print . fst) nodes
+main = printAll $ searchForever calcChildren whatWe'reLookingFor 3 starts
 
-makeRoot :: CubeMove2 -> SearchM Node
-makeRoot mv = return (one `applyMove` mv, emptyTwists `updateTwists` mv)
+starts = ["f+", "F+", "f=", "F="]
 
 calcChildren :: Node -> Bool -> SearchM [Node]
-calcChildren node _ = do algs <- generateChildrenToLength 20 fst genMove 2 node
-                         return $ map addTwists algs
-  where addTwists alg = (alg, snd node `updateTwists` lastMove alg)
+calcChildren = genNodeChildrenToLength 12 3 genMove
 
 
 whatWe'reLookingFor :: Algorithm Cube4 -> Bool
