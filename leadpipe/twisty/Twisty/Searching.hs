@@ -156,5 +156,5 @@ searchOnce :: (PolyPuzzle p f d t, Move p ~ FaceTwist f d t, Read (Move p), Show
               Int ->
               [String] ->
               IO ()
-searchOnce calcChildren satisfies n seed starts =
-  searchNodeTree calcChildren satisfies (seededStdGens seed) n starts
+searchOnce calcChildren satisfies n seed =
+  searchNodeTree calcChildren satisfies (seededStdGens seed) n

@@ -170,8 +170,7 @@ leavesAllUnaltered (Wreath arr) = check (assocs arr)
           case compare a src of
             LT -> check assocsAll asTail
             GT -> check assocsTail asAll
-            EQ -> if src == tgt && t == one
-                  then check assocsTail asTail else False
+            EQ -> src == tgt && t == one && check assocsTail asTail
 
 -- | Converts a wreath into disjoint cycles.
 toCycles :: forall a. (WreathPermutable a) => Wreath a -> [[Entry a]]
