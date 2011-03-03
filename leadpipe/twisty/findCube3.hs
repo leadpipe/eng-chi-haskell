@@ -41,10 +41,10 @@ import System.Random
 
 type Node = (Algorithm Cube3, CubeTwists1)
 
-main = printAll $ searchForever calcChildren upFaceOnly 3 starts
+main = searchForever calcChildren upFaceOnly 3 starts
 
 -- | Use this for profiling
-main' = printAll $ searchOnce calcChildren upFaceOnly 3 0 starts
+main' = searchOnce calcChildren upFaceOnly 3 0 starts
 
 starts = ["f+", "f="]
 

@@ -39,7 +39,7 @@ import System.Random
 
 type Node = (Algorithm Cube4, CubeTwists2)
 
-main = printAll $ searchForever calcChildren whatWe'reLookingFor 3 starts
+main = searchForever calcChildren whatWe'reLookingFor 3 starts
 
 starts = ["f+", "F+", "f=", "F="]
 

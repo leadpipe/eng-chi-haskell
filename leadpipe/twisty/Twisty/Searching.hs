@@ -128,13 +128,13 @@ searchNodeTree :: (PolyPuzzle p f d t, Move p ~ FaceTwist f d t, Read (Move p), 
                   IO [StdGen] ->
                   Int ->
                   [String] ->
-                  IO [Algorithm p]
+                  IO ()
 searchNodeTree calcChildren satisfies generatorStream n starts = do
   let roots = map (makeRoot . read) starts
   let search = searchTree calcChildren (return . satisfies . fst)
   gens <- generatorStream
   let nodes = concat (zipWith (evalRand . search) roots gens `using` parBuffer n rseq)
-  mapM (return . fst) nodes
+  mapM_ (print . fst) nodes
 
 
 -- | Searches forever using nondeterministic generators.
@@ -143,7 +143,7 @@ searchForever :: (PolyPuzzle p f d t, Move p ~ FaceTwist f d t, Read (Move p), S
                  (Algorithm p -> Bool) ->
                  Int ->
                  [String] ->
-                 IO [Algorithm p]
+                 IO ()
 searchForever calcChildren satisfies n starts =
   searchNodeTree calcChildren satisfies stdGenStream n (cycle starts)
 
@@ -155,10 +155,6 @@ searchOnce :: (PolyPuzzle p f d t, Move p ~ FaceTwist f d t, Read (Move p), Show
               Int ->
               Int ->
               [String] ->
-              IO [Algorithm p]
+              IO ()
 searchOnce calcChildren satisfies n seed starts =
   searchNodeTree calcChildren satisfies (seededStdGens seed) n starts
-
-
-printAll :: (Show a) => IO [a] -> IO ()
-printAll = (>>= mapM_ print)
