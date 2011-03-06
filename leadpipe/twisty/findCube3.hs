@@ -16,6 +16,8 @@ limitations under the License.
 
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Main where
 
@@ -40,16 +42,19 @@ import Data.Monoid (Any(..))
 import System.Random
 
 type Node = (Algorithm Cube3, CubeTwists1)
+instance SearchNode Node where
+  type GenMonad Node = SearchM
+  generateMove = genMove
 
-main = searchForever calcChildren upFaceOnly 3 starts
+main = searchForever calcChildren upFaceOnly 3 starts (print . fst)
 
 -- | Use this for profiling
-main' = searchOnce calcChildren upFaceOnly 3 0 starts
+main' = searchOnce calcChildren upFaceOnly 0 3 starts (print . fst)
 
 starts = ["f+", "f="]
 
 calcChildren :: Node -> Bool -> SearchM [Node]
-calcChildren = genNodeChildrenToLength 12 3 genMove
+calcChildren = generateChildrenToLength 12 3 True
 
 upFaceOnly :: Algorithm Cube3 -> Bool
 upFaceOnly a = moveCount a > 4
