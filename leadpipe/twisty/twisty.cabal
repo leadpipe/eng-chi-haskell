@@ -1,5 +1,5 @@
 Name:           twisty
-Version:        0.1.0
+Version:        0.2.0
 Cabal-Version:  >= 1.6
 Synopsis:       Simulator of twisty puzzles à la Rubik's Cube
 Description:
@@ -19,13 +19,13 @@ Source-Repository head
   Location:     http://eng-chi-haskell.googlecode.com/svn/leadpipe/twisty
 
 Library
-  Build-Depends:        base == 4.2.*
+  Build-Depends:        base >= 4.2 && < 4.4
                         , array == 0.3.*
-                        , containers == 0.3.*
+                        , containers >= 0.3 && < 0.5
                         , data-memocombinators == 0.4.1.*
                         , MonadRandom == 0.1.6.*
                         , parallel == 3.1.*
-  ghc-options:  -O2
+  ghc-options:  -O2 -threaded -fspec-constr-count=6
   Exposed-Modules:
     -- Various puzzle simulations
     Twisty.CubeExploration, Twisty.Cube, Twisty.Cube3, Twisty.Cube3a, Twisty.Cube4,
@@ -35,5 +35,5 @@ Library
     -- Puzzle/geometry
     Twisty.Puzzle, Twisty.Polyhedron, Twisty.FaceTwist, Twisty.CubeSymmetries,
     -- Utilities
-    Twisty.Lists, Twisty.Memo, Twisty.Searching, Twisty.Strings
+    Twisty.Lists, Twisty.Memo, Twisty.Searching, Twisty.Strings, Twisty.TwistSearchNode
 

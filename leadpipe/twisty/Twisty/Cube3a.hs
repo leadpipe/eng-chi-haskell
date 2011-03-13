@@ -50,7 +50,7 @@ instance Puzzle Cube3a where
   type Move Cube3a = CubeMove1
   fromMove = Memo.array fromMove1
     where fromMove1 :: CubeMove1 -> Cube3a
-          fromMove1 m@(FaceTwist f _ 1) = Cube3a (fromMove m, fromCycles [[Entry (f, 1)]])
+          fromMove1 m@(FaceTwist f _ 1) = Cube3a (fromMove m, fromCycles [[Entry f 1]])
           fromMove1 (FaceTwist f d n) = fromMove (FaceTwist f d 1) $^ n
 
 instance Show Cube3a where

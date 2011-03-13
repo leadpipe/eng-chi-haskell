@@ -15,6 +15,7 @@ limitations under the License.
 -}
 
 {-# LANGUAGE ScopedTypeVariables #-}
+
 -- | Building on Data.MemoCombinators.
 module Twisty.Memo (
   module Data.MemoCombinators

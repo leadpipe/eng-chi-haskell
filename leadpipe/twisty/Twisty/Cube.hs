@@ -35,9 +35,8 @@ import Data.Ix (Ix)
 import Data.Maybe (listToMaybe, maybeToList)
 import GHC.Enum (boundedEnumFrom, boundedEnumFromThen)
 
--- | The faces of the cube.  The order is such that the opposite face
--- for face X is the same distance from the back of the list as X is
--- from the front.
+-- | The faces of the cube.  The order is such that the opposite face for face X
+-- is the same distance from the back of the list as X is from the front.
 data Face = U  -- ^ The \"up\" (top) face.
           | F  -- ^ The front face.
           | L  -- ^ The left face.

@@ -14,7 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
-{-# LANGUAGE TypeFamilies, TypeSynonymInstances #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 -- | Describes a tetrahedron in terms of faces, edges, and vertices.
 module Twisty.Tetra where

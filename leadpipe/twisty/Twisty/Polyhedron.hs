@@ -14,7 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
-{-# LANGUAGE FlexibleContexts, ScopedTypeVariables, TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -- | Defines a type class for polyhedra that ties together its faces, edges, and
 -- vertices.
@@ -132,6 +134,7 @@ faceEdges = (edgesArray !)
                      [es f | f <- [minBound..]]
         es :: (PolyFace f) => f -> [PolyEdge f]
         es = map facesToEdge . efs
+        efs :: (PolyFace f) => f -> [[f]]
         efs f = map (\f2 -> [f, f2]) (neighboringFaces f)
 
 

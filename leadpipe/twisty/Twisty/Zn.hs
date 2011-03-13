@@ -15,9 +15,7 @@ limitations under the License.
 -}
 
 {-# LANGUAGE EmptyDataDecls #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- | Defines the Zn type: integers mod n.  Sometimes known as Z/nZ.  This is a
 -- group under addition.

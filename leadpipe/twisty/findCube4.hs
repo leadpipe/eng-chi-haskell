@@ -28,21 +28,22 @@ import Twisty.Group
 import Twisty.FaceTwist
 import Twisty.Puzzle
 import Twisty.Searching
+import Twisty.TwistSearchNode
 import Twisty.Twists
 import Twisty.Wreath (numIndicesMoved)
 import Twisty.Zn
 
 import Control.Monad.Random
-import Control.Parallel.Strategies
-import Data.Map (Map)
-import qualified Data.Map as Map
 import Data.Monoid (Any(..))
-import System.Random
+import Data.Ratio ((%))
 
 type Node = (Algorithm Cube4, CubeTwists2)
 instance SearchNode Node where
   type GenMonad Node = SearchM
-  generateMove = genMove
+  generateMove = generateTwistSearchNodeMove genDepth (3%10)
+    where genDepth _ = do
+            d <- getRandomR (1::Int, 5)
+            return (if d > 2 then 0 else 1) -- 40% chance of both layers, 60% outer only
 
 main = searchForever calcChildren whatWe'reLookingFor 3 starts (print . fst)
 
@@ -58,23 +59,3 @@ whatWe'reLookingFor a = numEdges > 0 && numEdges <= 4 && moveCount a > 4 && getA
         numEdges = numIndicesMoved e
         hasInnerTwist = foldMoves (\(FaceTwist _ d _) -> Any (d == 1)) a
         facePiecesStay = True -- TODO: idea is, ensure face pieces don't map to different faces
-
-
--- | Generates a random move, sometimes using the given algorithm to close out
--- the cumulative twist for a face.
-genMove :: Node -> SearchM CubeMove2
-genMove node@(alg, twists) = do
-  let move = lastMove alg
-  if nothingApplicable twists move
-    then randomMove
-    else do i <- getRandomR (1::Int, 10)
-            if i <= 3 then randomMove else do
-              let ats = applicableTwists twists move
-              j <- getRandomR (0, length ats - 1)
-              let ((f, d), t) = ats !! j
-              return (FaceTwist f d (-t))
-    where randomMove = do
-            f <- getRandomR (fromEnum (minBound::Face), fromEnum (maxBound::Face))
-            d <- getRandomR (1::Int, 5) -- 40% chance of both layers, 60% outer layer only
-            t <- getRandomR (1::Int, 3)
-            return (FaceTwist (toEnum f) (if d > 2 then 0 else 1) (toEnum t))

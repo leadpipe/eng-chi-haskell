@@ -15,6 +15,7 @@ limitations under the License.
 -}
 
 {-# LANGUAGE TypeFamilies #-}
+
 -- | Defines the basic 3x3 cube puzzle.
 module Twisty.Cube3 where
 

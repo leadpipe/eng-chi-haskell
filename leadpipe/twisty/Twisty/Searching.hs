@@ -15,20 +15,14 @@ limitations under the License.
 -}
 
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 
--- | Functions for finding algorithms that satisfy some given conditions.
+-- | Functions and types for finding algorithms that satisfy some given
+-- conditions.
 module Twisty.Searching where
 
-import Twisty.FaceTwist
-import Twisty.Group
-import Twisty.Polyhedron
 import Twisty.Puzzle
 
 import Control.Monad
@@ -147,23 +141,22 @@ stdGenToStream :: StdGen -> [StdGen]
 stdGenToStream gen = let (g1, g2) = split gen in g1 : stdGenToStream g2
 
 
--- | A node type for 'searchTree' that lets us track cumulative twists.
-type TwistNode p f d t = (Algorithm p, CumulativeTwists f d t)
+-- | A monad capable of being evaluated with a standard random number generator.
+class Monad m => RandMonad m where
 
-instance (Puzzle p, PolyFace f, Ord d, Group t, Ord t, Move p ~ FaceTwist f d t) =>
-         AlgorithmNode (TwistNode p f d t) where
-  type NodePuzzle (TwistNode p f d t) = p
-  getAlgorithm = fst
-  makeRootNode alg = (alg, foldl updateTwists emptyTwists (moves alg))
-  makeChildNode node mv = (fst node `applyMove` mv, snd node `updateTwists` mv)
+  evalRandMonad :: m a -> StdGen -> a
+  -- ^ Runs the monadic value with the given generator.
 
 
--- | The 'GenMonad' type used by 'searchNodeTree'.
+-- | A useful 'GenMonad' type.
 type SearchM = Rand StdGen
+
+instance RandMonad SearchM where
+  evalRandMonad = evalRand
 
 
 -- | Generalized searcher using 'SearchNode'.
-searchNodeTree :: (SearchNode n, Read (Move (NodePuzzle n)), GenMonad n ~ SearchM) =>
+searchNodeTree :: (SearchNode n, Read (Move (NodePuzzle n)), RandMonad (GenMonad n)) =>
                   (n -> Bool -> GenMonad n [n]) ->      -- ^ Child-node generator.
                   (n -> GenMonad n Bool) ->             -- ^ Predicate.
                   IO [StdGen] ->                        -- ^ Stream of rand generators.
@@ -173,14 +166,14 @@ searchNodeTree :: (SearchNode n, Read (Move (NodePuzzle n)), GenMonad n ~ Search
                   IO ()
 searchNodeTree calcChildren satisfies generatorStream n starts op = do
   let roots = map (return . makeRootNode . read) starts
-  let randSearch = evalRand . searchTree calcChildren satisfies
+  let randSearch = evalRandMonad . searchTree calcChildren satisfies
   gens <- generatorStream
   let nodesList = zipWith randSearch roots gens `using` parBuffer n rseq
   mapM_ op $ concat nodesList
 
 
 -- | Searches forever using nondeterministic generators.
-searchForever :: (SearchNode n, Read (Move (NodePuzzle n)), GenMonad n ~ SearchM) =>
+searchForever :: (SearchNode n, Read (Move (NodePuzzle n)), RandMonad (GenMonad n)) =>
                  (n -> Bool -> GenMonad n [n]) ->       -- ^ Child-node generator.
                  (Algorithm (NodePuzzle n) -> Bool) ->  -- ^ Predicate.
                  Int ->                                 -- ^ How many trees to search in parallel.
@@ -192,7 +185,7 @@ searchForever calcChildren satisfies n starts =
 
 
 -- | Searches once using seeded generators.
-searchOnce    :: (SearchNode n, Read (Move (NodePuzzle n)), GenMonad n ~ SearchM) =>
+searchOnce    :: (SearchNode n, Read (Move (NodePuzzle n)), RandMonad (GenMonad n)) =>
                  (n -> Bool -> GenMonad n [n]) ->       -- ^ Child-node generator.
                  (Algorithm (NodePuzzle n) -> Bool) ->  -- ^ Predicate.
                  Int ->                                 -- ^ The seed for the generators.
