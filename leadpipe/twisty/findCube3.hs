@@ -41,10 +41,10 @@ instance SearchNode Node where
   type GenMonad Node = SearchM
   generateMove = generateSimpleTwistSearchNodeMove 0 (3%10)
 
-main = searchForever calcChildren upFaceOnly 3 starts (print . fst)
+main = searchForever calcChildren upFaceOnly starts (print . fst)
 
 -- | Use this for profiling
-main' = searchOnce calcChildren upFaceOnly 0 3 starts (print . fst)
+main' = searchOnce 0 calcChildren upFaceOnly starts (print . fst)
 
 starts = ["f+", "f="]
 

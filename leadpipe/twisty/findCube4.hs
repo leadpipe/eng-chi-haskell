@@ -45,7 +45,7 @@ instance SearchNode Node where
             d <- getRandomR (1::Int, 5)
             return (if d > 2 then 0 else 1) -- 40% chance of both layers, 60% outer only
 
-main = searchForever calcChildren whatWe'reLookingFor 3 starts (print . fst)
+main = searchForever calcChildren whatWe'reLookingFor starts (print . fst)
 
 starts = ["f+", "F+", "f=", "F="]
 

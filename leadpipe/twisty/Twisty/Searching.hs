@@ -30,6 +30,7 @@ import Control.Monad.Random
 import Control.Parallel.Strategies
 import Data.Set (Set)
 import qualified Data.Set as Set
+import GHC.Conc (numCapabilities)
 
 
 -- | Given a root node, and a way to calculate the children of a node, does a
@@ -160,15 +161,14 @@ searchNodeTree :: (SearchNode n, Read (Move (NodePuzzle n)), RandMonad (GenMonad
                   (n -> Bool -> GenMonad n [n]) ->      -- ^ Child-node generator.
                   (n -> GenMonad n Bool) ->             -- ^ Predicate.
                   IO [StdGen] ->                        -- ^ Stream of rand generators.
-                  Int ->                                -- ^ How many trees to search in parallel.
                   [String] ->                           -- ^ Starting algorithms in string form.
                   (n -> IO ()) ->                       -- ^ Operation to perform on each found node.
                   IO ()
-searchNodeTree calcChildren satisfies generatorStream n starts op = do
+searchNodeTree calcChildren satisfies generatorStream starts op = do
   let roots = map (return . makeRootNode . read) starts
   let randSearch = evalRandMonad . searchTree calcChildren satisfies
   gens <- generatorStream
-  let nodesList = zipWith randSearch roots gens `using` parBuffer n rseq
+  let nodesList = zipWith randSearch roots gens `using` parBuffer numCapabilities rseq
   mapM_ op $ concat nodesList
 
 
@@ -176,22 +176,20 @@ searchNodeTree calcChildren satisfies generatorStream n starts op = do
 searchForever :: (SearchNode n, Read (Move (NodePuzzle n)), RandMonad (GenMonad n)) =>
                  (n -> Bool -> GenMonad n [n]) ->       -- ^ Child-node generator.
                  (Algorithm (NodePuzzle n) -> Bool) ->  -- ^ Predicate.
-                 Int ->                                 -- ^ How many trees to search in parallel.
                  [String] ->                            -- ^ Starting algorithms in string form.
                  (n -> IO ()) ->                        -- ^ Operation to perform on each found node.
                  IO ()
-searchForever calcChildren satisfies n starts =
-  searchNodeTree calcChildren (return . satisfies . getAlgorithm) stdGenStream n (cycle starts)
+searchForever calcChildren satisfies =
+  searchNodeTree calcChildren (return . satisfies . getAlgorithm) stdGenStream . cycle
 
 
 -- | Searches once using seeded generators.
 searchOnce    :: (SearchNode n, Read (Move (NodePuzzle n)), RandMonad (GenMonad n)) =>
+                 Int ->                                 -- ^ The seed for the generators.
                  (n -> Bool -> GenMonad n [n]) ->       -- ^ Child-node generator.
                  (Algorithm (NodePuzzle n) -> Bool) ->  -- ^ Predicate.
-                 Int ->                                 -- ^ The seed for the generators.
-                 Int ->                                 -- ^ How many trees to search in parallel.
                  [String] ->                            -- ^ Starting algorithms in string form.
                  (n -> IO ()) ->                        -- ^ Operation to perform on each found node.
                  IO ()
-searchOnce calcChildren satisfies seed =
+searchOnce seed calcChildren satisfies =
   searchNodeTree calcChildren (return . satisfies . getAlgorithm) (seededStdGens seed)
