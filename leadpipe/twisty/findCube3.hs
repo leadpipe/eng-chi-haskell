@@ -39,7 +39,7 @@ import Data.Ratio ((%))
 type Node = (Algorithm Cube3, CubeTwists1)
 instance SearchNode Node where
   type GenMonad Node = SearchM
-  generateMove = generateSimpleTwistSearchNodeMove 0 (3%10)
+  generateMove = generateOuterFaceTwist (3%10)
 
 main = searchForever calcChildren upFaceOnly starts (print . fst)
 

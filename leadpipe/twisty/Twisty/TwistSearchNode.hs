@@ -20,8 +20,8 @@ limitations under the License.
 -- | 'TwistSearchNode' pairs an 'Algorithm' with its 'CumulativeTwists' to make
 -- it easy to generate good moves while searching the tree of possible
 -- algorithms for a twisty puzzle.  This module provides an instance for
--- 'AlgorithmNode', and the function 'generateTwistSearchNodeMove' to simplify
--- the creation of an instance for 'SearchNode'.
+-- 'AlgorithmNode', and functions to serve as definitions for 'generateMove' to
+-- aid the creation of an instance for 'SearchNode'.
 module Twisty.TwistSearchNode where
 
 import Twisty.FaceTwist
@@ -49,14 +49,14 @@ instance (Puzzle p, PolyFace f, Ord d, Group t, Ord t, Move p ~ FaceTwist f d t)
 -- | Generates a random move for a 'TwistSearchNode'.  With some probability,
 -- chooses a move based on the puzzle's cumulative twist rather than a
 -- completely random move.
-generateTwistSearchNodeMove ::
+generateFaceTwist ::
   (Puzzle p, PolyFace f, Bounded f, Enum f, Ord d, Bounded t, Ord t, Enum t, Group t,
    Move p ~ FaceTwist f d t) =>
   (d -> SearchM d) ->           -- ^ A generator function for the depth of a random move.
   Ratio Int ->                  -- ^ The probability of choosing a completely random move.
   TwistSearchNode p f d t ->    -- ^ The parent node to generate a subsequent move from.
   SearchM (FaceTwist f d t)
-generateTwistSearchNodeMove genDepth justRandom node@(alg, twists) =
+generateFaceTwist genDepth justRandom node@(alg, twists) =
   if nothingApplicable twists move
     then randomMove
     else do i <- getRandomR (1, denominator justRandom)
@@ -79,12 +79,16 @@ generateTwistSearchNodeMove genDepth justRandom node@(alg, twists) =
             return (FaceTwist (toEnum f) d (toEnum t))
 
 
--- | Generates a move with a constant depth.
-generateSimpleTwistSearchNodeMove ::
-  (Puzzle p, PolyFace f, Bounded f, Enum f, Ord d, Bounded t, Ord t, Enum t, Group t,
+-- | A depth generator for 'generateFaceTwist' that always returns the same
+-- depth.
+constantDepth :: d -> d -> SearchM d
+constantDepth d = return . const d
+
+-- | Generates an outer-layer face twist.
+generateOuterFaceTwist ::
+  (Puzzle p, PolyFace f, Bounded f, Enum f, Ord d, Num d, Bounded t, Ord t, Enum t, Group t,
    Move p ~ FaceTwist f d t) =>
-  d ->                          -- ^ The depth for all new moves.
   Ratio Int ->                  -- ^ The probability of choosing a completely random move.
   TwistSearchNode p f d t ->    -- ^ The parent node to generate a subsequent move from.
   SearchM (FaceTwist f d t)
-generateSimpleTwistSearchNodeMove depth = generateTwistSearchNodeMove (return . const depth)
+generateOuterFaceTwist = generateFaceTwist $ constantDepth 0
