@@ -40,7 +40,7 @@ import Data.Ratio ((%))
 type Node = (Algorithm Cube4, CubeTwists2)
 instance SearchNode Node where
   type GenMonad Node = SearchM
-  generateMove = generateTwistSearchNodeMove genDepth (3%10)
+  generateMove = generateFaceTwist genDepth (3%10)
     where genDepth _ = do
             d <- getRandomR (1::Int, 5)
             return (if d > 2 then 0 else 1) -- 40% chance of both layers, 60% outer only
