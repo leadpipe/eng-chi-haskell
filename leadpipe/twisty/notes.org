@@ -32,7 +32,7 @@ ghc -prof -auto-all --make -O2 findCube4
 ghc --make -O2 findCube4
 
 # building for threaded execution
-ghc --make -threaded -O2 findCube4
+ghc --make -threaded -O2 -rtsopts findCube4
 
 # running threaded with 3 processors
 ./findCube4 +RTS -N3
