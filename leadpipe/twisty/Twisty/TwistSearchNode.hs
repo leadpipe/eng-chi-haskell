@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
@@ -52,10 +53,10 @@ instance (Puzzle p, PolyFace f, Ord d, Group t, Ord t, Move p ~ FaceTwist f d t)
 generateFaceTwist ::
   (Puzzle p, PolyFace f, Bounded f, Enum f, Ord d, Bounded t, Ord t, Enum t, Group t,
    Move p ~ FaceTwist f d t) =>
-  (d -> SearchM d) ->           -- ^ A generator function for the depth of a random move.
-  Ratio Int ->                  -- ^ The probability of choosing a completely random move.
-  TwistSearchNode p f d t ->    -- ^ The parent node to generate a subsequent move from.
-  SearchM (FaceTwist f d t)
+  (d -> SearchM d)              -- ^ A generator function for the depth of a random move.
+  -> Ratio Int                  -- ^ The probability of choosing a completely random move.
+  -> TwistSearchNode p f d t    -- ^ The parent node to generate a subsequent move from.
+  -> SearchM (FaceTwist f d t)
 generateFaceTwist genDepth justRandom node@(alg, twists) =
   if nothingApplicable twists move
     then randomMove
@@ -88,7 +89,7 @@ constantDepth d = return . const d
 generateOuterFaceTwist ::
   (Puzzle p, PolyFace f, Bounded f, Enum f, Ord d, Num d, Bounded t, Ord t, Enum t, Group t,
    Move p ~ FaceTwist f d t) =>
-  Ratio Int ->                  -- ^ The probability of choosing a completely random move.
-  TwistSearchNode p f d t ->    -- ^ The parent node to generate a subsequent move from.
-  SearchM (FaceTwist f d t)
+  Ratio Int                     -- ^ The probability of choosing a completely random move.
+  -> TwistSearchNode p f d t    -- ^ The parent node to generate a subsequent move from.
+  -> SearchM (FaceTwist f d t)
 generateOuterFaceTwist = generateFaceTwist $ constantDepth 0

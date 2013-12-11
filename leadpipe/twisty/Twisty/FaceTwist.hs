@@ -39,7 +39,7 @@ import qualified Data.Map as Map
 
 -- | Each value has a face to twist, the number of layers to twist, and how far
 -- to twist.
-data (PolyFace face, Ord depth, Group twist, Ord twist) =>
+data {- (PolyFace face, Ord depth, Group twist, Ord twist) => -}
      FaceTwist face depth twist = FaceTwist face depth twist deriving (Eq, Bounded, Ix)
 
 instance (PolyFace f, Ord d, Group t, Ord t) => Ord (FaceTwist f d t) where

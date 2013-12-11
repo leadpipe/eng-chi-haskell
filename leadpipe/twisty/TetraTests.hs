@@ -16,10 +16,15 @@ limitations under the License.
 
 {-# LANGUAGE TemplateHaskell #-}
 
+import Twisty.FaceTwist
+import Twisty.Group
 import Twisty.Polyhedron
 import Twisty.Tetra
+import Twisty.Tetra3
+import Twisty.Wreath
 import Testing
 
+import Data.Array
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.Framework.TH
@@ -45,12 +50,15 @@ prop_vertexFacesClockwise = allClockwise . vertexFaces
           | x == b    = y == c
           | otherwise = adjacent b c (y:xs)
 
--- Every vertex's distinguished face must be Front or Down.
-prop_vertexDistinguishedFace v = distinguishedFace v `elem` [F, D]
-  where distinguishedFace = head . vertexFaces
-
 -- Every edge's faces must be neighbors
 prop_edgeFacesNeighbors :: Edge -> Bool
 prop_edgeFacesNeighbors = allNeighbors . edgeFaces
   where allNeighbors [a, b] = neighbors a b && neighbors b a
         neighbors a b = a `elem` neighboringFaces b
+
+-- For every face's basic move, its resulting state must have edge and vertex
+-- twists that add up to 0 ("one" in Group-speak).
+prop_faceMoveTotalTwistZero :: Face -> Bool
+prop_faceMoveTotalTwistZero f = twistsSumZero $ fromMove1 $ FaceTwist f 1 1
+  where twistsSumZero (Tetra3 (v, e)) = sumTwists v == one && sumTwists e == one
+        sumTwists w = sum $ map entryTwist $ map snd $ getAlteredEntries w

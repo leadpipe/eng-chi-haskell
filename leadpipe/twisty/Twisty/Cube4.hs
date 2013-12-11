@@ -118,7 +118,7 @@ instance Bounded EdgePiece where
   maxBound = EdgePiece $ length allEdgePiecesAsFaces - 1
 
 instance WreathPermutable EdgePiece where
-  type WreathTwist EdgePiece = Twistless
+  type WreathTwist EdgePiece = Flip
 
 allEdgePiecesAsFaces = concat [pieces e | e <- [minBound..]]
   where pieces :: Edge -> [[Face]]

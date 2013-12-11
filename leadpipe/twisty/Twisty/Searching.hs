@@ -15,6 +15,7 @@ limitations under the License.
 -}
 
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -152,7 +153,7 @@ class Monad m => RandMonad m where
 -- | A useful 'GenMonad' type.
 type SearchM = Rand StdGen
 
-instance RandMonad SearchM where
+instance RandMonad (SearchM) where
   evalRandMonad = evalRand
 
 

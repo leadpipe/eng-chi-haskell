@@ -4,7 +4,26 @@
 ** DONE Move FaceTwist4 into the Cube module, rename
 ** DONE Generalize Twisty move types: index + twist
 ** DONE Come up with Alg transforms for Cube
-** Write Tetra3, findTetra3
+** DONE Write Tetra3, findTetra3
+** Figure out piece twists in non-cube polyhedra
+*** Tetra:
+- fl lr rf dr df ld
+- (fl= rf df=)(dr= ld= df) = (fl= rf dr ld= df)
+- in reality though: (fl= rf dr= ld= df=)
+- What if we made the flip dependent on location instead?
+  - f+: (fl rf= df=)  -- so (fl fr= df=)
+  - d+: (dr ld= df=)  -- so (dr dl= fd=)  -- so, apparently inconsistent
+  - f+d+: (fl rf dr ld= df=)
+- Alternate encoding: fd lf rf dl dr rl
+  - f+: (fd= lf rf=)  -- 1:2= 2:3  3:1= 4:4  5:5
+  - d+: (fd= dr dl=)  -- 1:4= 2:2  3:3  4:5  5:1=
+  - f+d+: (fd= lf rf= dr= dl=)  -- 1:2= 2:3  3:4= 4:5= 5:1=
+  - but in reality: (fd= lf rf dr dl=)  -- 1:2= 2:3  3:4  4:5  5:1=
+- Another try: fd fl fr ld dr rl
+  - f+: (fd fl fr)
+  - d+: (fd= dr= ld)
+  - f+d+: (fd= fl fr dr= ld)
+  - but in reality: (fd fl fr= dr= ld)
 ** Write Dodeca3
 ** Write Dodeca5
 ** Write Octa, Octa3, Octa4?
@@ -19,20 +38,32 @@
 ** test-framework-th
 ** test-framework-quickcheck2
 ** parallel (current version)
+** MonadRandom
 
 * Building and running
 
 # building for profiling
-ghc -prof -auto-all --make -O2 findCube4
+ghc -prof -auto-all --make -O findCube4
 
 # running with the profiler
 ./findCube4 +RTS -p
 
 # building optimized
-ghc --make -O2 findCube4
+ghc --make -O findCube4
 
 # building for threaded execution
-ghc --make -threaded -O2 -rtsopts findCube4
+ghc --make -threaded -O -rtsopts findCube4
 
 # running threaded with 3 processors
 ./findCube4 +RTS -N3
+
+# building with cabal
+cabal clean
+cabal configure
+cabal build
+
+# make the source distribution
+cabal sdist
+
+# make the documentation
+cabal haddock --hyperlink-source

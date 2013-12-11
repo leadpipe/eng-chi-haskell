@@ -34,6 +34,7 @@ module Twisty.Wreath
        , numIndicesMoved
        , getAlteredEntries
        , leavesAllUnaltered
+       , leavesAllUnmoved
        , toCycles
        , fromCycles
        , optShowCycles
@@ -68,7 +69,7 @@ class (Enum a, Bounded a, Ix a, Eq a, Ord a,
 -- and some other subgroup, which we designate the \"twist\" group.  For
 -- example, the corner pieces of a Rubik's cube are permuted by each move, but
 -- they are also twisted.
-newtype (WreathPermutable a) => Wreath a = Wreath (Array a (Entry a))
+newtype Wreath a = {- WreathPermutable a => -} Wreath (Array a (Entry a))
 
 instance (WreathPermutable a) => Eq (Wreath a) where
   Wreath arr1 == Wreath arr2 = trim arr1 == trim arr2
@@ -76,10 +77,13 @@ instance (WreathPermutable a) => Eq (Wreath a) where
 instance (WreathPermutable a) => Ord (Wreath a) where
   Wreath arr1 `compare` Wreath arr2 = comparing trim arr1 arr2
 
--- | A WreathEntry combines the target value and the twist for the source value.
-data (WreathPermutable a) => WreathEntry a = Entry { entryTarget :: a
-                                                   , entryTwist :: WreathTwist a
-                                                   }
+-- | A WreathEntry combines a value and a twist.  Note that in a Wreath's array
+-- the value is the target while the array index is the source, while in a cycle
+-- the value is the source.
+data {- (WreathPermutable a) => -}
+  WreathEntry a = Entry { entryValue :: a
+                        , entryTwist :: WreathTwist a
+                        }
 
 deriving instance (WreathPermutable a) => Eq (WreathEntry a)
 deriving instance (WreathPermutable a) => Ord (WreathEntry a)
@@ -172,6 +176,18 @@ leavesAllUnaltered (Wreath arr) = check (assocs arr)
             GT -> check assocsTail asAll
             EQ -> src == tgt && t == one && check assocsTail asTail
 
+-- | Tells whether this wreath leaves all of the elements of the given list
+-- unmoved, though possibly twisted.  The list must be sorted.
+leavesAllUnmoved :: (WreathPermutable a) => Wreath a -> [a] -> Bool
+leavesAllUnmoved (Wreath arr) = check (assocs arr)
+  where check [] _ = True
+        check _ [] = True
+        check assocsAll@((src, Entry tgt t):assocsTail) asAll@(a:asTail) =
+          case compare a src of
+            LT -> check assocsAll asTail
+            GT -> check assocsTail asAll
+            EQ -> src == tgt && check assocsTail asTail
+
 -- | Converts a wreath into disjoint cycles.
 toCycles :: forall a. (WreathPermutable a) => Wreath a -> [[Entry a]]
 toCycles (Wreath arr) =
@@ -180,11 +196,11 @@ toCycles (Wreath arr) =
           if src `Set.member` seen then (cs, seen)
           else let e@(Entry tgt t) = arr ! src
                in if tgt == src && t == one then (cs, seen)
-                  else let (c, srce, seen') = cycle src e seen in ((srce:c):cs, seen')
-        cycle hd e@(Entry a t) seen =
-          if a == hd then ([], e, seen)
-          else let (c, srce, seen') = cycle hd (arr!a) (Set.insert a seen)
-               in (e:c, srce, seen')
+                  else let (c, srce, seen') = cycle src src e seen in ((srce:c):cs, seen')
+        cycle hd src e@(Entry tgt t) seen =
+          if tgt == hd then ([], Entry src t, seen)
+          else let (c, tgte, seen') = cycle hd tgt (arr!tgt) (Set.insert tgt seen)
+               in (Entry src t:c, tgte, seen')
 
 
 -- | Converts a list of cycles into a wreath.
@@ -192,7 +208,8 @@ fromCycles :: (WreathPermutable a) => [[Entry a]] -> Wreath a
 fromCycles cs = Wreath (trim arr)
   where arr = base // concatMap fromCycle cs
         base = array (minBound, maxBound) [(a, Entry a one) | a <- [minBound..maxBound]]
-        fromCycle es = zip (map entryTarget es) (rotate 1 es)
+        fromCycle es = zip (map entryValue es) (targetEntries es)
+        targetEntries es = zipWith Entry (map entryValue (rotate 1 es)) (map entryTwist es)
 
 
 -- | Optionally shows a wreath as its disjoint cycles; an empty wreath returns

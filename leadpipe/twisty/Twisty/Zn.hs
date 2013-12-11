@@ -53,7 +53,7 @@ class Nat n where
 class NatShow n where
   -- | Shows an int in a way appropriate for the type.  Non-strict in the first
   -- argument.  Default shows it in the usual way.
-  showsInt :: Integral i => n -> i -> ShowS
+  showsInt :: (Integral i, Show i) => n -> i -> ShowS
   showsInt _ = shows
 
 -- | Type class for parsing natural numbers.

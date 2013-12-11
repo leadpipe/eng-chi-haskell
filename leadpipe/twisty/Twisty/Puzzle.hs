@@ -15,6 +15,7 @@ limitations under the License.
 -}
 
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -79,10 +80,10 @@ class (Group p, Show p, PuzzleMove (Move p)) => Puzzle p where
 
 
 -- | An Algorithm combines a list of moves with the resulting puzzle state.
-data (Puzzle p) => Algorithm p =
-  Algorithm
-  { rMoves :: [Move p] -- ^ The list of moves, in reverse order (most recent first).
-  , result :: p        -- ^ The resulting puzzle state.
+data Algorithm p = Puzzle p =>
+                   Algorithm {
+  rMoves :: [Move p] -- ^ The list of moves, in reverse order (most recent first).
+  , result :: p      -- ^ The resulting puzzle state.
   }
 
 -- | Is this a non-trivial algorithm?

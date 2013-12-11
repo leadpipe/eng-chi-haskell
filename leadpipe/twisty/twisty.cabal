@@ -19,13 +19,13 @@ Source-Repository head
   Location:     http://eng-chi-haskell.googlecode.com/svn/leadpipe/twisty
 
 Library
-  Build-Depends:        base >= 4.2 && < 4.4
+  Build-Depends:        base == 4.3.*
                         , array == 0.3.*
                         , containers >= 0.3 && < 0.5
                         , data-memocombinators == 0.4.1.*
                         , MonadRandom == 0.1.6.*
                         , parallel == 3.1.*
-  ghc-options:  -O2 -fspec-constr-count=6
+  ghc-options:  -fspec-constr-count=6
   Exposed-Modules:
     -- Various puzzle simulations
     Twisty.CubeExploration, Twisty.Cube, Twisty.Cube3, Twisty.Cube3a, Twisty.Cube4,

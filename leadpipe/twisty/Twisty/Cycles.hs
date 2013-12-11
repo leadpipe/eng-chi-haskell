@@ -36,7 +36,7 @@ asCycle f as toFs = zipWith Entry as twists
   where indices = map indexIn as
         indexIn a = toInteger $ fromJust $ f `elemIndex` toFs a
         twists = zipWith toTwist indices $ rotate 1 indices
-        toTwist i j = fromInteger (i - j)
+        toTwist i j = fromInteger (j - i)
 
 
 -- | A variant of asCycle for when the list of pieces is more readily accessible

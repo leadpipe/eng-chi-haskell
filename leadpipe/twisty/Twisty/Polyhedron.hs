@@ -33,7 +33,7 @@ import Data.Maybe (fromJust, maybeToList)
 
 
 -- | A class for the faces of polyhedra used as the bases for twisty puzzles;
--- contains associated types for the edges and verrtices.
+-- contains associated types for the edges and vertices.
 class (Enum f, Bounded f, Ix f,
        Enum (PolyEdge f), Bounded (PolyEdge f),
        Enum (PolyVertex f), Bounded (PolyVertex f))

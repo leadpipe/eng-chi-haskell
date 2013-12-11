@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
@@ -48,9 +49,12 @@ instance PolyFace Face where
           nf R = [D, F, L]
           nf D = [R, L, F]
 
-  allEdgesAsFaces = faceEdgesAsFaces F ++ [[L, R], [R, D], [D, L]]
+  allEdgesAsFaces = [[D, F], [D, L], [D, R], [F, L], [L, R], [R, F]]
+--  allEdgesAsFaces = [[F, D], [F, L], [F, R], [L, D], [D, R], [R, L]]
+--  allEdgesAsFaces = [[F, D], [L, F], [R, F], [D, L], [D, R], [R, L]]
+--  allEdgesAsFaces = [[F, L], [L, R], [R, F], [D, R], [D, F], [L, D]]
 
-  allVerticesAsFaces = faceNeighborTriples F ++ [[D, R, L]]
+  allVerticesAsFaces = [[L, R, F], [R, L, D], [F, D, L], [D, F, R]]
 
 
 -- | The generic tetra move type.
