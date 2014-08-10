@@ -1,0 +1,32 @@
+Edge fixer:
+
+l+f+u+f-u-l-    (ufl+ ulb)(ubr urf-)(uf+ ur ul+)
+
+e.g.
+> let m = c3 "l+f+u+f-u-l-"
+> m $* mirLR m
+l+f+u+f-u-l-r-f-u-f+u+r+    (ufl+)(ulb+)(ubr-)(urf-)(uf+)(ul+)
+> ginvert m $* mirLR m
+l+u+f+u-f-l-r-f-u-f+u+r+    (uf ur ul)
+> ginvert it
+r-u-f-u+f+l+r+f+u+f-u-l-    (uf ul ur)
+
+
+Corner fixers:
+
+l+f+r-f-l-f+r+f-    (ufl+ ubr- ulb)
+f-b-r-b+l=b-r+b+l=f+    (ufl- ubr+ ulb)
+
+e.g.
+> let m = c3 "l+f+r-f-l-f+r+f-"
+> m $* mirFR m
+l+f+r-f-l-f+r+f-b-r-f+r+b+r-f-r+    (ulb+)(ubr-)
+> mirFR m $* m
+b-r-f+r+b+r-f-l+r+f+r-f-l-f+r+f-    (ufl+)(ulb-)
+
+> let m2 = c3 "f-b-r-b+l=b-r+b+l=f+"
+> m $* m2
+l+f+r-f-l-f+r+f=b-r-b+l=b-r+b+l=f+    (ufl- ulb- ubr-)
+> m2 $* m
+f-b-r-b+l=b-r+b+l=f+l+f+r-f-l-f+r+f-    (ufl+ ulb+ ubr+)
+
