@@ -2,6 +2,6 @@ Some 4x4 cube algorithms:
 
 * Move 4 edge pieces
 
-F=l+b-d-b+d+l-F=b+r=b-r=	(drb+ dfr+ dbl+)(fr.u+ fr.d+)(db.r+ db.l+)
-F=u=b=u=b=u+f+d=f-u-f=d=F=f+u=f+u=f+	(ulb- ubr-)(dfr-)(uf.r ub.l)(uf.l ub.r)(f.lu f.ur f.rd f.dl)
-F=u=B=r+B=u=F=l+	(ul.f dl.b)(fl.d bl.u)(l.uf l.db)(l.fd l.bu)
+F=l+b-d-b+d+l-F=b+r=b-r=    (dbl+ drb+ dfr+)(fr.d= fr.u=)(db.l= db.r=)
+F=u=b=u=b=u+f+d=f-u-f=d=F=f+u=f+u=f+    (ubr- ulb-)(dfr-)(ub.l uf.r)(ub.r uf.l)(f.dl f.lu f.ur f.rd)
+F=u=B=r+B=u=F=l+    (dl.b ul.f)(bl.u fl.d)(l.db l.uf)(l.bu l.fd)
