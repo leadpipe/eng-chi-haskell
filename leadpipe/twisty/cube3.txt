@@ -19,12 +19,28 @@ f-b-r-b+l=b-r+b+l=f+    (ulb- ufl+ ubr)
 
 e.g.
 > let m = c3 "l+f+r-f-l-f+r+f-"
+> let m_ = ginvert m
+> m_
+f+r-f-l+f+r+f-l-    (ubr+ ufl- ulb)
 > m $* mirFR m
 l+f+r-f-l-f+r+f-b-r-f+r+b+r-f-r+    (ulb+)(ubr-)
 > mirFR m $* m
 b-r-f+r+b+r-f-l+r+f+r-f-l-f+r+f-    (ufl+)(ulb-)
 
+> m $* mirFR m_
+l+f+r-f-l-f+r+f-r-f+r+b-r-f-r+b+    (ubr ufl ulb)
+> m_ $* mirFR m
+f+r-f-l+f+r+f-l-b-r-f+r+b+r-f-r+    (ulb+ ufl+ ubr+)
+> mirFR m $* m_
+b-r-f+r+b+r-f-r+f+r-f-l+f+r+f-l-    (ulb ufl ubr)
+> mirFR m_ $* m
+r-f+r+b-r-f-r+b+l+f+r-f-l-f+r+f-    (ubr- ufl- ulb-)
+
+
 > let m2 = c3 "f-b-r-b+l=b-r+b+l=f+"
+> let m2_ = ginvert m2
+> m2_
+f-l=b-r-b+l=b-r+f+b+    (ubr- ufl+ ulb)
 > m $* m2
 l+f+r-f-l-f+r+f=b-r-b+l=b-r+b+l=f+    (ubr- ufl- ulb-)
 > m2 $* m
