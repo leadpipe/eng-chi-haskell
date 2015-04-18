@@ -1,0 +1,1 @@
+A place for various study groups to share code as we learn Haskell.
